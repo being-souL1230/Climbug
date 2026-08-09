@@ -81,7 +81,11 @@ const badgeImageMap: Record<string, string> = {
   "Dawn Raider": "badge_dawn_raider.webp",
   "Speedrunner I": "badge_speedrunner.webp",
   "Speedrunner II": "badge_speedrunner.webp",
-  "Lightning Hands": "badge_lightning_hands.webp",
+  /* ── Legendary: 14 badges intentionally share the 3 legendary images ──
+     chronos_weaver  → time / speed themed
+     singularity_core → ultimate tech / peak mastery themed
+     masterpiece_badge → general prestige themed  */
+  "Lightning Hands": "legendary_chronos_weaver.webp",
   "Quick Fix": "badge_4k_blazing_fast.webp",
   "Marathon Fixer": "badge_4k_marathon_fixer.webp",
   "One Shot": "badge_one_shot.webp",
@@ -97,7 +101,7 @@ const badgeImageMap: Record<string, string> = {
   "SQL Overlord": "legendary_singularity_core.webp",
   "Multi-Stack": "badge_4k_bug_reporter.webp",
   "Nightmare Slayer": "badge_4k_nightmare_slayer.webp",
-  "Boss Slayer": "badge_boss_slayer.webp",
+  "Boss Slayer": "legendary_masterpiece_badge.webp",
   "Challenge Conqueror": "badge_challenge_conqueror.webp",
   "Guild Member": "badge_4k_guild_leader.webp",
   "Guild Leader": "badge_4k_guild_leader.webp",
@@ -106,19 +110,19 @@ const badgeImageMap: Record<string, string> = {
   "Bug Reporter": "badge_4k_bug_reporter.webp",
   "Event Participant": "badge_4k_bug_reporter.webp",
   "Leaderboard Climber": "badge_4k_global_legend.webp",
-  "Global Legend": "badge_4k_global_legend.webp",
+  "Global Legend": "legendary_masterpiece_badge.webp",
   "Launch Day Hero": "badge_4k_bug_reporter.webp",
   "Halloween Hunter": "badge_4k_shadow_debugger.webp",
   "New Year Solver": "badge_4k_bug_reporter.webp",
-  "Anniversary Badge": "badge_4k_anniversary.webp",
+  "Anniversary Badge": "legendary_masterpiece_badge.webp",
   "Beta Tester": "badge_4k_beta_tester.webp",
-  "Bug Hunt Champion": "badge_4k_bug_hunt_champion.webp",
-  "Seasonal Legend": "badge_4k_seasonal_legend.webp",
-  "Shadow Debugger": "badge_shadow_debugger.webp",
+  "Bug Hunt Champion": "legendary_singularity_core.webp",
+  "Seasonal Legend": "legendary_masterpiece_badge.webp",
+  "Shadow Debugger": "legendary_masterpiece_badge.webp",
   "Ghost in the Machine": "badge_4k_ghost_machine.webp",
-  "Code Phantom": "badge_4k_code_phantom.webp",
-  "The Unbreakable": "badge_4k_unbreakable.webp",
-  "Debug Deity": "badge_4k_debug_deity.webp",
+  "Code Phantom": "legendary_singularity_core.webp",
+  "The Unbreakable": "legendary_chronos_weaver.webp",
+  "Debug Deity": "legendary_singularity_core.webp",
 };
 
 /* ================= LEVEL ROADMAP — arrow-navigated, no horizontal scroll ================= */
@@ -328,6 +332,8 @@ export default function Rewards() {
     if (normalized.includes("community")) return THUMB + "badge_4k_community_star.webp";
     if (normalized.includes("anniversary")) return THUMB + "badge_4k_anniversary.webp";
     if (normalized.includes("beta")) return THUMB + "badge_4k_beta_tester.webp";
+    // Safety net — every current legendary badge is mapped above, so this
+    // only catches any future legendary badge that has no dedicated entry.
     if (badge.rarity === "Legendary") return THUMB + "legendary_masterpiece_badge.webp";
     return THUMB + "badge_4k_bug_reporter.webp";
   };

@@ -201,65 +201,7 @@ textarea,
   animation: grid-drift 10s linear infinite;
 }
 
-/* glass sheen for leaderboard podium cards — smooth, light, never stalls */
-@keyframes glass-sheen-sweep {
-  0% {
-    transform: translateX(-140%) skewX(-16deg);
-    opacity: 0;
-  }
-  12% {
-    opacity: 1;
-  }
-  88% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(240%) skewX(-16deg);
-    opacity: 0;
-  }
-}
-.glossy-sheen {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  border-radius: inherit;
-}
 
-/* permanent soft glass highlight (top-left) so the card reads as clean glass */
-.glossy-sheen::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.07) 0%,
-    rgba(255, 255, 255, 0.02) 22%,
-    transparent 45%
-  );
-  pointer-events: none;
-}
-
-/* smooth travelling sheen that fades in/out — no stall, no snap */
-.glossy-sheen::after {
-  content: "";
-  position: absolute;
-  top: -30%;
-  bottom: -30%;
-  left: 0;
-  width: 30%;
-  background: linear-gradient(
-    105deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.04) 30%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.04) 70%,
-    transparent 100%
-  );
-  animation: glass-sheen-sweep 3.8s ease-in-out infinite;
-  will-change: transform, opacity;
-}
 
 @keyframes twinkle {
   0%, 100% { opacity: 0.2; transform: scale(0.8); }

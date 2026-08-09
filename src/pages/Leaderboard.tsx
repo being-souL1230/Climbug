@@ -365,7 +365,6 @@ export default function Leaderboard() {
                         rarityGlow[rank]
                       )}
                     >
-                      <div className="glossy-sheen rounded-xl" />
                       {isFirst && (
                         <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-lg">👑</div>
                       )}
