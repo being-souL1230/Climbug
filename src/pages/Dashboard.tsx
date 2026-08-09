@@ -738,10 +738,21 @@ export default function Dashboard() {
                   name="shield"
                   className="h-9 w-9 shrink-0 transition-transform duration-300 group-hover:scale-110"
                 />
-                <div>
+                <div className="min-w-0">
                   <p className="text-[10px] font-bold tracking-[0.18em] text-violet-400">GUILD</p>
-                  <p className="text-[15px] font-extrabold text-white">Code Rangers</p>
-                  <p className="text-xs text-zinc-500">Rank #1 - 0 Guild XP</p>
+                  {progress.guild ? (
+                    <>
+                      <p className="truncate text-[15px] font-extrabold text-white">{progress.guild.name}</p>
+                      <p className="text-xs text-zinc-500">
+                        Rank #{progress.guild.rank} of {progress.guild.memberCount} · {progress.guild.xp.toLocaleString()} Guild XP
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-[15px] font-extrabold text-zinc-300">No guild yet</p>
+                      <p className="text-xs text-zinc-500">Join a guild to squad up with other debuggers.</p>
+                    </>
+                  )}
                 </div>
               </div>
             </section>
