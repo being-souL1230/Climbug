@@ -192,14 +192,13 @@ export default function Dashboard() {
               <GameIcon name="crystal" className="h-6 w-6" />
               <div className="relative h-2.5 flex-1 overflow-hidden rounded-full bg-white/8">
                 <div
-                  className="anime-progress-fill relative h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+                  className="anime-progress-fill relative h-full overflow-hidden rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
                   style={{
                     width: `${xpPct}%`,
-                    backgroundImage:
-                      "linear-gradient(90deg,#8b5cf6,#d946ef), linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.5) 50%, transparent 70%)",
+                    backgroundImage: "linear-gradient(90deg, #8b5cf6, #d946ef)",
                   }}
                 >
-                  <span className="anime-scan absolute inset-y-0 w-12 bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+                  <span className="level-bar-shine" />
                 </div>
               </div>
               <span className="whitespace-nowrap text-xs font-semibold text-zinc-400">{progress.xp} / {xpForLevel} XP</span>

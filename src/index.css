@@ -228,3 +228,22 @@ textarea,
   50% { opacity: 1; transform: scale(1.2); }
 }
 .twinkle { animation: twinkle 2.4s ease-in-out infinite; }
+
+/* Fast & smooth level bar shining sweep */
+@keyframes fast-shine-sweep {
+  0% {
+    transform: translateX(-150%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+.level-bar-shine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 48px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.8) 50%, transparent 100%);
+  animation: fast-shine-sweep 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform;
+}
