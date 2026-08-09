@@ -1,7 +1,7 @@
 const CACHE_NAME = "climbug-v2";
 const IMAGE_CACHE = "climbug-badge-thumbs-v1";
 
-// Thumbnails — 37 files, ~1.2 MB total (down from 44 MB)
+// Thumbnails — 45 files pre-cached
 const BADGE_IMAGES = [
   "/images/thumbs/badge_4k_anniversary.webp",
   "/images/thumbs/badge_4k_beta_tester.webp",
@@ -40,6 +40,14 @@ const BADGE_IMAGES = [
   "/images/thumbs/legendary_chronos_weaver.webp",
   "/images/thumbs/legendary_masterpiece_badge.webp",
   "/images/thumbs/legendary_singularity_core.webp",
+  "/images/thumbs/badge_1_hexagon_phoenix.webp",
+  "/images/thumbs/badge_2_shield_lightning.webp",
+  "/images/thumbs/badge_3_star_dragon.webp",
+  "/images/thumbs/badge_4_diamond_crown.webp",
+  "/images/thumbs/badge_5_medal_owl.webp",
+  "/images/thumbs/legendary_1_grail_chalice.webp",
+  "/images/thumbs/legendary_2_cosmic_orb.webp",
+  "/images/thumbs/legendary_3_samurai_katana.webp",
 ];
 
 // Install — cache all thumbnails immediately (~1.2 MB, fast)

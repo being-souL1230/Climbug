@@ -30,21 +30,21 @@ export const badges: Badge[] = [
   { id: 5, name: "Week Warrior", desc: "7-day solving streak", rarity: "Rare", icon: "star", unlock: "Level 8", category: "Debugging Streaks" },
   { id: 6, name: "Month Legend", desc: "30-day solving streak", rarity: "Epic", icon: "star", unlock: "Level 18", category: "Debugging Streaks" },
   { id: 7, name: "Century Club", desc: "100 bugs solved total", rarity: "Epic", icon: "trophy", unlock: "Level 15", category: "Debugging Streaks" },
-  { id: 8, name: "Speed Demon", desc: "Solve 5 bugs under 10 min each", rarity: "Rare", icon: "lightning", unlock: "Level 10", category: "Debugging Streaks" },
+  { id: 8, name: "Speed Demon", desc: "Solve 5 Advanced or Nightmare bugs in under 10 min each", rarity: "Rare", icon: "lightning", unlock: "Level 10", category: "Debugging Streaks" },
   { id: 9, name: "Night Owl", desc: "Solve 10 bugs between 12am-6am", rarity: "Common", icon: "crystal", unlock: "Level 6", category: "Debugging Streaks" },
   { id: 10, name: "Dawn Raider", desc: "Solve 10 bugs between 5am-9am", rarity: "Common", icon: "crystal", unlock: "Level 6", category: "Debugging Streaks" },
 
   // Speed Milestones (11-20)
-  { id: 11, name: "Speedrunner I", desc: "Solve a bug in under 2 minutes", rarity: "Rare", icon: "lightning", unlock: "Level 5", category: "Speed Milestones" },
-  { id: 12, name: "Speedrunner II", desc: "Solve 10 bugs under 5 minutes", rarity: "Epic", icon: "lightning", unlock: "Level 14", category: "Speed Milestones" },
+  { id: 11, name: "Speedrunner I", desc: "Solve an Advanced or Nightmare bug in under 2 minutes", rarity: "Rare", icon: "lightning", unlock: "Level 5", category: "Speed Milestones" },
+  { id: 12, name: "Speedrunner II", desc: "Solve 10 Advanced or Nightmare bugs in under 5 minutes", rarity: "Epic", icon: "lightning", unlock: "Level 14", category: "Speed Milestones" },
   { id: 13, name: "Lightning Hands", desc: "Solve 3 bugs in under 1 minute each", rarity: "Legendary", icon: "lightning", unlock: "Level 22", category: "Speed Milestones" },
   { id: 14, name: "Quick Fix", desc: "Fix 5 bugs in a single session", rarity: "Common", icon: "sword", unlock: "Level 4", category: "Speed Milestones" },
   { id: 15, name: "Marathon Fixer", desc: "Solve 25 bugs in one sitting", rarity: "Epic", icon: "sword", unlock: "Level 16", category: "Speed Milestones" },
-  { id: 16, name: "One Shot", desc: "Solve a bug on first attempt", rarity: "Rare", icon: "target", unlock: "Level 9", category: "Speed Milestones" },
-  { id: 17, name: "No Hints Needed", desc: "Solve 10 bugs without using hints", rarity: "Epic", icon: "target", unlock: "Level 13", category: "Speed Milestones" },
+  { id: 16, name: "One Shot", desc: "Solve 5 bugs on first attempt", rarity: "Rare", icon: "target", unlock: "Level 9", category: "Speed Milestones" },
+  { id: 17, name: "No Hints Needed", desc: "Solve 20 bugs without using hints", rarity: "Epic", icon: "target", unlock: "Level 13", category: "Speed Milestones" },
   { id: 18, name: "Perfect Run", desc: "Solve 5 bugs with 0 XP penalty", rarity: "Rare", icon: "shield", unlock: "Level 11", category: "Speed Milestones" },
   { id: 19, name: "Time Lord", desc: "Beat the timer on 20 hard challenges", rarity: "Legendary", icon: "timer", unlock: "Level 25", category: "Speed Milestones" },
-  { id: 20, name: "Blazing Fast", desc: "Average solve time under 4 minutes", rarity: "Epic", icon: "lightning", unlock: "Level 19", category: "Speed Milestones" },
+  { id: 20, name: "Blazing Fast", desc: "Average solve time under 3 minutes (10+ timed solves)", rarity: "Epic", icon: "lightning", unlock: "Level 19", category: "Speed Milestones" },
 
   // Problem Solvers (21-30)
   { id: 21, name: "Python Novice", desc: "Solve 10 Python challenges", rarity: "Common", icon: "python", unlock: "Level 4", category: "Problem Solvers" },
@@ -83,6 +83,16 @@ export const badges: Badge[] = [
   { id: 48, name: "Code Phantom", desc: "Reach level 30", rarity: "Legendary", icon: "shield", unlock: "Secret", category: "Hidden" },
   { id: 49, name: "The Unbreakable", desc: "Maintain a 100-day streak", rarity: "Legendary", icon: "star", unlock: "Secret", category: "Hidden" },
   { id: 50, name: "Debug Deity", desc: "Solve every single challenge", rarity: "Legendary", icon: "trophy", unlock: "Secret", category: "Hidden" },
+
+  // New artwork badges (51-58) — added by the team
+  { id: 51, name: "Hexagon Phoenix", desc: "Solve 15 bugs total", rarity: "Common", icon: "flame", unlock: "Level 3", category: "Milestones" },
+  { id: 52, name: "Shield Lightning", desc: "Solve bugs in 2 different tracks", rarity: "Common", icon: "shield", unlock: "Level 4", category: "Milestones" },
+  { id: 53, name: "Star Dragon", desc: "Solve 3 Advanced challenges", rarity: "Common", icon: "star", unlock: "Level 6", category: "Milestones" },
+  { id: 54, name: "Diamond Crown", desc: "Reach level 5", rarity: "Common", icon: "diamond", unlock: "Level 5", category: "Milestones" },
+  { id: 55, name: "Medal Owl", desc: "Solve 5 bugs in a single day", rarity: "Common", icon: "crystal", unlock: "Level 7", category: "Milestones" },
+  { id: 56, name: "Grail Chalice", desc: "Solve 150 bugs total", rarity: "Legendary", icon: "trophy", unlock: "Level 26", category: "Milestones" },
+  { id: 57, name: "Cosmic Orb", desc: "Solve 10 bugs in under 1 minute each", rarity: "Legendary", icon: "crystal", unlock: "Level 27", category: "Milestones" },
+  { id: 58, name: "Samurai Katana", desc: "Solve 25 bugs with 0 XP penalty", rarity: "Legendary", icon: "sword", unlock: "Level 28", category: "Milestones" },
 ];
 
 /* ═══════════════ Backend-backed unlock state (singleton) ═══════════════ */

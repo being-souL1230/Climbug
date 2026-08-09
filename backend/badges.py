@@ -122,6 +122,11 @@ class BadgeContext:
         self.fast_under_2: int = 0
         self.fast_under_1: int = 0
         self.hard_on_time: int = 0  # Advanced/Nightmare solves inside the timer
+        # Speed badges only credit Advanced/Nightmare solves — speed must be
+        # earned on hard problems, not trivially fast beginner ones.
+        self.fast_hard_under_10: int = 0
+        self.fast_hard_under_5: int = 0
+        self.fast_hard_under_2: int = 0
         for r in self.solves:
             meta = self.registry.get(r["challenge_id"])
             base_xp = meta.xp if meta else r["xp_awarded"]
@@ -146,6 +151,13 @@ class BadgeContext:
                 limit = DIFF_TIME_LIMIT.get(r["difficulty"])
                 if limit is not None and t < limit:
                     self.hard_on_time += 1
+                if r["difficulty"] in ("Advanced", "Nightmare"):
+                    if t < 600:
+                        self.fast_hard_under_10 += 1
+                    if t < 300:
+                        self.fast_hard_under_5 += 1
+                    if t < 120:
+                        self.fast_hard_under_2 += 1
 
         avg = [r["time_taken_sec"] for r in self.timed]
         self.avg_time: float | None = (sum(avg) / len(avg)) if avg else None
@@ -172,19 +184,19 @@ def _make_rules() -> dict[int, Callable[[BadgeContext], bool]]:
         5:  lambda c: c.streak >= 7,
         6:  lambda c: c.streak >= 30,
         7:  lambda c: c.total >= 100,
-        8:  lambda c: c.fast_under_10 >= 5,
+        8:  lambda c: c.fast_hard_under_10 >= 5,
         9:  lambda c: c.night >= 10,
         10: lambda c: c.dawn >= 10,
-        11: lambda c: c.fast_under_2 >= 1,
-        12: lambda c: c.fast_under_5 >= 10,
+        11: lambda c: c.fast_hard_under_2 >= 1,
+        12: lambda c: c.fast_hard_under_5 >= 10,
         13: lambda c: c.fast_under_1 >= 3,
         14: lambda c: most_per_hour(c) >= 5,
         15: lambda c: most_per_day(c) >= 25,
-        16: lambda c: c.one_shots >= 1,
-        17: lambda c: c.hint_free >= 10,
+        16: lambda c: c.one_shots >= 5,
+        17: lambda c: c.hint_free >= 20,
         18: lambda c: c.perfect_runs >= 5,
         19: lambda c: c.hard_on_time >= 20,
-        20: lambda c: c.avg_time is not None and c.avg_time < 240,
+        20: lambda c: len(c.timed) >= 10 and c.avg_time is not None and c.avg_time < 180,
         21: lambda c: c.by_track.get("python", 0) >= 10,
         22: lambda c: c.by_track.get("python", 0) >= c.track_totals.get("python", 40),
         23: lambda c: c.by_track.get("javascript", 0) >= 10,
@@ -215,6 +227,15 @@ def _make_rules() -> dict[int, Callable[[BadgeContext], bool]]:
         48: lambda c: c.level >= 30,
         49: lambda c: c.streak >= 100,
         50: lambda c: c.total >= c.total_challenges,
+        # ---- Milestones (51-58) — new badge artwork added with the app ----
+        51: lambda c: c.total >= 15,
+        52: lambda c: c.track_count >= 2,
+        53: lambda c: c.by_diff.get("Advanced", 0) >= 3,
+        54: lambda c: c.level >= 5,
+        55: lambda c: most_per_day(c) >= 5,
+        56: lambda c: c.total >= 150,
+        57: lambda c: c.fast_under_1 >= 10,
+        58: lambda c: c.perfect_runs >= 25,
     }
 
 

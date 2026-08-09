@@ -82,13 +82,14 @@ def main() -> None:
         # ---- User A: heavy early user ----
         add_user(conn, 1, xp=500, streak=7, created_at=(datetime.now(timezone.utc) - timedelta(days=400)).isoformat())
         day1 = (datetime.now(timezone.utc) - timedelta(days=2)).strftime("%Y-%m-%dT12:00:00")
-        # 10 python solves on one day -> Bug Streak I + Python Novice; first_blood
+        # 10 python beginner solves on one day -> Bug Streak I + Python Novice; first_blood
         for cid in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10):
             add_solve(conn, 1, cid, when=day1, time_taken=90)
-        # a fast solve under 2 min -> Speedrunner I (90s < 120s)
         # an Advanced solve under its 8-min limit -> counts toward Time Lord
         add_solve(conn, 1, 21, when=day1, time_taken=300, penalty=10)  # 1 hint used
         add_solve(conn, 1, 131, when=day1, time_taken=400)  # nightmare under 660
+        # an Advanced solve under 2 min -> Speedrunner I (90s < 120s, hard only)
+        add_solve(conn, 1, 22, when=day1, time_taken=90)
 
         b1 = badges_for(conn, 1)
         check("First Blood (1)", b1[1])
@@ -97,10 +98,11 @@ def main() -> None:
         check("Python Novice (21)", b1[21])
         check("Python Master (22) NOT yet", not b1[22])
         check("Speedrunner I (11)", b1[11])
+        check("Speed Demon (8) NOT yet (3 hard fast < 5)", not b1[8])
         check("Century Club (7) NOT yet", not b1[7])
         check("Nightmare Slayer (28) NOT yet", not b1[28])
-        check("Perfect Run (18) (6/7 solves clean)", b1[18])
-        check("No Hints Needed (17) (11 hint-free solves)", b1[17])
+        check("Perfect Run (18) (12/13 solves clean)", b1[18])
+        check("No Hints Needed (17) NOT yet (12 hint-free < 20)", not b1[17])
         check("One Shot (16)", b1[16])  # attempts table empty -> count defaults to 1
         check("Anniversary (42)", b1[42])  # 400 days old
         # A has 12 solves, rank 21 of 1021 users -> top 100 yes, top 10 no
@@ -120,6 +122,11 @@ def main() -> None:
         check("Global Legend top10 (38)", b2[38])
         check("Nightmare Slayer (28)", b2[28])
         check("Lightning Hands (13)", b2[13])  # 10 solves under 60s
+        check("Speedrunner I (11) hard fast", b2[11])
+        check("Speed Demon (8) hard fast", b2[8])
+        check("Speedrunner II (12) hard fast", b2[12])
+        check("Blazing Fast (20) avg 30s", b2[20])
+        check("Cosmic Orb (57) 10 sub-60s", b2[57])
         check("Month Legend (6)", b2[6])
         check("Code Phantom (48) NOT (xp too high)", not b2[48])
 
@@ -128,6 +135,14 @@ def main() -> None:
         check("Leaderboard Climber (37) for A", b1c[37])
         check("Global Legend (38) NOT for rank-22 user", not b1c[38])
 
+        # ---- New artwork badges (51-58) ----
+        check("Medal Owl (55) for B (10/day)", b2[55])
+        check("Diamond Crown (54) for B (level 13)", b2[54])
+        check("Hexagon Phoenix (51) NOT for B (10 < 15)", not b2[51])
+        check("Star Dragon (53) NOT for B (0 Advanced)", not b2[53])
+        check("Grail Chalice (56) NOT for B (10 < 150)", not b2[56])
+        check("Samurai Katana (58) NOT for B (10 < 25 perfect)", not b2[58])
+
         # ---- User C: brand new, no solves ----
         add_user(conn, 3, xp=0)
         b3 = badges_for(conn, 3)
@@ -135,6 +150,7 @@ def main() -> None:
         check("New user NO Leaderboard Climber (37)", not b3[37])
         check("New user NO Global Legend (38)", not b3[38])
         check("Feature-less badges stay locked (29/31/33/43)", not (b3[29] or b3[31] or b3[33] or b3[43]))
+        check("New user has none of the new badges (51-58)", not any(b3[i] for i in range(51, 59)))
 
         print("ALL BADGE TESTS PASSED")
     finally:

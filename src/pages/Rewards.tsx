@@ -66,6 +66,7 @@ const categoryIcons: Record<string, IconName> = {
   "Community": "people",
   "Special Events": "crystal",
   "Hidden": "shield",
+  "Milestones": "star",
 };
 
 const badgeImageMap: Record<string, string> = {
@@ -81,11 +82,9 @@ const badgeImageMap: Record<string, string> = {
   "Dawn Raider": "badge_dawn_raider.webp",
   "Speedrunner I": "badge_speedrunner.webp",
   "Speedrunner II": "badge_speedrunner.webp",
-  /* ── Legendary: 14 badges intentionally share the 3 legendary images ──
-     chronos_weaver  → time / speed themed
-     singularity_core → ultimate tech / peak mastery themed
-     masterpiece_badge → general prestige themed  */
-  "Lightning Hands": "legendary_chronos_weaver.webp",
+  /* ── Legendary: dedicated 4k images used where available; only the rest
+     share the 3 themed legendary images ── */
+  "Lightning Hands": "badge_lightning_hands.webp",
   "Quick Fix": "badge_4k_blazing_fast.webp",
   "Marathon Fixer": "badge_4k_marathon_fixer.webp",
   "One Shot": "badge_one_shot.webp",
@@ -116,13 +115,22 @@ const badgeImageMap: Record<string, string> = {
   "New Year Solver": "badge_4k_bug_reporter.webp",
   "Anniversary Badge": "legendary_masterpiece_badge.webp",
   "Beta Tester": "badge_4k_beta_tester.webp",
-  "Bug Hunt Champion": "legendary_singularity_core.webp",
-  "Seasonal Legend": "legendary_masterpiece_badge.webp",
-  "Shadow Debugger": "legendary_masterpiece_badge.webp",
+  "Bug Hunt Champion": "badge_4k_bug_hunt_champion.webp",
+  "Seasonal Legend": "badge_4k_seasonal_legend.webp",
+  "Shadow Debugger": "badge_shadow_debugger.webp",
   "Ghost in the Machine": "badge_4k_ghost_machine.webp",
-  "Code Phantom": "legendary_singularity_core.webp",
-  "The Unbreakable": "legendary_chronos_weaver.webp",
-  "Debug Deity": "legendary_singularity_core.webp",
+  "Code Phantom": "badge_4k_code_phantom.webp",
+  "The Unbreakable": "badge_4k_unbreakable.webp",
+  "Debug Deity": "badge_4k_debug_deity.webp",
+  /* ── New artwork (51-58) ── */
+  "Hexagon Phoenix": "badge_1_hexagon_phoenix.webp",
+  "Shield Lightning": "badge_2_shield_lightning.webp",
+  "Star Dragon": "badge_3_star_dragon.webp",
+  "Diamond Crown": "badge_4_diamond_crown.webp",
+  "Medal Owl": "badge_5_medal_owl.webp",
+  "Grail Chalice": "legendary_1_grail_chalice.webp",
+  "Cosmic Orb": "legendary_2_cosmic_orb.webp",
+  "Samurai Katana": "legendary_3_samurai_katana.webp",
 };
 
 /* ================= LEVEL ROADMAP — arrow-navigated, no horizontal scroll ================= */
