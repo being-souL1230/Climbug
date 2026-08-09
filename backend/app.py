@@ -19,6 +19,10 @@ from boss import check_solution, ensure_week_boss, public_boss
 
 
 ROOT = Path(__file__).resolve().parents[1]
+# Backend-only deploys (app.py at repo root, e.g. a separate backend repo)
+# have src/data.ts beside the app instead of ../src/data.ts.
+if not (ROOT / "src" / "data.ts").exists():
+    ROOT = Path(__file__).resolve().parent
 DB_PATH = Path(os.environ.get("CLIMBUG_DB", ROOT / "backend" / "climbug.sqlite3"))
 DATA_FILE = ROOT / "src" / "data.ts"
 
@@ -54,10 +58,26 @@ app.config.update(
     SESSION_COOKIE_SECURE=os.environ.get("SESSION_COOKIE_SECURE", "false").lower() == "true",
     SEND_FILE_MAX_AGE_DEFAULT=31536000,  # 1 year cache for static assets
 )
+def _cors_origins() -> list[str]:
+    """CORS allowlist.
+
+    Explicit CLIMBUG_CORS_ORIGINS wins. Otherwise fall back to the local dev
+    origins PLUS the configured FRONTEND_URL — so a Render deploy works out of
+    the box even if only FRONTEND_URL is set (no separate CORS var needed).
+    """
+    configured = os.environ.get("CLIMBUG_CORS_ORIGINS")
+    if configured:
+        return [o.strip() for o in configured.split(",") if o.strip()]
+    origins = ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5000", "http://127.0.0.1:5000"]
+    if FRONTEND_URL and FRONTEND_URL not in origins:
+        origins.append(FRONTEND_URL)
+    return origins
+
+
 CORS(
     app,
     supports_credentials=True,
-    origins=os.environ.get("CLIMBUG_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5000,http://127.0.0.1:5000").split(","),
+    origins=_cors_origins(),
 )
 
 registry = ChallengeRegistry(DATA_FILE)
