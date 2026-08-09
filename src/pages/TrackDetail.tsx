@@ -19,9 +19,10 @@ export default function TrackDetail() {
 
   if (!track) return <Navigate to="/tracks" replace />;
 
-  const groups = order
-    .map((d) => ({ difficulty: d, items: track.challenges.filter((c) => c.difficulty === d) }))
-    .filter((g) => g.items.length > 0);
+  // Single flat list — all difficulties live in one container, tagged per row.
+  const items = [...track.challenges].sort(
+    (a, b) => order.indexOf(a.difficulty) - order.indexOf(b.difficulty) || a.id - b.id
+  );
 
   return (
     <div ref={pageRef} className="min-h-screen bg-[#07070b]">
@@ -86,110 +87,113 @@ export default function TrackDetail() {
               </div>
             </div>
 
-            {/* ── Content Section with Partitions ── */}
+            {/* ── Content Section — single container, difficulty tags on every row ── */}
             <div className="divide-y divide-white/[0.06] bg-[#09090e]">
-              {groups.length === 0 ? (
+              {items.length === 0 ? (
                 <div className="px-8 py-16 text-center">
                   <GameIcon name="code" className="mx-auto h-10 w-10 text-zinc-700" />
                   <p className="mt-3 text-sm text-zinc-500 italic">No challenges available for this track yet.</p>
                 </div>
               ) : (
-                groups.map((g) => {
-                  const style = difficultyStyles[g.difficulty];
-                  return (
-                    <div key={g.difficulty} className="flex flex-col">
-                      {/* Difficulty Header */}
-                      <div className="flex items-center justify-between bg-white/[0.02] px-6 py-2.5 sm:px-8 border-b border-white/[0.04]">
-                        <div className="flex items-center gap-3">
-                          <span className={cn("h-2 w-2 rounded-full shadow-[0_0_8px_currentColor]", style.text, style.bg.replace('/10', ''))} />
-                          <span className={cn("text-[11px] font-black uppercase tracking-[0.15em]", style.text)}>
-                            {g.difficulty}
-                          </span>
-                        </div>
-                        <span className="font-mono text-[10px] font-bold text-zinc-600">
-                          {g.items.length} MODULES
+                <div>
+                  {/* Difficulty legend */}
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-white/[0.04] bg-white/[0.015] px-6 py-2.5 sm:px-8">
+                    <span className="text-[10px] font-bold tracking-widest text-zinc-600 uppercase">Difficulty</span>
+                    {order.map((d) => {
+                      const s = difficultyStyles[d];
+                      return (
+                        <span key={d} className="inline-flex items-center gap-1.5">
+                          <span className={cn("h-2 w-2 rounded-full shadow-[0_0_6px_currentColor]", s.text, s.bg.replace("/10", ""))} />
+                          <span className="text-[10px] font-medium text-zinc-400">{d}</span>
                         </span>
-                      </div>
+                      );
+                    })}
+                    <span className="ml-auto font-mono text-[10px] font-bold text-zinc-600">
+                      {items.length} CHALLENGES
+                    </span>
+                  </div>
 
-                      {/* Problems List */}
-                      <div className="divide-y divide-white/[0.04]">
-                        {/* Table Header (Desktop) */}
-                        <div className="hidden grid-cols-[2.5rem_1fr_4.5rem_4.5rem_5.5rem_6rem_6.5rem] items-center gap-4 px-6 py-2 sm:px-8 md:grid bg-white/[0.01]">
-                          <span className="text-[10px] font-bold tracking-widest text-zinc-600 uppercase">#</span>
-                          <span className="text-[10px] font-bold tracking-widest text-zinc-600 uppercase">Challenge</span>
-                          <span className="text-right text-[10px] font-bold tracking-widest text-zinc-600 uppercase">XP</span>
-                          <span className="text-right text-[10px] font-bold tracking-widest text-zinc-600 uppercase">Time</span>
-                          <span className="text-right text-[10px] font-bold tracking-widest text-zinc-600 uppercase">Stack</span>
-                          <span className="text-right text-[10px] font-bold tracking-widest text-zinc-600 uppercase">Status</span>
-                          <span className="text-right text-[10px] font-bold tracking-widest text-zinc-600 uppercase">Action</span>
-                        </div>
+                  {/* Table Header (Desktop) */}
+                  <div className="hidden grid-cols-[2.5rem_1fr_4.5rem_4.5rem_5.5rem_6rem_6.5rem] items-center gap-4 px-6 py-2 sm:px-8 md:grid bg-white/[0.01]">
+                    <span className="text-[10px] font-bold tracking-widest text-zinc-600 uppercase">#</span>
+                    <span className="text-[10px] font-bold tracking-widest text-zinc-600 uppercase">Challenge</span>
+                    <span className="text-right text-[10px] font-bold tracking-widest text-zinc-600 uppercase">XP</span>
+                    <span className="text-right text-[10px] font-bold tracking-widest text-zinc-600 uppercase">Time</span>
+                    <span className="text-right text-[10px] font-bold tracking-widest text-zinc-600 uppercase">Stack</span>
+                    <span className="text-right text-[10px] font-bold tracking-widest text-zinc-600 uppercase">Status</span>
+                    <span className="text-right text-[10px] font-bold tracking-widest text-zinc-600 uppercase">Action</span>
+                  </div>
 
-                        {g.items.map((c, i) => {
-                          const solved = progress.completed.includes(c.id);
-                          return (
-                            <Link
-                              key={c.id}
-                              to={`/challenge/${c.id}`}
-                              className="group grid grid-cols-1 gap-3 px-6 py-3.5 transition-all duration-200 hover:bg-white/[0.03] sm:px-8 md:grid-cols-[2.5rem_1fr_4.5rem_4.5rem_5.5rem_6rem_6.5rem] md:items-center md:gap-4"
-                            >
-                              <span className="hidden font-mono text-xs text-zinc-600 md:block">{String(i + 1).padStart(2, '0')}</span>
-                              
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-bold text-white group-hover:text-violet-300 transition-colors">{c.title}</span>
-                                  {!solved && <span className="h-1 w-1 rounded-full bg-violet-500/50" />}
-                                </div>
-                                <p className="mt-0.5 truncate text-xs text-zinc-500">{c.desc}</p>
-                              </div>
+                  {/* All problems in one list */}
+                  <div className="divide-y divide-white/[0.04]">
+                    {items.map((c, i) => {
+                      const solved = progress.completed.includes(c.id);
+                      const style = difficultyStyles[c.difficulty];
+                      return (
+                        <Link
+                          key={c.id}
+                          to={`/challenge/${c.id}`}
+                          className="group grid grid-cols-1 gap-3 px-6 py-3.5 transition-all duration-200 hover:bg-white/[0.03] sm:px-8 md:grid-cols-[2.5rem_1fr_4.5rem_4.5rem_5.5rem_6rem_6.5rem] md:items-center md:gap-4"
+                        >
+                          <span className="hidden font-mono text-xs text-zinc-600 md:block">{String(i + 1).padStart(2, '0')}</span>
 
-                              <div className="flex items-center justify-between md:justify-end">
-                                <span className="text-[10px] font-bold text-zinc-600 uppercase md:hidden">XP</span>
-                                <span className="flex items-center gap-1 font-mono text-xs font-bold text-amber-400">
-                                  <GameIcon name="lightning" className="h-3 w-3" />
-                                  {c.xp}
-                                </span>
-                              </div>
+                          <div className="min-w-0">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <span className="truncate text-sm font-bold text-white transition-colors group-hover:text-violet-300">{c.title}</span>
+                              <span className={cn("shrink-0 rounded-full border px-1.5 py-0.5 text-[8.5px] font-black uppercase tracking-wide", style.bg, style.text, style.border)}>
+                                {c.difficulty}
+                              </span>
+                              {!solved && <span className="h-1 w-1 shrink-0 rounded-full bg-violet-500/50" />}
+                            </div>
+                            <p className="mt-0.5 truncate text-xs text-zinc-500">{c.desc}</p>
+                          </div>
 
-                              <div className="flex items-center justify-between md:justify-end">
-                                <span className="text-[10px] font-bold text-zinc-600 uppercase md:hidden">Time</span>
-                                <span className="font-mono text-xs font-medium text-zinc-400">{c.timeMin}m</span>
-                              </div>
+                          <div className="flex items-center justify-between md:justify-end">
+                            <span className="text-[10px] font-bold text-zinc-600 uppercase md:hidden">XP</span>
+                            <span className="flex items-center gap-1 font-mono text-xs font-bold text-amber-400">
+                              <GameIcon name="lightning" className="h-3 w-3" />
+                              {c.xp}
+                            </span>
+                          </div>
 
-                              <div className="flex items-center justify-between md:justify-end">
-                                <span className="text-[10px] font-bold text-zinc-600 uppercase md:hidden">Stack</span>
-                                <span className="rounded bg-white/5 px-2 py-0.5 font-mono text-[10px] text-zinc-400 border border-white/5">{c.lang}</span>
-                              </div>
+                          <div className="flex items-center justify-between md:justify-end">
+                            <span className="text-[10px] font-bold text-zinc-600 uppercase md:hidden">Time</span>
+                            <span className="font-mono text-xs font-medium text-zinc-400">{c.timeMin}m</span>
+                          </div>
 
-                              <div className="flex items-center justify-between md:justify-end">
-                                <span className="text-[10px] font-bold text-zinc-600 uppercase md:hidden">Status</span>
-                                {solved ? (
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400">
-                                    <span className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
-                                    DONE
-                                  </span>
-                                ) : (
-                                  <span className="text-[11px] font-bold text-zinc-600">—</span>
-                                )}
-                              </div>
+                          <div className="flex items-center justify-between md:justify-end">
+                            <span className="text-[10px] font-bold text-zinc-600 uppercase md:hidden">Stack</span>
+                            <span className="rounded bg-white/5 px-2 py-0.5 font-mono text-[10px] text-zinc-400 border border-white/5">{c.lang}</span>
+                          </div>
 
-                              <div className="flex justify-end">
-                                <span className={cn(
-                                  "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-black transition-all",
-                                  solved 
-                                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20"
-                                    : "border-white/10 bg-white/5 text-zinc-400 group-hover:border-violet-500/50 group-hover:text-white group-hover:bg-violet-600/10"
-                                )}>
-                                  {solved ? "REPLAY" : "SOLVE"}
-                                  <GameIcon name="chevronRight" className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                                </span>
-                              </div>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })
+                          <div className="flex items-center justify-between md:justify-end">
+                            <span className="text-[10px] font-bold text-zinc-600 uppercase md:hidden">Status</span>
+                            {solved ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400">
+                                <span className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
+                                DONE
+                              </span>
+                            ) : (
+                              <span className="text-[11px] font-bold text-zinc-600">—</span>
+                            )}
+                          </div>
+
+                          <div className="flex justify-end">
+                            <span className={cn(
+                              "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-black transition-all",
+                              solved
+                                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20"
+                                : "border-white/10 bg-white/5 text-zinc-400 group-hover:border-violet-500/50 group-hover:text-white group-hover:bg-violet-600/10"
+                            )}>
+                              {solved ? "REPLAY" : "SOLVE"}
+                              <GameIcon name="chevronRight" className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                            </span>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
             </div>
           </div>

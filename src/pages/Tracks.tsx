@@ -166,8 +166,7 @@ export default function Tracks() {
                 {/* Action */}
                 <div className="flex justify-end">
                   <span
-                    className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-bold text-white transition-all duration-200 group-hover:shadow-md"
-                    style={{ borderColor: `${t.accent}55`, background: `${t.accent}15` }}
+                    className="inline-flex items-center gap-1 rounded-lg border border-lime-400/40 bg-lime-400/10 px-3 py-1.5 text-xs font-bold text-lime-300 transition-all duration-200 group-hover:border-lime-400/70 group-hover:bg-lime-400/20 group-hover:shadow-[0_0_18px_rgba(163,230,53,0.25)]"
                   >
                     {t.solved > 0 ? "Continue" : "Start"}
                     <GameIcon name="chevronRight" className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-0.5" />

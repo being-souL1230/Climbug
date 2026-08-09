@@ -144,6 +144,7 @@ export default function Challenge() {
   const [showFail, setShowFail] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [xpPenalty, setXpPenalty] = useState(0);
+  const [openHint, setOpenHint] = useState<number | null>(null);
 
   const { progress } = useProgress();
   const alreadyDone = found ? progress.completed.includes(found.challenge.id) : false;
@@ -242,48 +243,99 @@ export default function Challenge() {
           </h2>
           <p className="mt-3 text-[15px] leading-relaxed text-zinc-200">{challenge.desc}</p>
 
-          <div className="mt-5 rounded-lg border border-rose-900/50 bg-[#1a0d10] p-3">
-            <p className="text-[10px] font-bold tracking-[0.15em] text-rose-400/80">EXPECTED ERROR</p>
-            <p className="mt-1.5 whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-rose-300">{challenge.expectedError}</p>
-          </div>
-
-          <div className="mt-3 rounded-lg border border-amber-900/50 bg-[#1a1408] p-3">
-            <p className="text-[10px] font-bold tracking-[0.15em] text-amber-400/80">THE BUG IS</p>
-            <p className="mt-1.5 font-mono text-[12px] leading-relaxed text-amber-200">{challenge.bug}</p>
+          {/* Bug breakdown — one compact, consistent panel (error + culprit) */}
+          <div className="mt-4 overflow-hidden rounded-xl border border-white/8 bg-[#14141d]">
+            <div className="flex items-start gap-3 px-4 py-3">
+              <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md bg-rose-500/10 text-[11px] font-black leading-none text-rose-400">
+                !
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[9px] font-black tracking-[0.16em] text-zinc-500 uppercase">Expected Error</p>
+                <p className="mt-1 whitespace-pre-wrap font-mono text-[11.5px] leading-relaxed text-zinc-300">{challenge.expectedError}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 border-t border-white/[0.06] px-4 py-3">
+              <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md bg-amber-500/10">
+                <GameIcon name="bug" className="h-3 w-3 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.4)]" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[9px] font-black tracking-[0.16em] text-zinc-500 uppercase">The Bug Is</p>
+                <p className="mt-1 font-mono text-[11.5px] leading-relaxed text-zinc-300">{challenge.bug}</p>
+              </div>
+            </div>
           </div>
 
           <h2 className="mt-6 flex items-center gap-2 text-xs font-extrabold tracking-[0.18em] text-zinc-400">
             <GameIcon name="target" className="h-5 w-5" /> HINTS <span className="font-normal normal-case tracking-normal text-rose-400/80">(-10 XP EACH)</span>
           </h2>
-          <div className="mt-3 space-y-2.5">
-            {challenge.hints.map((h, i) => {
-              const open = revealed.includes(i);
+
+          {/* Hint selector — compact circles, click to reveal */}
+          <div className="mt-3 flex items-center gap-3">
+            {challenge.hints.map((_h, i) => {
+              const used = revealed.includes(i);
+              const open = openHint === i;
               return (
-                <button
-                  key={i}
-                  onClick={() => {
-                    if (!open) {
-                      setRevealed((r) => [...r, i]);
-                      setXpPenalty((p) => p + 10);
-                    }
-                  }}
-                  className={cn(
-                    "w-full rounded-lg border px-4 py-3 text-left text-[13px] transition-all duration-200",
-                    open
-                      ? "border-violet-500/40 bg-violet-950/30 text-zinc-200"
-                      : "border-white/8 bg-[#14141d] text-zinc-400 hover:border-violet-500/40 hover:text-zinc-200"
-                  )}
-                >
-                  {open ? (
-                    <span className="flex items-start gap-2">
-                      <GameIcon name="hint" className="mt-0.5 h-4 w-4 shrink-0" /> {h}
+                <div key={i} className="flex flex-col items-center gap-1">
+                  <button
+                    onClick={() => {
+                      if (!used) {
+                        setRevealed((r) => [...r, i]);
+                        setXpPenalty((p) => p + 10);
+                      }
+                      // Single-open accordion: opening one hint closes the others.
+                      setOpenHint((prev) => (prev === i ? null : i));
+                    }}
+                    aria-expanded={open}
+                    aria-label={used ? `Hint ${i + 1} (used)` : `Reveal hint ${i + 1} (-10 XP)`}
+                    title={used ? (open ? "Hide hint" : "Show hint again") : "Click to reveal (-10 XP)"}
+                    className={cn(
+                      "relative grid h-10 w-10 place-items-center rounded-full border-2 transition-all duration-300",
+                      used
+                        ? open
+                          ? "scale-105 border-violet-400 bg-violet-500/25 text-violet-200 shadow-[0_0_18px_rgba(139,92,246,0.45)]"
+                          : "border-violet-500/40 bg-violet-500/10 text-violet-400"
+                        : "border-white/10 bg-white/[0.03] text-zinc-500 hover:scale-110 hover:border-lime-400/60 hover:text-lime-300"
+                    )}
+                  >
+                    <GameIcon name="hint" className="h-4 w-4" />
+                    <span className="absolute -bottom-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full border border-white/10 bg-[#0a0a10] text-[8px] font-black text-zinc-300">
+                      {i + 1}
+                    </span>
+                  </button>
+                  {used ? (
+                    <span className="rounded-full bg-rose-500/15 px-1.5 py-px text-[7.5px] font-black uppercase tracking-wider text-rose-400">
+                      Used
                     </span>
                   ) : (
-                    <span className="flex items-center gap-2">
-                      <GameIcon name="target" className="h-4 w-4 shrink-0" /> Hint {i + 1} — Click to reveal (-10 XP)
-                    </span>
+                    <span className="h-[13px]" />
                   )}
-                </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Hint content — smooth expand/collapse (spacing lives on the open panel only) */}
+          <div className="mt-1">
+            {challenge.hints.map((h, i) => {
+              if (!revealed.includes(i)) return null;
+              const open = openHint === i;
+              return (
+                <div
+                  key={i}
+                  className={cn(
+                    "grid transition-all duration-300 ease-out",
+                    open ? "mb-1.5 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  )}
+                >
+                  <div className="overflow-hidden">
+                    <div className="rounded-lg border border-violet-500/25 bg-violet-950/20 px-3.5 py-2.5 text-[12.5px] leading-relaxed text-zinc-200">
+                      <span className="flex items-start gap-2">
+                        <GameIcon name="hint" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-400" />
+                        {h}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               );
             })}
           </div>
