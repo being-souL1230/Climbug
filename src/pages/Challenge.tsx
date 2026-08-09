@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import GameIcon from "../components/GameIcon";
 import Navbar from "../components/Navbar";
 import { findChallenge, difficultyStyles, type Challenge } from "../data";
@@ -12,11 +12,13 @@ import Editor from "@monaco-editor/react";
 
 // No need for LANG_MAP if we use monacoLang directly from the challenge object
 
-function useTimer(startSeconds: number) {
+function useTimer(startSeconds: number, stop: boolean) {
   const [secs, setSecs] = useState(startSeconds);
   const [done, setDone] = useState(false);
   useEffect(() => {
-    if (done) return;
+    // Stop immediately once solved (or already solved) so the timer never
+    // keeps counting after the user has beaten the challenge.
+    if (done || stop) return;
     const t = setInterval(() => {
       setSecs((s) => {
         if (s <= 1) {
@@ -27,12 +29,12 @@ function useTimer(startSeconds: number) {
       });
     }, 1000);
     return () => clearInterval(t);
-  }, [done]);
+  }, [done, stop]);
   return { time: `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`, done, remaining: secs };
 }
 
 /* ---------- Success Overlay ---------- */
-function SuccessOverlay({ xp, onClose }: { xp: number; onClose: () => void }) {
+function SuccessOverlay({ xp, trackName, onClose }: { xp: number; trackName: string; onClose: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -69,6 +71,7 @@ function SuccessOverlay({ xp, onClose }: { xp: number; onClose: () => void }) {
         >
           Continue
         </button>
+        <p className="mt-2.5 text-[11px] text-zinc-500">Taking you back to {trackName}…</p>
       </div>
     </div>
   );
@@ -138,6 +141,7 @@ export default function Challenge() {
   const pageRef = useRef<HTMLDivElement | null>(null);
   useAnimeDetails(pageRef);
   const { id } = useParams();
+  const navigate = useNavigate();
   const found = useMemo(() => findChallenge(Number(id)), [id]);
   const [code, setCode] = useState("");
   const [revealed, setRevealed] = useState<number[]>([]);
@@ -150,7 +154,42 @@ export default function Challenge() {
   const { progress } = useProgress();
   const alreadyDone = found ? progress.completed.includes(found.challenge.id) : false;
   const timeMin = found ? found.challenge.timeMin : 3;
-  const { time, done: timeDone, remaining } = useTimer(timeMin * 60);
+  const { time, done: timeDone, remaining } = useTimer(timeMin * 60, submitted || alreadyDone);
+
+  // Solved → no need to keep the problem window open: head back to the track
+  // automatically shortly after the success toast, or instantly via Continue.
+  const goBackToTrack = useCallback(() => {
+    const slug = found?.track?.slug;
+    if (slug) navigate(`/tracks/${slug}`);
+  }, [navigate, found]);
+
+  useEffect(() => {
+    if (!showSuccess) return;
+    const t = window.setTimeout(goBackToTrack, 2800);
+    return () => window.clearTimeout(t);
+  }, [showSuccess, goBackToTrack]);
+
+  const closeSuccess = () => {
+    setShowSuccess(false);
+    goBackToTrack();
+  };
+
+  // Keep the editor in sync with the active challenge, and register one attempt
+  // per challenge open — kept above the early return so hook order stays stable.
+  useEffect(() => {
+    if (found) setCode(found.challenge.code);
+  }, [found]);
+
+  const attemptedRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!found || attemptedRef.current === found.challenge.id) return;
+    attemptedRef.current = found.challenge.id;
+    apiFetch<{ attempts: number }>(`/api/challenges/${found.challenge.id}/attempt`, {
+      method: "POST",
+    })
+      .then(() => fetchProgress())
+      .catch(() => undefined);
+  }, [found]);
 
   if (!found) return <Navigate to="/tracks" replace />;
   const { challenge, track } = found;
@@ -183,24 +222,6 @@ export default function Challenge() {
     setXpPenalty(0);
   };
 
-  useEffect(() => {
-    if (found) setCode(found.challenge.code);
-  }, [found]);
-
-  // Register one attempt per challenge open — storing the id (instead of a
-  // boolean) survives React StrictMode's double-mount in dev AND still counts
-  // when the user jumps directly from one challenge to another.
-  const attemptedRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (!found || attemptedRef.current === found.challenge.id) return;
-    attemptedRef.current = found.challenge.id;
-    apiFetch<{ attempts: number }>(`/api/challenges/${found.challenge.id}/attempt`, {
-      method: "POST",
-    })
-      .then(() => fetchProgress())
-      .catch(() => undefined);
-  }, [found]);
-
   if (timeDone && !submitted && !alreadyDone) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#0a0a10]">
@@ -219,7 +240,7 @@ export default function Challenge() {
 
   return (
     <div ref={pageRef} className="flex min-h-screen flex-col bg-[#0a0a10]">
-      {showSuccess && <SuccessOverlay xp={Math.max(0, challenge.xp - xpPenalty)} onClose={() => setShowSuccess(false)} />}
+      {showSuccess && <SuccessOverlay xp={Math.max(0, challenge.xp - xpPenalty)} trackName={track.name} onClose={closeSuccess} />}
       {showFail && <FailOverlay onClose={() => setShowFail(false)} />}
 
       <Navbar variant="app" />

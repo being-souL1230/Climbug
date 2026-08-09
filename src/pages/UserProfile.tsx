@@ -329,29 +329,82 @@ export default function UserProfile() {
         ) : (
           <div className="space-y-5">
             {/* ═══════ HEADER CARD ═══════ */}
-            <section className="relative rounded-2xl border border-white/[0.08] bg-gradient-to-r from-[#120d20] via-[#0d0b17] to-[#120d1c] p-6 shadow-2xl sm:p-7">
+            <section className="relative rounded-2xl border border-white/[0.08] bg-gradient-to-r from-[#120d20] via-[#0d0b17] to-[#120d1c] p-5 shadow-2xl sm:p-6">
               <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
                 <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-violet-500/15 blur-3xl" />
               </div>
 
-              {/* ══ Share button + popover ══ */}
-              <div ref={shareRef} className="absolute right-4 top-4 z-30 sm:right-6 sm:top-6">
-                <button
-                  onClick={() => setShareOpen((o) => !o)}
-                  aria-label="Share profile"
-                  aria-expanded={shareOpen}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-bold text-zinc-200 backdrop-blur-sm transition-all duration-200 hover:border-violet-400/50 hover:bg-violet-500/10 hover:text-white"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5">
-                    <circle cx="18" cy="5" r="3" stroke="currentColor" strokeWidth="2" />
-                    <circle cx="6" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-                    <circle cx="18" cy="19" r="3" stroke="currentColor" strokeWidth="2" />
-                    <path d="m8.59 13.51 6.83 3.98M15.41 6.51l-6.82 3.98" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                  Share
-                </button>
+              <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                <div className="flex min-w-0 items-center gap-4 sm:gap-5">
+                  <div className="relative shrink-0">
+                    <img
+                      src={profile.user.avatar}
+                      alt={profile.user.name}
+                      className="h-20 w-20 rounded-2xl border-2 border-violet-400/40 object-cover shadow-[0_0_28px_rgba(139,92,246,0.35)]"
+                    />
+                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-violet-400/50 bg-violet-600 px-2 py-0.5 text-[10px] font-black text-white shadow-md">
+                      #{profile.stats.rank}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h1 className="truncate text-2xl font-black tracking-tight text-white">{profile.user.name}</h1>
+                      {isYou && (
+                        <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400">YOU</span>
+                      )}
+                    </div>
+                    <p className="mt-0.5 text-sm text-zinc-400">@{profile.user.login}</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">
+                        {titleForLevel(profile.stats.level)}
+                      </span>
+                      <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] text-zinc-300">
+                        Joined {new Date(profile.user.memberSince).toLocaleDateString(undefined, { month: "short", year: "numeric" })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-                {shareOpen && (
+                {/* Stat chips + share side by side */}
+                <div className="flex items-center gap-2">
+                  <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 sm:gap-2">
+                    {[
+                      { label: "Level", value: profile.stats.level, color: "text-violet-300" },
+                      { label: "XP", value: profile.stats.xp.toLocaleString(), color: "text-amber-300" },
+                      { label: "Streak", value: profile.stats.streak, color: "text-orange-300", icon: "flame" as IconName },
+                      { label: "Solved", value: profile.stats.solved, color: "text-emerald-400" },
+                    ].map((s) => (
+                      <div key={s.label} className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-2.5 py-1.5 text-center transition-all hover:border-white/[0.14]">
+                        <div className={cn("flex items-center justify-center gap-1 font-mono text-sm font-black leading-none", s.color)}>
+                          {s.icon && <GameIcon name={s.icon} className="h-3.5 w-3.5" />}
+                          {s.value}
+                        </div>
+                        <div className="mt-1 text-[8px] font-bold uppercase tracking-wider text-zinc-500">{s.label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* ══ Share button (circular, icon-only) + popover ══ */}
+                  <div ref={shareRef} className="relative z-30 shrink-0">
+                    <button
+                      onClick={() => setShareOpen((o) => !o)}
+                      aria-label="Share profile"
+                      aria-expanded={shareOpen}
+                      className={`grid h-9 w-9 place-items-center rounded-full border transition-all duration-200 ${
+                        shareOpen
+                          ? "border-violet-400/60 bg-violet-500/15 text-violet-300"
+                          : "border-white/10 bg-white/[0.04] text-zinc-300 hover:border-violet-400/50 hover:bg-violet-500/10 hover:text-white"
+                      }`}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+                        <circle cx="18" cy="5" r="3" stroke="currentColor" strokeWidth="2" />
+                        <circle cx="6" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+                        <circle cx="18" cy="19" r="3" stroke="currentColor" strokeWidth="2" />
+                        <path d="m8.59 13.51 6.83 3.98M15.41 6.51l-6.82 3.98" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </button>
+
+                    {shareOpen && (
                   <div className="share-pop absolute right-0 top-11 w-[292px] rounded-2xl border border-white/10 bg-[#12101d]/95 p-3.5 shadow-2xl backdrop-blur-xl">
                     <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Share Profile</p>
 
@@ -428,55 +481,7 @@ export default function UserProfile() {
                   </div>
                 )}
               </div>
-
-              <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-                <div className="flex items-center gap-5">
-                  <div className="relative shrink-0">
-                    <img
-                      src={profile.user.avatar}
-                      alt={profile.user.name}
-                      className="h-20 w-20 rounded-2xl border-2 border-violet-400/40 object-cover shadow-[0_0_28px_rgba(139,92,246,0.35)]"
-                    />
-                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-violet-400/50 bg-violet-600 px-2 py-0.5 text-[10px] font-black text-white shadow-md">
-                      #{profile.stats.rank}
-                    </span>
                   </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h1 className="truncate text-2xl font-black tracking-tight text-white">{profile.user.name}</h1>
-                      {isYou && (
-                        <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400">YOU</span>
-                      )}
-                    </div>
-                    <p className="mt-0.5 text-sm text-zinc-400">@{profile.user.login}</p>
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">
-                        {titleForLevel(profile.stats.level)}
-                      </span>
-                      <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] text-zinc-300">
-                        Joined {new Date(profile.user.memberSince).toLocaleDateString(undefined, { month: "short", year: "numeric" })}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Stat chips */}
-                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:gap-3">
-                  {[
-                    { label: "Level", value: profile.stats.level, color: "text-violet-300" },
-                    { label: "XP", value: profile.stats.xp.toLocaleString(), color: "text-amber-300" },
-                    { label: "Streak", value: profile.stats.streak, color: "text-orange-300", icon: "flame" as IconName },
-                    { label: "Solved", value: profile.stats.solved, color: "text-emerald-400" },
-                  ].map((s) => (
-                    <div key={s.label} className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-3.5 py-2.5 text-center transition-all hover:border-white/[0.14]">
-                      <div className={cn("flex items-center justify-center gap-1 font-mono text-lg font-black", s.color)}>
-                        {s.icon && <GameIcon name={s.icon} className="h-4 w-4" />}
-                        {s.value}
-                      </div>
-                      <div className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">{s.label}</div>
-                    </div>
-                  ))}
-                </div>
               </div>
             </section>
 
