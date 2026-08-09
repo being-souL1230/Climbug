@@ -177,22 +177,37 @@ export default function Dashboard() {
   const unlockedBadges = allBadges.filter((b) => unlocked.has(b.id));
   const nextBadge = allBadges.find((b) => !unlocked.has(b.id));
 
+  const [leaderboardTop, setLeaderboardTop] = useState<Array<{ name: string; level: number; xp: number; isYou: boolean }>>([]);
+
+  // Real top-4 leaderboard preview from the backend — follows the selected
+  // Global / Friends / Guilds tab (no hardcoded bots).
+  useEffect(() => {
+    let cancelled = false;
+    const scope = tab === "Global" ? "global" : tab === "Friends" ? "friends" : "guilds";
+    apiFetch<{ players: Array<{ name: string; login: string; xp: number; level: number; isYou: boolean }> }>(`/api/leaderboard?scope=${scope}`)
+      .then((res) => {
+        if (cancelled) return;
+        setLeaderboardTop(
+          res.players.slice(0, 4).map((p) => ({
+            name: p.name || p.login,
+            level: p.level,
+            xp: p.xp,
+            isYou: p.isYou,
+          }))
+        );
+      })
+      .catch(() => { if (!cancelled) setLeaderboardTop([]); });
+    return () => { cancelled = true; };
+  }, [tab]);
+
   const leaderboardPreview = useMemo(() => {
-    const you = {
-      rank: 0,
-      name: displayName,
-      level: progress.level,
-      xp: progress.xp,
-      isYou: true,
-    };
-    const bots = [
-      { name: "Ava Sterling", level: 4, xp: 1359, isYou: false },
-      { name: "Kenji Watanabe", level: 4, xp: 1338, isYou: false },
-      { name: "Priya Malhotra", level: 3, xp: 1102, isYou: false },
-    ];
-    const merged = [...bots, you].sort((a, b) => b.xp - a.xp).map((p, i) => ({ ...p, rank: i + 1 }));
-    return merged.slice(0, 4);
-  }, [displayName, progress.level, progress.xp]);
+    if (leaderboardTop.length > 0) {
+      return leaderboardTop.map((p, i) => ({ ...p, rank: i + 1 }));
+    }
+    // Offline fallback — never shows fake names as "real" users, just you.
+    const you = { rank: 0, name: displayName, level: progress.level, xp: progress.xp, isYou: true };
+    return [you].map((p, i) => ({ ...p, rank: i + 1 }));
+  }, [leaderboardTop, displayName, progress.level, progress.xp]);
 
   return (
     <div ref={pageRef} className="flex min-h-screen bg-[#08080d]">
@@ -483,8 +498,7 @@ export default function Dashboard() {
                   </button>
                 ))}
               </div>
-              {tab === "Global" ? (
-                <div className="mt-1 divide-y divide-white/[0.06]">
+              <div className="mt-1 divide-y divide-white/[0.06]">
                   {leaderboardPreview.map((p) => (
                     <div
                       key={p.rank}
@@ -516,13 +530,7 @@ export default function Dashboard() {
                       </span>
                     </div>
                   ))}
-                </div>
-              ) : (
-                <div className="mt-4 flex flex-col items-center gap-2 py-3 text-center">
-                  <GameIcon name="people" className="h-8 w-8 opacity-40" />
-                  <p className="text-xs text-zinc-600">Nothing here yet - invite your {tab.toLowerCase()}!</p>
-                </div>
-              )}
+              </div>
               <div className="flex-1" />
               <Link
                 to="/leaderboard"

@@ -10,6 +10,7 @@ import Challenge from "./pages/Challenge";
 import Rewards from "./pages/Rewards";
 import Skills from "./pages/Skills";
 import Profile from "./pages/Profile";
+import UserProfile from "./pages/UserProfile";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function ScrollToTop() {
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/rewards" element={<ProtectedRoute><Rewards /></ProtectedRoute>} />
         <Route path="/skills" element={<ProtectedRoute><Skills /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/user/:login" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
 
         {/* Fallback */}
         <Route path="*" element={<Home />} />

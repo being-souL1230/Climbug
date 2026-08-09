@@ -143,6 +143,32 @@ def init_db() -> None:
               PRIMARY KEY(user_id, challenge_id),
               FOREIGN KEY(user_id) REFERENCES users(id)
             );
+
+            CREATE TABLE IF NOT EXISTS friendships (
+              user_id INTEGER NOT NULL,
+              friend_id INTEGER NOT NULL,
+              created_at TEXT NOT NULL,
+              PRIMARY KEY(user_id, friend_id),
+              FOREIGN KEY(user_id) REFERENCES users(id),
+              FOREIGN KEY(friend_id) REFERENCES users(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS guilds (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name TEXT NOT NULL,
+              tag TEXT,
+              created_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS guild_members (
+              guild_id INTEGER NOT NULL,
+              user_id INTEGER NOT NULL,
+              role TEXT NOT NULL DEFAULT 'member',
+              joined_at TEXT NOT NULL,
+              PRIMARY KEY(guild_id, user_id),
+              FOREIGN KEY(guild_id) REFERENCES guilds(id),
+              FOREIGN KEY(user_id) REFERENCES users(id)
+            );
             """
         )
         # Run schema migrations for existing DB
@@ -728,6 +754,227 @@ def badges() -> Any:
         "unlocked": [bid for bid, ok in computed.items() if ok],
         "total": BADGE_COUNT,
     })
+
+
+@app.get("/api/leaderboard")
+@require_auth
+def leaderboard() -> Any:
+    """Leaderboard computed from real DB data (no fake bots).
+
+    ?scope=global (default) | friends | guilds
+      - global:  every user, ranked by XP
+      - friends: only the signed-in user + their friends
+      - guilds:  only members of the guilds the signed-in user belongs to
+
+    Every player carries their real badge count (computed by the same rules as
+    /api/badges), per-track XP, streak, and XP earned in the last 7/30 days so
+    the UI's week/month filters show real numbers. The current user is always
+    included with isYou=True so the client can render their true rank.
+    """
+    uid = current_user_id()
+    assert uid is not None
+    scope = (request.args.get("scope") or "global").lower()
+    now = datetime.now(timezone.utc)
+    week_ago = (now - timedelta(days=7)).isoformat()
+    month_ago = (now - timedelta(days=30)).isoformat()
+    two_weeks_ago = (now - timedelta(days=14)).isoformat()
+
+    with db() as conn:
+        if scope == "friends":
+            friend_ids = {
+                r["friend_id"]
+                for r in conn.execute(
+                    "SELECT friend_id FROM friendships WHERE user_id = ? UNION SELECT user_id FROM friendships WHERE friend_id = ?",
+                    (uid, uid),
+                )
+            }
+            friend_ids.add(uid)  # always include yourself
+            users = conn.execute("SELECT * FROM users WHERE id IN (%s) ORDER BY id" % ",".join("?" * len(friend_ids)), tuple(friend_ids)).fetchall()
+        elif scope == "guilds":
+            guild_ids = [
+                r["guild_id"]
+                for r in conn.execute("SELECT guild_id FROM guild_members WHERE user_id = ?", (uid,))
+            ]
+            if not guild_ids:
+                users = conn.execute("SELECT * FROM users WHERE id = ?", (uid,)).fetchall()
+            else:
+                member_ids = {
+                    r["user_id"]
+                    for r in conn.execute(
+                        "SELECT user_id FROM guild_members WHERE guild_id IN (%s)" % ",".join("?" * len(guild_ids)),
+                        tuple(guild_ids),
+                    )
+                }
+                member_ids.add(uid)
+                users = conn.execute("SELECT * FROM users WHERE id IN (%s) ORDER BY id" % ",".join("?" * len(member_ids)), tuple(member_ids)).fetchall()
+        else:
+            users = conn.execute("SELECT * FROM users ORDER BY id").fetchall()
+
+        players: list[dict[str, Any]] = []
+        for u in users:
+            s_user = serialize_user(u)
+            ctx = BadgeContext(conn, u["id"], registry)
+            unlocked = [bid for bid, ok in compute_badges(ctx).items() if ok]
+            prog = conn.execute(
+                "SELECT xp, level, streak FROM progress WHERE user_id = ?", (u["id"],)
+            ).fetchone()
+            xp = prog["xp"] if prog else 0
+            level = prog["level"] if prog else 1
+            streak = prog["streak"] if prog else 0
+            weekly = conn.execute(
+                "SELECT COALESCE(SUM(xp_awarded), 0) AS s FROM completions WHERE user_id = ? AND completed_at >= ?",
+                (u["id"], week_ago),
+            ).fetchone()["s"]
+            monthly = conn.execute(
+                "SELECT COALESCE(SUM(xp_awarded), 0) AS s FROM completions WHERE user_id = ? AND completed_at >= ?",
+                (u["id"], month_ago),
+            ).fetchone()["s"]
+            prev_week = conn.execute(
+                "SELECT COALESCE(SUM(xp_awarded), 0) AS s FROM completions WHERE user_id = ? AND completed_at >= ? AND completed_at < ?",
+                (u["id"], two_weeks_ago, week_ago),
+            ).fetchone()["s"]
+            domain_rows = conn.execute(
+                "SELECT track_slug, COALESCE(SUM(xp_awarded), 0) AS s FROM completions WHERE user_id = ? AND track_slug IS NOT NULL GROUP BY track_slug",
+                (u["id"],),
+            ).fetchall()
+            domain_xp = {r["track_slug"]: r["s"] for r in domain_rows}
+            # Trend is derived from real activity: earned XP this week vs the
+            # previous week. No activity at all reads as "flat".
+            if weekly > prev_week + 1:
+                trend = "up"
+            elif prev_week > weekly + 1:
+                trend = "down"
+            else:
+                trend = "flat"
+            players.append({
+                "id": u["id"],
+                "login": s_user["login"],
+                "name": u["name"] or s_user["login"],
+                "avatar": u["avatar_url"] or f"https://api.dicebear.com/7.x/avataaars/svg?seed={u['id']}",
+                "xp": xp,
+                "level": level,
+                "badges": len(unlocked),
+                "weeklyXp": weekly,
+                "monthlyXp": monthly,
+                "domainXp": domain_xp,
+                "streak": streak,
+                "trend": trend,
+                "isYou": u["id"] == uid,
+            })
+    players.sort(key=lambda p: p["xp"], reverse=True)
+    return jsonify({"players": players})
+
+
+@app.get("/api/users/search")
+@require_auth
+def user_search() -> Any:
+    """Search users by username or display name (public data only)."""
+    q = (request.args.get("q") or "").strip().lstrip("@")
+    if not q:
+        return jsonify({"users": []})
+    like = f"%{q}%"
+    with db() as conn:
+        rows = conn.execute(
+            """SELECT u.id, u.github_login, u.name, u.avatar_url, p.xp, p.level
+               FROM users u LEFT JOIN progress p ON p.user_id = u.id
+               WHERE LOWER(COALESCE(u.github_login, '')) LIKE LOWER(?) OR LOWER(COALESCE(u.name, '')) LIKE LOWER(?)
+               ORDER BY COALESCE(p.xp, 0) DESC
+               LIMIT 20""",
+            (like, like),
+        ).fetchall()
+    return jsonify({
+        "users": [
+            {
+                "id": r["id"],
+                "login": r["github_login"] or f"user_{r['id']}",
+                "name": r["name"] or r["github_login"] or f"User {r['id']}",
+                "avatar": r["avatar_url"] or f"https://api.dicebear.com/7.x/avataaars/svg?seed={r['id']}",
+                "xp": r["xp"] or 0,
+                "level": r["level"] or 1,
+            }
+            for r in rows
+        ]
+    })
+
+
+@app.get("/api/users/<login>")
+@require_auth
+def user_profile(login: str) -> Any:
+    """Public profile of any user by username.
+
+    Shows only non-sensitive data: stats (xp/level/streak/rank), solves broken
+    down by difficulty and by track, unlocked badges, and the public profile
+    fields the user chose to share (about + social links). Email, phone and
+    private details are never exposed to other users.
+    """
+    uid = current_user_id()
+    assert uid is not None
+    login = login.strip().lstrip("@")
+    with db() as conn:
+        user = conn.execute("SELECT * FROM users WHERE github_login = ? OR email = ?", (login, login)).fetchone()
+        if user is None:
+            return jsonify({"error": "User not found"}), 404
+        is_self = user["id"] == uid
+
+        ctx = BadgeContext(conn, user["id"], registry)
+        unlocked = [bid for bid, ok in compute_badges(ctx).items() if ok]
+        prog = conn.execute("SELECT * FROM progress WHERE user_id = ?", (user["id"],)).fetchone()
+
+        # Difficulty breakdown
+        diff_rows = conn.execute(
+            "SELECT difficulty, COUNT(*) AS n, COALESCE(SUM(xp_awarded), 0) AS xp FROM completions WHERE user_id = ? GROUP BY difficulty",
+            (user["id"],),
+        ).fetchall()
+        # Track breakdown
+        track_rows = conn.execute(
+            "SELECT track_slug, COUNT(*) AS n, COALESCE(SUM(xp_awarded), 0) AS xp FROM completions WHERE user_id = ? AND track_slug IS NOT NULL GROUP BY track_slug",
+            (user["id"],),
+        ).fetchall()
+
+        # Public profile fields only — never email/phone
+        prof = conn.execute("SELECT * FROM profiles WHERE user_id = ?", (user["id"],)).fetchone()
+        # Only genuinely public fields are exposed. Email, phone and
+        # qualification are considered private and never shown to other users.
+        public_profile: dict[str, Any] = {}
+        if prof is not None:
+            for key in ["about", "github_url", "linkedin_url", "leetcode_url", "gitlab_url",
+                        "twitter_url", "portfolio_url", "stackoverflow_url", "devto_url"]:
+                val = prof[key]
+                if val:
+                    public_profile[key] = val
+
+        # Global rank by XP
+        rank = conn.execute(
+            "SELECT COUNT(*) + 1 AS rank FROM progress p WHERE p.xp > COALESCE((SELECT xp FROM progress WHERE user_id = ?), 0)",
+            (user["id"],),
+        ).fetchone()["rank"]
+
+        s_user = serialize_user(user)
+        return jsonify({
+            "user": {
+                "id": user["id"],
+                "login": s_user["login"],
+                "name": user["name"] or s_user["login"],
+                "avatar": user["avatar_url"] or f"https://api.dicebear.com/7.x/avataaars/svg?seed={user['id']}",
+                "memberSince": user["created_at"],
+                "isSelf": is_self,
+            },
+            "stats": {
+                "xp": prog["xp"] if prog else 0,
+                "level": prog["level"] if prog else 1,
+                "streak": prog["streak"] if prog else 0,
+                "solved": ctx.total,
+                "rank": int(rank),
+            },
+            "solvesByDifficulty": [
+                {"difficulty": r["difficulty"], "count": r["n"], "xp": r["xp"]} for r in diff_rows
+            ],
+            "solvesByTrack": [
+                {"slug": r["track_slug"], "count": r["n"], "xp": r["xp"]} for r in track_rows
+            ],
+            "badges": unlocked,
+            "profile": public_profile,
+        })
 
 
 @app.get("/api/profile")

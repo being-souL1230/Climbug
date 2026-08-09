@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import GameIcon, { type IconName } from "../components/GameIcon";
 import Navbar, { Footer } from "../components/Navbar";
 import Reveal from "../components/Reveal";
@@ -6,6 +7,7 @@ import { useAnimeDetails } from "../hooks/useAnimeDetails";
 import { useAuth } from "../auth";
 import { tracks } from "../data";
 import { useProgress } from "../progress";
+import { apiFetch } from "../api";
 import { animate, stagger, createScope } from "animejs";
 import { cn } from "../utils/cn";
 
@@ -29,9 +31,11 @@ function titleForLevel(level: number): string {
 
 type ViewMode = "xp" | "badges" | "level" | "title";
 type TimeRange = "all" | "month" | "week";
+type Scope = "global" | "friends" | "guilds";
 
 interface Player {
   id: string;
+  login: string;
   name: string;
   handle: string;
   avatar: string;
@@ -45,53 +49,7 @@ interface Player {
   isYou?: boolean;
 }
 
-/* deterministic pseudo-random generator so the board doesn't jump around on re-render */
-function seededRandom(seed: number) {
-  let s = seed;
-  return () => {
-    s = (s * 9301 + 49297) % 233280;
-    return s / 233280;
-  };
-}
 
-const BOT_NAMES = [
-  "Ava Sterling", "Kenji Watanabe", "Priya Malhotra", "Lucas Ferreira", "Mei Lin",
-  "Omar Haddad", "Sofia Rossi", "Ethan Walker", "Noor Ahmed", "Ivan Petrov",
-  "Grace Kim", "Diego Alvarez", "Fatima Zahra", "Liam O'Connor", "Anya Petrova",
-  "Ravi Shankar", "Chloe Martin", "Yusuf Demir", "Elena Popescu", "Marcus Chen",
-  "Isabella Costa", "Hiro Tanaka", "Zara Malik", "Felix Braun", "Nadia Ibrahim",
-  "Oscar Lindgren", "Amara Okafor", "Leo Fischer", "Mila Novak", "Arjun Nair",
-];
-
-function buildBots(): Player[] {
-  const rand = seededRandom(42);
-  return BOT_NAMES.map((name, i) => {
-    const handle = name.toLowerCase().replace(/[^a-z]+/g, "").slice(0, 12) + (i % 3 === 0 ? i : "");
-    const xp = Math.floor(1200 - i * 32 + rand() * 180);
-    const level = Math.max(1, Math.floor(xp / 500) + 1);
-    const badges = Math.max(1, Math.floor((xp / 90) + rand() * 6));
-    const weeklyXp = Math.floor(rand() * 220);
-    const monthlyXp = weeklyXp + Math.floor(rand() * 400);
-    const domainXp: Record<string, number> = {};
-    tracks.slice(0, 8).forEach((t) => {
-      domainXp[t.slug] = Math.floor(rand() * (xp / 6));
-    });
-    const trendRoll = rand();
-    return {
-      id: `bot-${i}`,
-      name,
-      handle: `@${handle}`,
-      avatar: `https://i.pravatar.cc/120?img=${(i % 70) + 1}`,
-      xp: Math.max(20, xp),
-      level,
-      badges,
-      weeklyXp,
-      monthlyXp,
-      domainXp,
-      trend: trendRoll > 0.6 ? "up" : trendRoll > 0.3 ? "flat" : "down",
-    };
-  });
-}
 
 const rarityGlow: Record<number, string> = {
   1: "shadow-[0_0_40px_rgba(251,191,36,0.35)]",
@@ -116,8 +74,42 @@ export default function Leaderboard() {
   const [range, setRange] = useState<TimeRange>("all");
   const [domain, setDomain] = useState<string>("ALL");
   const [search, setSearch] = useState("");
+  const [scope, setScope] = useState<Scope>("global");
+  const [remote, setRemote] = useState<Player[] | null>(null);
 
-  const bots = useMemo(() => buildBots(), []);
+  // Real leaderboard from the backend — no fake bots. Refetches when the
+  // Global / Friends / Guilds scope changes.
+  useEffect(() => {
+    let cancelled = false;
+    setRemote(null);
+    apiFetch<{ players: Array<{
+      id: number; login: string; name: string; avatar: string;
+      xp: number; level: number; badges: number;
+      weeklyXp: number; monthlyXp: number;
+      domainXp: Record<string, number>;
+      trend: "up" | "down" | "flat"; isYou: boolean;
+    }> }>(`/api/leaderboard?scope=${scope}`)
+      .then((res) => {
+        if (cancelled) return;
+        setRemote(res.players.map((p) => ({
+          id: String(p.id),
+          login: p.login,
+          name: p.name || p.login,
+          handle: `@${p.login}`,
+          avatar: p.avatar,
+          xp: p.xp,
+          level: p.level,
+          badges: p.badges,
+          weeklyXp: p.weeklyXp,
+          monthlyXp: p.monthlyXp,
+          domainXp: p.domainXp,
+          trend: p.trend,
+          isYou: p.isYou,
+        })));
+      })
+      .catch(() => { if (!cancelled) setRemote([]); }); // backend down -> empty board, no fake bots
+    return () => { cancelled = true; };
+  }, [scope]);
 
   const you: Player = useMemo(() => {
     const domainXp: Record<string, number> = {};
@@ -130,6 +122,7 @@ export default function Leaderboard() {
     });
     return {
       id: "you",
+      login: user?.login ?? "you",
       name: user?.name || user?.login || "You",
       handle: user ? `@${user.login}` : "@guest",
       avatar: user?.avatar_url || "https://i.pravatar.cc/120?img=68",
@@ -144,7 +137,17 @@ export default function Leaderboard() {
     };
   }, [user, progress]);
 
-  const allPlayers = useMemo(() => [you, ...bots], [you, bots]);
+  const allPlayers = useMemo(() => {
+    if (remote === null) return []; // still loading from the backend
+    // The backend already includes the signed-in user (isYou) with exact badge
+    // counts, weekly/monthly XP, and domain XP. We only patch xp/level from the
+    // live progress hook so a freshly-solved challenge shows immediately; the
+    // backend's precise badge numbers are kept as-is.
+    const list = remote.some((p) => p.isYou)
+      ? remote.map((p) => (p.isYou ? { ...p, xp: progress.xp, level: progress.level } : p))
+      : [you, ...remote];
+    return [...list].sort((a, b) => b.xp - a.xp);
+  }, [remote, you, progress.xp, progress.level]);
 
   const scoreFor = (p: Player): number => {
     if (domain !== "ALL") return p.domainXp[domain] ?? 0;
@@ -278,8 +281,31 @@ export default function Leaderboard() {
                   </div>
                 </div>
 
+                {/* ── Scope tabs: Global / Friends / Guilds ── */}
+                <div className="mt-5 flex flex-wrap items-center gap-1.5">
+                  {([
+                    { key: "global" as Scope, label: "Global", icon: "trophy" as IconName },
+                    { key: "friends" as Scope, label: "Friends", icon: "people" as IconName },
+                    { key: "guilds" as Scope, label: "Guilds", icon: "shield" as IconName },
+                  ]).map((s) => (
+                    <button
+                      key={s.key}
+                      onClick={() => setScope(s.key)}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide transition-all duration-200",
+                        scope === s.key
+                          ? "border-emerald-500/50 bg-gradient-to-b from-emerald-600/30 to-emerald-700/10 text-white shadow-[0_0_14px_rgba(16,185,129,0.25)]"
+                          : "border-white/[0.06] bg-white/[0.02] text-zinc-400 hover:border-white/15 hover:text-zinc-200"
+                      )}
+                    >
+                      <GameIcon name={s.icon} className="h-3.5 w-3.5" />
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+
                 {/* ── View mode tabs + search ── */}
-                <div className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="mt-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex flex-wrap items-center gap-1.5">
                     {(["xp", "badges", "level", "title"] as ViewMode[]).map((v) => (
                       <button
@@ -355,7 +381,8 @@ export default function Leaderboard() {
                   const rank = idx === 1 ? 1 : idx === 0 ? 2 : 3;
                   const isFirst = rank === 1;
                   return (
-                    <div
+                    <Link
+                      to={`/user/${p.login}`}
                       key={p.id}
                       className={cn(
                         "lb-podium group relative flex w-[30%] max-w-[160px] flex-col items-center rounded-xl border px-3 transition-all duration-300 hover:-translate-y-1",
@@ -384,7 +411,8 @@ export default function Leaderboard() {
                         <span className="font-mono text-xs font-bold text-amber-300">{scoreFor(p)}</span>
                         <span className="text-[9px] text-zinc-500">{domain !== "ALL" ? "dxp" : view === "xp" || range !== "all" ? "xp" : view}</span>
                       </div>
-                    </div>
+                      <span className="mt-2 text-[9px] font-semibold text-violet-400/0 transition-colors group-hover:text-violet-400">View profile →</span>
+                    </Link>
                   );
                 })}
               </div>
@@ -404,7 +432,8 @@ export default function Leaderboard() {
                 {rest.map((p, i) => {
                   const rank = i + 4;
                   return (
-                    <div
+                    <Link
+                      to={`/user/${p.login}`}
                       key={p.id}
                       className={cn(
                         "lb-row group grid grid-cols-[2.5rem_1fr] items-center gap-3 px-6 py-3 transition-all duration-200 hover:bg-white/[0.03] sm:px-8 md:grid-cols-[3rem_1fr_6rem_6rem_6rem_5rem] md:gap-4",
@@ -421,6 +450,7 @@ export default function Leaderboard() {
                             {p.isYou && <span className="shrink-0 rounded bg-violet-500/20 px-1.5 py-0.5 text-[9px] font-bold text-violet-300">YOU</span>}
                           </div>
                           <p className="truncate text-[11px] text-zinc-500">{p.handle} · {titleForLevel(p.level)}</p>
+                          <span className="text-[9px] font-semibold text-violet-400/0 transition-colors group-hover:text-violet-400">View profile →</span>
                         </div>
                       </div>
 
@@ -454,14 +484,28 @@ export default function Leaderboard() {
                           <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-bold text-zinc-500">— FLAT</span>
                         )}
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
 
-                {filtered.length === 0 && (
+                {remote === null && (
+                  <div className="px-8 py-14 text-center">
+                    <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-violet-500/30 border-t-violet-400" />
+                    <p className="mt-3 text-sm text-zinc-500">Loading live rankings…</p>
+                  </div>
+                )}
+                {remote !== null && filtered.length === 0 && (
                   <div className="px-8 py-14 text-center">
                     <GameIcon name="target" className="mx-auto h-8 w-8 text-zinc-700" />
-                    <p className="mt-3 text-sm text-zinc-500">No debuggers match your search.</p>
+                    <p className="mt-3 text-sm text-zinc-500">
+                      {search
+                        ? "No debuggers match your search."
+                        : scope === "friends"
+                        ? "You don't have any friends on the leaderboard yet — invite them to climb together!"
+                        : scope === "guilds"
+                        ? "You're not part of a guild yet — join one to see your teammates here."
+                        : "No debuggers ranked yet."}
+                    </p>
                   </div>
                 )}
               </div>

@@ -4,8 +4,7 @@ import GameIcon, { type IconName } from "../components/GameIcon";
 import { animate, createScope, stagger } from "animejs";
 import { badges, useBadges, type Badge } from "../badges";
 import { useProgress } from "../progress";
-
-const THUMB = "/images/thumbs/";
+import { getBadgeImage } from "../badgeImages";
 
 interface LevelReward {
   level: number;
@@ -69,69 +68,7 @@ const categoryIcons: Record<string, IconName> = {
   "Milestones": "star",
 };
 
-const badgeImageMap: Record<string, string> = {
-  "First Blood": "badge_first_blood.webp",
-  "Bug Streak I": "badge_bug_streak.webp",
-  "Bug Streak II": "badge_bug_streak.webp",
-  "Bug Streak III": "badge_bug_streak.webp",
-  "Week Warrior": "badge_week_warrior.webp",
-  "Month Legend": "badge_month_legend.webp",
-  "Century Club": "badge_century_club.webp",
-  "Speed Demon": "badge_speed_demon.webp",
-  "Night Owl": "badge_night_owl.webp",
-  "Dawn Raider": "badge_dawn_raider.webp",
-  "Speedrunner I": "badge_speedrunner.webp",
-  "Speedrunner II": "badge_speedrunner.webp",
-  /* ── Legendary: dedicated 4k images used where available; only the rest
-     share the 3 themed legendary images ── */
-  "Lightning Hands": "badge_lightning_hands.webp",
-  "Quick Fix": "badge_4k_blazing_fast.webp",
-  "Marathon Fixer": "badge_4k_marathon_fixer.webp",
-  "One Shot": "badge_one_shot.webp",
-  "No Hints Needed": "badge_4k_no_hints.webp",
-  "Perfect Run": "badge_4k_perfect_run.webp",
-  "Time Lord": "legendary_chronos_weaver.webp",
-  "Blazing Fast": "badge_time_lord.webp",
-  "Python Novice": "badge_4k_bug_reporter.webp",
-  "Python Master": "legendary_masterpiece_badge.webp",
-  "JS Hunter": "badge_4k_bug_reporter.webp",
-  "JS God": "legendary_singularity_core.webp",
-  "SQL Sniper": "badge_4k_bug_reporter.webp",
-  "SQL Overlord": "legendary_singularity_core.webp",
-  "Multi-Stack": "badge_4k_bug_reporter.webp",
-  "Nightmare Slayer": "badge_4k_nightmare_slayer.webp",
-  "Boss Slayer": "legendary_masterpiece_badge.webp",
-  "Challenge Conqueror": "badge_challenge_conqueror.webp",
-  "Guild Member": "badge_4k_guild_leader.webp",
-  "Guild Leader": "badge_4k_guild_leader.webp",
-  "Mentor": "badge_4k_mentor.webp",
-  "Community Star": "badge_4k_community_star.webp",
-  "Bug Reporter": "badge_4k_bug_reporter.webp",
-  "Event Participant": "badge_4k_bug_reporter.webp",
-  "Leaderboard Climber": "badge_4k_global_legend.webp",
-  "Global Legend": "legendary_masterpiece_badge.webp",
-  "Launch Day Hero": "badge_4k_bug_reporter.webp",
-  "Halloween Hunter": "badge_4k_shadow_debugger.webp",
-  "New Year Solver": "badge_4k_bug_reporter.webp",
-  "Anniversary Badge": "legendary_masterpiece_badge.webp",
-  "Beta Tester": "badge_4k_beta_tester.webp",
-  "Bug Hunt Champion": "badge_4k_bug_hunt_champion.webp",
-  "Seasonal Legend": "badge_4k_seasonal_legend.webp",
-  "Shadow Debugger": "badge_shadow_debugger.webp",
-  "Ghost in the Machine": "badge_4k_ghost_machine.webp",
-  "Code Phantom": "badge_4k_code_phantom.webp",
-  "The Unbreakable": "badge_4k_unbreakable.webp",
-  "Debug Deity": "badge_4k_debug_deity.webp",
-  /* ── New artwork (51-58) ── */
-  "Hexagon Phoenix": "badge_1_hexagon_phoenix.webp",
-  "Shield Lightning": "badge_2_shield_lightning.webp",
-  "Star Dragon": "badge_3_star_dragon.webp",
-  "Diamond Crown": "badge_4_diamond_crown.webp",
-  "Medal Owl": "badge_5_medal_owl.webp",
-  "Grail Chalice": "legendary_1_grail_chalice.webp",
-  "Cosmic Orb": "legendary_2_cosmic_orb.webp",
-  "Samurai Katana": "legendary_3_samurai_katana.webp",
-};
+
 
 /* ================= LEVEL ROADMAP — arrow-navigated, no horizontal scroll ================= */
 function LevelRoadmap({ levelRewards, currentLevel }: { levelRewards: LevelReward[]; currentLevel: number }) {
@@ -317,34 +254,7 @@ export default function Rewards() {
   // Real unlock state comes from the backend (/api/badges)
   const isBadgeUnlocked = (badge: Badge) => unlocked.has(badge.id);
 
-  // Badge Image Helper
-  const getBadgeImage = (badge: Badge) => {
-    const directMatch = badgeImageMap[badge.name];
-    if (directMatch) return THUMB + directMatch;
-
-    const normalized = badge.name.toLowerCase();
-    if (normalized.includes("shadow") || normalized.includes("debugger")) return THUMB + "badge_4k_shadow_debugger.webp";
-    if (normalized.includes("ghost") || normalized.includes("machine")) return THUMB + "badge_4k_ghost_machine.webp";
-    if (normalized.includes("legend") || normalized.includes("global")) return THUMB + "badge_4k_global_legend.webp";
-    if (normalized.includes("boss") || normalized.includes("slayer")) return THUMB + "badge_boss_slayer.webp";
-    if (normalized.includes("speed")) return THUMB + "badge_speed_demon.webp";
-    if (normalized.includes("night") || normalized.includes("owl")) return THUMB + "badge_night_owl.webp";
-    if (normalized.includes("month")) return THUMB + "badge_month_legend.webp";
-    if (normalized.includes("week")) return THUMB + "badge_week_warrior.webp";
-    if (normalized.includes("century")) return THUMB + "badge_century_club.webp";
-    if (normalized.includes("perfect")) return THUMB + "badge_4k_perfect_run.webp";
-    if (normalized.includes("hints")) return THUMB + "badge_4k_no_hints.webp";
-    if (normalized.includes("marathon")) return THUMB + "badge_4k_marathon_fixer.webp";
-    if (normalized.includes("mentor")) return THUMB + "badge_4k_mentor.webp";
-    if (normalized.includes("guild")) return THUMB + "badge_4k_guild_leader.webp";
-    if (normalized.includes("community")) return THUMB + "badge_4k_community_star.webp";
-    if (normalized.includes("anniversary")) return THUMB + "badge_4k_anniversary.webp";
-    if (normalized.includes("beta")) return THUMB + "badge_4k_beta_tester.webp";
-    // Safety net — every current legendary badge is mapped above, so this
-    // only catches any future legendary badge that has no dedicated entry.
-    if (badge.rarity === "Legendary") return THUMB + "legendary_masterpiece_badge.webp";
-    return THUMB + "badge_4k_bug_reporter.webp";
-  };
+  // Badge image helper — shared with UserProfile via src/badgeImages.ts
 
   // Grouped & Filtered Badges
   const filteredBadges = useMemo(() => {
@@ -697,8 +607,11 @@ export default function Rewards() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] py-1.5 pl-8 pr-3 text-xs text-white placeholder-zinc-500 transition-colors focus:border-violet-500/50 focus:bg-white/[0.05] focus:outline-none"
                 />
-                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500">
-                  🔍
+                <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500">
+                  <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5">
+                    <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
                 </span>
                 {searchQuery && (
                   <button
