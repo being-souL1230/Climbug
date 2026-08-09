@@ -1,6 +1,10 @@
-// Trim whitespace + trailing slashes from VITE_API_BASE so copy-paste mistakes
-// (e.g. "https://x.onrender.com " or "https://x.onrender.com/") never break URLs.
-export const API_BASE = (((import.meta as unknown as { env?: { VITE_API_BASE?: string } }).env?.VITE_API_BASE) ?? "").trim().replace(/\/+$/, "");
+// Production backend URL (Render). In local dev (vite dev server) this is
+// ignored — API_BASE stays "" and the dev proxy forwards /api to :8000.
+// Override anytime via the VITE_API_BASE env var (Vercel → Settings → Env).
+const _env = (import.meta as unknown as { env?: { VITE_API_BASE?: string; DEV?: boolean } }).env ?? {};
+const _defaultApi = _env.DEV ? "" : "https://climbugg.onrender.com";
+// Trim whitespace + trailing slashes so copy-paste mistakes never break URLs.
+export const API_BASE = (_env.VITE_API_BASE ?? _defaultApi).trim().replace(/\/+$/, "");
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
