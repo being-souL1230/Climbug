@@ -62,6 +62,12 @@ class ChallengeRegistry:
         return result
 
     def _parse_generated_stack_templates(self, text: str) -> dict[int, ChallengeMeta]:
+        """Parse the per-difficulty `problems` pools in the stack templates.
+
+        Mirrors buildTrack() in src/data.ts exactly: ids are assigned in
+        difficulty order (Beginner -> Nightmare), and within a difficulty,
+        problems keep their array order. XP is XP_BY_DIFF[diff] + i*4.
+        """
         result: dict[int, ChallengeMeta] = {}
         start = text.find("const stackTemplates")
         end = text.find("/* ========= ASSEMBLE TRACKS ========= */")
@@ -69,26 +75,30 @@ class ChallengeRegistry:
             return result
         section = text[start:end]
         track_blocks = re.finditer(
-            r'slug:\s*"([^"]+)"[\s\S]*?problems:\s*\[([\s\S]*?)\n\s*\],\n\s*\},',
+            r'slug:\s*"([^"]+)"[\s\S]*?problems:\s*\{(.*?)\n\s*\},\n\s*\},',
             section,
+            re.DOTALL,
         )
 
         next_id = 1000
         for track_match in track_blocks:
             slug = track_match.group(1)
             problems_block = track_match.group(2)
-            keys = []
-            for key_match in re.finditer(r"checkKey:\s*(?:\"((?:\\.|[^\"\\])*)\"|'((?:\\.|[^'\\])*)')", problems_block):
-                keys.append(key_match.group(1) or key_match.group(2) or "")
-            if not keys:
-                continue
+            keys_by_diff: dict[str, list[str]] = {}
+            for diff in DIFFICULTIES:
+                array = re.search(rf"{re.escape(diff)}:\s*\[(.*?)\n\s*\],", problems_block, re.DOTALL)
+                keys: list[str] = []
+                if array:
+                    for key_match in re.finditer(
+                        r"checkKey:\s*(?:\"((?:\\.|[^\"\\])*)\"|'((?:\\.|[^'\\])*)')",
+                        array.group(1),
+                    ):
+                        keys.append(key_match.group(1) or key_match.group(2) or "")
+                keys_by_diff[diff] = keys
 
             for diff in DIFFICULTIES:
-                for i in range(10):
+                for i, check_key in enumerate(keys_by_diff[diff]):
                     next_id += 1
-                    # Mirrors buildTrack(): src = problems[(di * 10 + i) % len]
-                    global_index = (DIFFICULTIES.index(diff) * 10) + i
-                    check_key = keys[global_index % len(keys)]
                     result[next_id] = ChallengeMeta(
                         id=next_id,
                         check_key=check_key,

@@ -1,13 +1,23 @@
-import { useMemo, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { Link } from "react-router-dom";
 import GameIcon, { type IconName } from "../components/GameIcon";
 import Logo from "../components/Logo";
 import Reveal from "../components/Reveal";
-import { dailyChallenges, tracks } from "../data";
+import { dailyChallenges, findChallenge, tracks } from "../data";
 import { useAuth } from "../auth";
 import { useProgress } from "../progress";
 import { useAnimeDetails } from "../hooks/useAnimeDetails";
+import { apiFetch } from "../api";
 import { cn } from "../utils/cn";
+
+interface DailyItem {
+  id?: number;
+  title: string;
+  icon: IconName;
+  xp: number;
+  difficulty?: string;
+  solved: boolean;
+}
 
 const sideIcons = [
   { icon: "home" as IconName, label: "Home", to: "/" },
@@ -112,6 +122,47 @@ export default function Dashboard() {
   const { progress } = useProgress();
   const { user } = useAuth();
   const pageRef = useRef<HTMLDivElement | null>(null);
+  const [daily, setDaily] = useState<DailyItem[]>([]);
+  const [dailyDate, setDailyDate] = useState("");
+  const [dailyLoading, setDailyLoading] = useState(true);
+
+  // Realtime daily challenges — the backend picks a deterministic set per date.
+  useEffect(() => {
+    let cancelled = false;
+    apiFetch<{ date: string; challenges: Array<{ id: number; xp: number; difficulty: string; trackSlug: string; solved: boolean }> }>("/api/daily")
+      .then((res) => {
+        if (cancelled) return;
+        setDailyDate(
+          new Date(`${res.date}T00:00:00`).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })
+        );
+        const items: DailyItem[] = res.challenges.flatMap((c) => {
+          const found = findChallenge(c.id);
+          if (!found) return [];
+          return [
+            {
+              id: c.id,
+              title: found.challenge.title,
+              icon: found.track.icon,
+              xp: c.xp,
+              difficulty: c.difficulty,
+              solved: c.solved,
+            },
+          ];
+        });
+        setDaily(items);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setDailyDate(new Date().toLocaleDateString(undefined, { month: "long", year: "numeric" }));
+        setDaily(dailyChallenges.map((c) => ({ title: c.title, icon: c.icon, xp: c.xp, solved: false })));
+      })
+      .finally(() => {
+        if (!cancelled) setDailyLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   useAnimeDetails(pageRef);
   const displayName = user?.name || user?.login || "Debug Recruit";
   const xpForLevel = progress.level * 500;
@@ -483,36 +534,75 @@ export default function Dashboard() {
                 lines={["New challenges every day.", "Sharpen your skills."]}
               />
               <div className="mt-3 flex items-center justify-between">
-                <p className="text-xs text-zinc-500">July 2026</p>
-                <p className="text-[11px] font-semibold text-emerald-400/80">0 / 3 done</p>
+                <p className="text-xs text-zinc-500">{dailyDate || "Loading…"}</p>
+                <p className="text-[11px] font-semibold text-emerald-400/80">
+                  {daily.filter((c) => c.id != null && progress.completed.includes(c.id)).length} / {daily.length} done
+                </p>
               </div>
               <div className="mt-1 divide-y divide-white/[0.06]">
-                {dailyChallenges.map((c, i) => (
-                  <div
-                    key={c.title}
-                    className="anime-pop group/item flex items-center gap-2.5 py-2.5 transition-colors duration-200 hover:bg-white/[0.03]"
-                  >
-                    <span className="w-4 shrink-0 text-center font-mono text-[10px] font-bold text-zinc-600">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <GameIcon
-                      name={c.icon}
-                      className="h-6 w-6 shrink-0 transition-transform duration-300 group-hover/item:scale-110"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[12.5px] font-bold text-white">{c.title}</p>
-                      <div className="mt-1 flex items-center gap-2">
-                        <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/8">
-                          <div className="anime-progress-fill h-full w-0 rounded-full bg-emerald-500 transition-all duration-500 group-hover/item:w-[8%]" />
-                        </div>
-                        <span className="shrink-0 font-mono text-[9px] text-zinc-500">{c.progress}</span>
-                      </div>
-                    </div>
-                    <span className="ml-auto shrink-0 rounded-md bg-emerald-500/10 px-2 py-1 text-[11px] font-extrabold text-emerald-400">
-                      +{c.xp}
-                    </span>
+                {dailyLoading ? (
+                  <div className="flex items-center gap-3 py-4">
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500/60" />
+                    <p className="text-xs text-zinc-600">Loading today's challenges…</p>
                   </div>
-                ))}
+                ) : daily.length === 0 ? (
+                  <div className="flex flex-col items-center gap-2 py-6 text-center">
+                    <GameIcon name="target" className="h-8 w-8 opacity-40" />
+                    <p className="text-xs text-zinc-600">Daily challenges are resting. Check back soon!</p>
+                  </div>
+                ) : (
+                  daily.map((c, i) => {
+                    const solved = c.id != null && progress.completed.includes(c.id);
+                    return (
+                      <Link
+                        key={c.id ?? c.title}
+                        to={c.id != null ? `/challenge/${c.id}` : "/tracks"}
+                        className="anime-pop group/item flex items-center gap-2.5 py-2.5 transition-colors duration-200 hover:bg-white/[0.03]"
+                      >
+                        <span className="w-4 shrink-0 text-center font-mono text-[10px] font-bold text-zinc-600">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span
+                          className={cn(
+                            "grid h-7 w-7 shrink-0 place-items-center rounded-md border transition-colors",
+                            solved ? "border-emerald-500/30 bg-emerald-500/10" : "border-white/10 bg-white/5"
+                          )}
+                        >
+                          <GameIcon
+                            name={c.icon}
+                            className={cn(
+                              "h-4 w-4 transition-transform duration-300 group-hover/item:scale-110",
+                              solved ? "text-emerald-400" : "text-zinc-300"
+                            )}
+                          />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className={cn("truncate text-[12.5px] font-bold", solved ? "text-zinc-500 line-through decoration-emerald-500/40" : "text-white")}>
+                            {c.title}
+                          </p>
+                          <div className="mt-1 flex items-center gap-2">
+                            <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/8">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full transition-all duration-500",
+                                  solved ? "bg-emerald-500" : "w-0"
+                                )}
+                              />
+                            </div>
+                            <span className="shrink-0 font-mono text-[9px] text-zinc-500">{c.difficulty ?? ""}</span>
+                          </div>
+                        </div>
+                        {solved ? (
+                          <span className="ml-auto shrink-0 rounded-md bg-emerald-500/10 px-2 py-1 text-[11px] font-extrabold text-emerald-400">Done</span>
+                        ) : (
+                          <span className="ml-auto shrink-0 rounded-md bg-emerald-500/10 px-2 py-1 text-[11px] font-extrabold text-emerald-400">
+                            +{c.xp}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })
+                )}
               </div>
               <div className="flex-1" />
               <Link

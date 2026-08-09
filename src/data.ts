@@ -43,303 +43,279 @@ function ch(
 
 /* ========= PYTHON TRACK ========= */
 const pythonBeginner: Challenge[] = [
-  ch(1, "Off By One", "A loop skips the last element of the list.", 40, 3, "python", "Beginner",
-    `def get_last_users(users, limit=10):
-    result = []
-    for i in range(limit - 1):
-        result.append(users[i])
-    return result
+  ch(1, "Sliced Too Thin", "The slice chops off one character too many.", 45, 3, "python", "Beginner",
+    `def first_n(text, n):
+    return text[:n - 1]
 
-data = ["alice", "bob", "charlie", "dave", "eve"]
-print(get_last_users(data, len(data)))`,
-    `for i in range(limit):`,
-    "range(limit - 1) skips the last element",
-    "Missing last element",
-    ["range(n) goes 0 to n-1", "Remove the -1 from range()"],
-    "range(limit)"
+print(first_n("hello world", 5))`,
+    `def first_n(text, n):
+    return text[:n]`,
+    "Off-by-one in the slice end — n-1 cuts one short",
+    "Output: 'hell' instead of 'hello'",
+    ["Slice ends are exclusive — [:n] includes index n-1", "Drop the -1"],
+    "text[:n]"
   ),
-  ch(2, "Mutable Default Trap", "A function keeps remembering values across calls.", 60, 3, "python", "Beginner",
-    `def add_item(item, items=[]):
-    items.append(item)
-    return items
+  ch(2, "Division Rounding", "Averages come out as whole numbers.", 50, 3, "python", "Beginner",
+    `def mean(values):
+    return sum(values) // len(values)
 
-print(add_item("a"))
-print(add_item("b"))
-print(add_item("c"))`,
-    `def add_item(item, items=None):
-    if items is None:
-        items = []`,
-    "Mutable default argument shared across calls",
-    "['a'] then ['a','b'] then ['a','b','c']",
-    ["Defaults evaluated once, not per-call", "Use None and create new list inside"],
-    "items is None"
+print(mean([1, 2, 3, 4]))`,
+    `def mean(values):
+    return sum(values) / len(values)`,
+    "// floors the result instead of doing true division",
+    "Output: 2 instead of 2.5",
+    ["// is integer (floor) division", "A single / returns a float"],
+    "sum(values) / len"
   ),
-  ch(3, "String Immutability", "Modifying a character by index crashes.", 50, 3, "python", "Beginner",
-    `def fix_typos(text):
-    text[0] = text[0].upper()
-    return text
+  ch(3, "Typo Comparison", "A single = where == should be.", 45, 3, "python", "Beginner",
+    `def is_adult(age):
+    if age = 18:
+        return "exactly adult"
+    return "not exactly"
 
-print(fix_typos("hello"))`,
-    `def fix_typos(text):
-    text = text.capitalize()
-    return text`,
-    "Strings are immutable",
-    "TypeError: str does not support item assignment",
-    ["Strings can't be modified in-place", "Use capitalize() method"],
-    "capitalize()"
-  ),
-  ch(4, "Integer Division Trap", "Floor division gives wrong averages.", 50, 3, "python", "Beginner",
-    `def average(numbers):
-    return sum(numbers) // len(numbers)
-
-print(average([1, 2, 3, 4, 5]))`,
-    `return sum(numbers) / len(numbers)`,
-    "// is floor division, truncates decimals",
-    "Output: 3, Expected: 3.0",
-    ["// truncates the decimal part", "Use / for float division"],
-    "sum(numbers) / len"
-  ),
-  ch(5, "Wrong Comparison", "Assignment used instead of comparison.", 45, 3, "python", "Beginner",
-    `def check_password(password):
-    if len(password) = 8:
-        return True
-    return False
-
-print(check_password("short"))`,
-    `if len(password) == 8:`,
-    "= is assignment, == is comparison",
+print(is_adult(18))`,
+    `    if age == 18:`,
+    "= assigns instead of comparing",
     "SyntaxError: invalid syntax",
-    ["= assigns, == compares", "Change = to =="],
-    "len(password) =="
+    ["= assigns, == compares", "Fix the condition to use =="],
+    "age == 18"
   ),
-  ch(6, "Scope Shadowing", "Local variable hides global config.", 55, 3, "python", "Beginner",
-    `config = {"debug": True}
-
-def get_config():
-    config = {}
-    return config["debug"]
-
-print(get_config())`,
-    `def get_config():
-    global config
-    return config["debug"]`,
-    "Local config = {} shadows the global one",
-    "KeyError: 'debug'",
-    ["Use global keyword to access outer variable", "Or pass config as a parameter"],
-    "global config"
-  ),
-  ch(7, "Tuple Unpacking Error", "Too few values to unpack.", 50, 3, "python", "Beginner",
-    `def get_user():
-    return "alice", "admin"
-
-name, role, level = get_user()
-print(f"{name} is {role}, level {level}")`,
-    `return "alice", "admin", 5`,
-    "Returns 2 values but unpacks 3",
-    "ValueError: not enough values to unpack",
-    ["Count return values vs variables", "Add a third return value"],
-    '"admin", 5'
-  ),
-  ch(8, "Type Confusion", "String + int concatenation crashes.", 45, 3, "python", "Beginner",
-    `user = "Player"
+  ch(4, "Missing Conversion", "Concatenating a string and a number crashes.", 45, 3, "python", "Beginner",
+    `player = "Kai"
 score = 42
-print("Hello " + user + ", score: " + score)`,
-    `print("Hello " + user + ", score: " + str(score))`,
-    "Cannot concatenate str and int directly",
+print("Score for " + player + ": " + score)`,
+    `print("Score for " + player + ": " + str(score))`,
+    "str and int cannot be concatenated directly",
     "TypeError: can only concatenate str",
-    ["Convert number to string with str()", "Or use f-string"],
+    ["Convert the number with str()", "Or use an f-string"],
     "str(score)"
   ),
-  ch(9, "Infinite Loop", "Counter never decremented.", 55, 4, "python", "Beginner",
-    `def countdown(n):
-    while n > 0:
-        print(n)
-    print("Done!")
+  ch(5, "Runs Off the End", "The loop reads one item past the list.", 55, 4, "python", "Beginner",
+    `def has_adjacent_duplicates(items):
+    for i in range(len(items)):
+        if items[i] == items[i + 1]:
+            return True
+    return False
 
-countdown(3)`,
-    `while n > 0:
-        print(n)
-        n -= 1`,
-    "The counter n is never decremented",
-    "3, 3, 3... forever",
-    ["Add n -= 1 inside the loop body", "Without decrement, loop never ends"],
-    "n -= 1"
+print(has_adjacent_duplicates([1, 2, 2, 3]))`,
+    `    for i in range(len(items) - 1):`,
+    "items[i + 1] goes out of bounds on the last iteration",
+    "IndexError: list index out of range",
+    ["The last valid pair ends at len(items)-2", "Stop one early: range(len(items) - 1)"],
+    "range(len(items) - 1)"
   ),
-  ch(10, "Early Return", "Return inside loop returns too soon.", 45, 3, "python", "Beginner",
-    `def find_even(numbers):
-    for num in numbers:
-        if num % 2 == 0:
-            return num
-        else:
-            return None
+  ch(6, "Overzealous Filter", "Falsy values get dropped along with None.", 50, 3, "python", "Beginner",
+    `def drop_missing(values):
+    return [v for v in values if v]
 
-print(find_even([1, 3, 4, 5]))`,
-    `def find_even(numbers):
+print(drop_missing([0, 1, "", "a", None, 2]))`,
+    `def drop_missing(values):
+    return [v for v in values if v is not None]`,
+    "if v filters out 0 and '' along with None",
+    "Output: [1, 'a', 2] — 0 and '' missing",
+    ["Only None should be removed", "Test identity: v is not None"],
+    "v is not None"
+  ),
+  ch(7, "No Such Method", "Strings do not have that method.", 45, 3, "python", "Beginner",
+    `def flip(word):
+    return word.reverse()
+
+print(flip("stressed"))`,
+    `def flip(word):
+    return word[::-1]`,
+    "str has no .reverse() — that is a list method",
+    "AttributeError: 'str' object has no attribute 'reverse'",
+    ["Use a slice with step -1", "word[::-1] reverses a string"],
+    "word[::-1]"
+  ),
+  ch(8, "Discarded Update", "The result of the addition was never stored.", 50, 3, "python", "Beginner",
+    `def cart_total(items):
+    total = 0
+    for item in items:
+        total + item["price"]
+    return total
+
+print(cart_total([{"price": 10}, {"price": 5}]))`,
+    `        total += item["price"]`,
+    "total + price computes a value that is thrown away",
+    "Output: 0 instead of 15",
+    ["Use += to assign back", "total += x means total = total + x"],
+    "total += item"
+  ),
+  ch(9, "Silent Return", "The function prints but never returns a result.", 45, 3, "python", "Beginner",
+    `def first_positive(numbers):
     for num in numbers:
-        if num % 2 == 0:
-            return num
-    return None`,
-    "return None is inside the for loop",
-    "Returns None on first odd number",
-    ["De-indent return None", "It should be after the loop finishes"],
-    "return None\n"
+        if num > 0:
+            print(num)
+            break
+
+print(first_positive([-3, 7, 2]))`,
+    `        if num > 0:
+            return num`,
+    "The value is printed, never returned",
+    "Output: None (after printing 7)",
+    ["Return the number instead of printing it", "break after return is dead code"],
+    "return num"
+  ),
+  ch(10, "One Past the End", "Indexing with len() is out of range.", 45, 3, "python", "Beginner",
+    `def last_element(items):
+    return items[len(items)]
+
+print(last_element([1, 2, 3]))`,
+    `    return items[-1]`,
+    "len(items) is one past the last valid index",
+    "IndexError: list index out of range",
+    ["Indexes run from 0 to len-1", "Use -1 for the last element"],
+    "items[-1]"
   ),
 ];
 
 const pythonIntermediate: Challenge[] = [
-  ch(11, "KeyError Chaos", "Dict lookup crashes on missing keys.", 120, 5, "python", "Intermediate",
-    `def get_user_field(user, field):
-    return user[field]
+  ch(11, "Unhashable Tally", "A list sneaks into a dict as a key.", 140, 5, "python", "Intermediate",
+    `def tally(sessions):
+    counts = {}
+    for s in sessions:
+        tags = s["tags"]
+        counts[tags] = counts.get(tags, 0) + 1
+    return counts
 
-user = {"name": "Alice", "email": "alice@test.com"}
-print(get_user_field(user, "phone"))`,
-    `return user.get(field, "N/A")`,
-    "Direct dict[key] raises KeyError",
-    "KeyError: 'phone'",
-    ["Use dict.get() instead of direct indexing", "get(key, default) never raises KeyError"],
-    ".get(field"
+print(tally([{"tags": ["python"]}, {"tags": ["python"]}]))`,
+    `        tags = tuple(s["tags"])`,
+    "lists are unhashable — they cannot be dict keys",
+    "TypeError: unhashable type: 'list'",
+    ["Convert the list to a tuple", "tuple(...) is hashable and can be compared"],
+    "tuple(s[\"tags\"])"
   ),
-  ch(12, "Generator Exhaustion", "Generator used twice — second call empty.", 150, 5, "python", "Intermediate",
-    `def get_numbers():
-    return (x for x in range(5))
+  ch(12, "One-Shot Iterator", "The generator is spent after the first pass.", 150, 5, "python", "Intermediate",
+    `def id_stream():
+    return (i for i in range(100, 106))
 
-gen = get_numbers()
-print(sum(gen))
-print(list(gen))`,
-    `return list(x for x in range(5))`,
-    "Generator is exhausted after first iteration",
-    "10 then []",
-    ["Convert to list() if you need to reuse", "Generators are single-use iterators"],
-    "list(x for"
+ids = id_stream()
+first_batch = [next(ids) for _ in range(3)]
+second_batch = list(ids)
+print(first_batch, second_batch)`,
+    `def id_stream():
+    return list(i for i in range(100, 106))`,
+    "a generator can only be consumed once",
+    "Output: [100, 101, 102] [] — second batch empty",
+    ["Generators are single-use iterators", "Materialize with list() if you need it twice"],
+    "list(i for"
   ),
-  ch(13, "List Modification During Iteration", "Removing while iterating skips elements.", 140, 5, "python", "Intermediate",
-    `numbers = [1, 2, 3, 4, 5, 6]
-for n in numbers:
-    if n % 2 == 0:
-        numbers.remove(n)
-print(numbers)`,
-    `numbers = [n for n in numbers if n % 2 != 0]`,
-    "Modifying list while iterating skips items",
-    "[1, 3, 5, 6] — 6 was not removed!",
-    ["Never modify a list during iteration", "Use list comprehension to filter instead"],
-    "[n for n in numbers if n % 2 != 0]"
+  ch(13, "Skips While Removing", "Deleting items while iterating skips neighbors.", 145, 5, "python", "Intermediate",
+    `users = ["alice", "banned_bob", "carol", "banned_dave"]
+for user in users:
+    if user.startswith("banned"):
+        users.remove(user)
+print(users)`,
+    `users = [u for u in users if not u.startswith("banned")]`,
+    "removing during iteration shifts elements past the loop",
+    "Output: ['alice', 'carol', 'banned_dave'] — dave survived",
+    ["Never mutate a list you are iterating", "Filter with a comprehension instead"],
+    "u for u in users if not"
   ),
-  ch(14, "Class vs Instance Variable", "Class attribute shared across all instances.", 130, 5, "python", "Intermediate",
-    `class Player:
-    inventory = []
-    def __init__(self, name):
-        self.name = name
-    def add_item(self, item):
-        self.inventory.append(item)
+  ch(14, "Shared Shopping List", "A class attribute is shared by every instance.", 135, 5, "python", "Intermediate",
+    `class Cart:
+    items = []
 
-p1 = Player("Alice")
-p2 = Player("Bob")
-p1.add_item("sword")
-print(p2.inventory)`,
-    `class Player:
-    def __init__(self, name):
-        self.name = name
-        self.inventory = []`,
-    "inventory = [] at class level is shared by all",
-    "Bob has Alice's sword!",
-    ["Move inventory into __init__", "self.inventory = [] makes it per-instance"],
-    "self.inventory = []"
+    def __init__(self, owner):
+        self.owner = owner
+
+    def add(self, item):
+        self.items.append(item)
+
+a = Cart("alice")
+b = Cart("bob")
+a.add("keyboard")
+print(b.items)`,
+    `    def __init__(self, owner):
+        self.owner = owner
+        self.items = []`,
+    "items = [] at class level is one list for every cart",
+    "Output: ['keyboard'] — bob has alice's item",
+    ["Move items into __init__", "self.items = [] creates a per-instance list"],
+    "self.items = []"
   ),
-  ch(15, "Late Binding Closures", "Lambda in loop captures final value only.", 160, 6, "python", "Intermediate",
-    `def make_functions():
+  ch(15, "Loop Closure Trap", "Every lambda sees the final loop value.", 160, 6, "python", "Intermediate",
+    `def multipliers():
     funcs = []
-    for i in range(3):
-        funcs.append(lambda: i)
+    for factor in range(1, 4):
+        funcs.append(lambda x: x * factor)
     return funcs
 
-for f in make_functions():
-    print(f())`,
-    `funcs.append(lambda i=i: i)`,
-    "Lambda captures i by reference — all see final i=2",
-    "2, 2, 2 instead of 0, 1, 2",
-    ["Use default arg: lambda i=i: i", "Default args are evaluated at definition time"],
-    "lambda i=i: i"
+for f in multipliers():
+    print(f(10))`,
+    `        funcs.append(lambda x, f=factor: x * f)`,
+    "the closure captures the variable, not its value",
+    "Output: 30, 30, 30 instead of 10, 20, 30",
+    ["Bind the value as a default argument", "lambda x, f=factor: ... snapshots factor"],
+    "f=factor"
   ),
-  ch(16, "Float Comparison", "Comparing floats with == is unreliable.", 130, 5, "python", "Intermediate",
-    `result = 0.1 + 0.2
-if result == 0.3:
-    print("Equal!")
-else:
-    print(f"Not equal: {result}")`,
+  ch(16, "Case-Sensitive Sort", "Capitalized names sort before lowercase ones.", 130, 5, "python", "Intermediate",
+    `cities = ["Mumbai", "delhi", "Bengaluru", "chennai"]
+cities.sort()
+print(cities)`,
+    `cities.sort(key=str.lower)`,
+    "ASCII ordering puts uppercase letters first",
+    "Output: ['Bengaluru', 'Mumbai', 'chennai', 'delhi']",
+    ["Compare case-insensitively", "sort(key=str.lower) normalizes the comparison"],
+    "key=str.lower"
+  ),
+  ch(17, "Shallow Backup", "Copying the outer list still shares the inner ones.", 140, 5, "python", "Intermediate",
+    `matrix = [[1, 2], [3, 4]]
+backup = matrix[:]
+backup[0].append(99)
+print(matrix)`,
+    `import copy
+backup = copy.deepcopy(matrix)`,
+    "slicing copies only the top level of the list",
+    "Output: [[1, 2, 99], [3, 4]] — original mutated",
+    ["deepcopy() recurses into nested structures", "Slicing is fine for flat lists only"],
+    "deepcopy(matrix)"
+  ),
+  ch(18, "Float on the Edge", "Exact equality fails for computed floats.", 135, 5, "python", "Intermediate",
+    `def within_budget(price, budget):
+    return price == budget
+
+print(within_budget(10.1 + 0.2, 10.3))`,
     `import math
 
-result = 0.1 + 0.2
-if math.isclose(result, 0.3):`,
-    "0.1 + 0.2 != 0.3 in floating point",
-    "Not equal: 0.30000000000000004",
-    ["Floating point has precision issues", "Use math.isclose() for float comparison"],
-    "math.isclose"
+def within_budget(price, budget):
+    return math.isclose(price, budget, rel_tol=1e-9)`,
+    "10.1 + 0.2 is not exactly 10.3 in binary floating point",
+    "Output: False — budget check fails",
+    ["Use math.isclose() for float comparisons", "rel_tol sets the allowed relative error"],
+    "math.isclose(price, budget"
   ),
-  ch(17, "Shallow Copy Pitfall", "Slice copy doesn't deep copy nested lists.", 140, 5, "python", "Intermediate",
-    `original = [[1, 2], [3, 4]]
-copy = original[:]
-copy[0][0] = 99
-print(original)`,
-    `import copy
+  ch(19, "Sneaky OR Precedence", "and binds tighter than or — access leaks.", 145, 5, "python", "Intermediate",
+    `def can_access(user):
+    return user["admin"] or user["role"] == "owner" and not user["banned"]
 
-copy = copy.deepcopy(original)`,
-    "Slicing [:] creates a shallow copy only",
-    "[[99, 2], [3, 4]] — original was mutated!",
-    ["Use copy.deepcopy() for nested structures", "Slicing only copies the outer list"],
-    "deepcopy"
+print(can_access({"admin": True, "role": "guest", "banned": True}))`,
+    `    return (user["admin"] or user["role"] == "owner") and not user["banned"]`,
+    "without parens, admin alone bypasses the ban check",
+    "Output: True — a banned admin gets in",
+    ["Group the OR branch in parentheses", "(a or b) and not banned"],
+    ') and not user["banned"]'
   ),
-  ch(18, "File Not Closed", "File opened but never closed on error.", 120, 4, "python", "Intermediate",
-    `def read_config():
-    f = open("config.txt", "r")
-    data = f.read()
-    return data
-
-print(read_config())`,
-    `def read_config():
-    with open("config.txt", "r") as f:
-        data = f.read()
-    return data`,
-    "No context manager — file leaks on error",
-    "ResourceWarning: unclosed file",
-    ["Use 'with' statement for safe file handling", "with open() automatically closes the file"],
-    "with open"
-  ),
-  ch(19, "Boolean Precedence", "and/or grouping differs from intent.", 135, 5, "python", "Intermediate",
-    `def check(user):
-    if not user.active and user.role == "admin" or user.bypass:
-        return "Access granted"
-    return "Access denied"
-
-class U:
-    active = False
-    role = "guest"
-    bypass = False
-print(check(U()))`,
-    `if not user.active and (user.role == "admin" or user.bypass):`,
-    "and binds tighter than or in Python",
-    "'Access granted' for guest — wrong!",
-    ["Add parentheses around the OR condition", "not active and (role==admin or bypass)"],
-    'and (user.role == "admin"'
-  ),
-  ch(20, "Bare Except", "Catches ALL exceptions including SystemExit.", 130, 5, "python", "Intermediate",
-    `def parse_number(text):
+  ch(20, "Bare Except", "The catch-all also swallows Ctrl+C and real bugs.", 130, 5, "python", "Intermediate",
+    `def parse_count(text):
     try:
         return int(text)
     except:
         return 0
 
-print(parse_number(1.5))`,
+print(parse_count("1.5"))`,
     `    except ValueError:
         return 0`,
-    "Bare except: hides every possible error",
-    "1.5 silently returns 0 — real error hidden",
-    ["Catch specific exceptions: except ValueError:", "Never use bare except:"],
+    "a bare except catches everything, hiding genuine errors",
+    "Output: 0 — 1.5 silently becomes zero",
+    ["Catch the specific error: except ValueError:", "Bare except also eats KeyboardInterrupt"],
     "except ValueError:"
   ),
 ];
 
 const pythonAdvanced: Challenge[] = [
-  ch(21, "Deadlocked Threads", "Two threads wait on each other forever.", 260, 8, "python", "Advanced",
+  ch(21, "Crossed Locks", "Two threads grab the locks in opposite order.", 260, 8, "python", "Advanced",
     `import threading
 
 lock_a = threading.Lock()
@@ -348,14 +324,14 @@ lock_b = threading.Lock()
 def worker1():
     lock_a.acquire()
     lock_b.acquire()
-    print("Worker 1 done")
+    print("worker1 done")
     lock_b.release()
     lock_a.release()
 
 def worker2():
     lock_b.acquire()
     lock_a.acquire()
-    print("Worker 2 done")
+    print("worker2 done")
     lock_a.release()
     lock_b.release()
 
@@ -366,175 +342,30 @@ t2.start()`,
     `def worker1():
     with lock_a:
         with lock_b:
-            print("Worker 1 done")
+            print("worker1 done")
 
 def worker2():
     with lock_a:
         with lock_b:
-            print("Worker 2 done")`,
-    "Different lock acquisition order = deadlock",
+            print("worker2 done")`,
+    "locks are acquired in different orders — a classic deadlock",
     "Program hangs forever",
-    ["Both threads acquire locks in different orders", "Always lock A then B, use 'with'"],
+    ["Always acquire every lock in the same order", "The with statement also releases on exceptions"],
     "with lock_a:"
   ),
-  ch(22, "GIL Contention", "Threading doesn't speed up CPU work.", 240, 7, "python", "Advanced",
-    `import threading
-import time
-
-def cpu_task(n):
-    s = 0
-    for i in range(n):
-        s += i * i
-    return s
-
-start = time.time()
-t1 = threading.Thread(target=cpu_task, args=(50_000_000,))
-t2 = threading.Thread(target=cpu_task, args=(50_000_000,))
-t1.start()
-t2.start()
-t1.join()
-t2.join()
-print(f"Time: {time.time() - start:.2f}s")`,
-    `import multiprocessing
-
-with multiprocessing.Pool(2) as pool:
-    results = pool.map(cpu_task, [50_000_000, 50_000_000])`,
-    "GIL prevents true parallelism in threads",
-    "Threading is SLOWER than sequential for CPU tasks",
-    ["Use multiprocessing for CPU-bound tasks", "multiprocessing.Pool spawns separate processes"],
-    "multiprocessing"
-  ),
-  ch(23, "Memory Leak in Closures", "Circular ref prevents garbage collection.", 230, 7, "python", "Advanced",
-    `import gc
-
-def make_handler():
-    data = list(range(100000))
-    def handler():
-        return len(data)
-    handler.data_ref = data
-    return handler
-
-handlers = [make_handler() for _ in range(100)]
-print(gc.get_count())`,
-    `    def handler():
-        return len(data)
-    return handler`,
-    "handler.data_ref = data creates reference cycle",
-    "Memory grows — 100 handlers * 100K items never freed",
-    ["Remove the explicit reference", "The closure already captures data"],
-    "handler()"
-  ),
-  ch(24, "Metaclass __new__ Bug", "type.__new__ breaks the metaclass chain.", 280, 10, "python", "Advanced",
-    `class Meta(type):
-    def __new__(mcs, name, bases, namespace):
-        namespace["created_at"] = "now"
-        return type.__new__(mcs, name, bases, namespace)
-
-class Base(metaclass=Meta):
-    pass
-
-class Derived(Base):
-    pass
-
-print(Derived.created_at)`,
-    `        return super().__new__(mcs, name, bases, namespace)`,
-    "type.__new__ bypasses the metaclass chain",
-    "Derived has no created_at attribute",
-    ["Use super().__new__ to maintain the chain", "This ensures Derived also gets the Meta treatment"],
-    "super().__new__"
-  ),
-  ch(25, "Missing __set__ Descriptor", "Descriptor missing __set__ makes attr read-only.", 250, 8, "python", "Advanced",
-    `class Validated:
-    def __get__(self, obj, objtype=None):
-        return getattr(obj, "_value", None)
-    def __set_name__(self, owner, name):
-        self._name = name
-
-class Config:
-    threshold = Validated()
-    def __init__(self):
-        self._value = 50
-
-c = Config()
-c.threshold = 100
-print(c.threshold)`,
-    `class Validated:
-    def __get__(self, obj, objtype=None):
-        if obj is None:
-            return self
-        return getattr(obj, "_value", None)
-    def __set__(self, obj, value):
-        obj._value = value
-    def __set_name__(self, owner, name):
-        self._name = name`,
-    "Missing __set__ — assignment replaces descriptor entirely",
-    "threshold replaced with integer 100",
-    ["Add __set__(self, obj, value) to enable writing", "Without it, assignment overwrites the descriptor"],
-    "def __set__(self, obj, value):"
-  ),
-  ch(26, "Asyncio Blocking Call", "time.sleep blocks entire event loop.", 240, 8, "python", "Advanced",
-    `import asyncio
-import time
-
-async def fetch_data():
-    await asyncio.sleep(0.1)
-    return "data"
-
-async def blocking_task():
-    time.sleep(3)
-    return "done"
-
-async def main():
-    t1 = asyncio.create_task(fetch_data())
-    t2 = asyncio.create_task(blocking_task())
-    results = await asyncio.gather(t1, t2)
-    print(results)
-
-asyncio.run(main())`,
-    `    await asyncio.sleep(3)`,
-    "time.sleep is synchronous — blocks the event loop",
-    "fetch_data waits 3 seconds even though it needs 0.1s",
-    ["Use await asyncio.sleep() in async code", "time.sleep blocks the whole event loop"],
-    "await asyncio.sleep(3)"
-  ),
-  ch(27, "Pickle Can't Handle Lambda", "Lambda can't be serialized with pickle.", 220, 7, "python", "Advanced",
-    `import pickle
-
-def make_processor():
-    threshold = 50
-    process = lambda x: x > threshold
-    return process
-
-processor = make_processor()
-data = {"fn": processor}
-
-with open("data.pkl", "wb") as f:
-    pickle.dump(data, f)`,
-    `import dill
-
-with open("data.pkl", "wb") as f:
-    dill.dump(data, f)`,
-    "pickle can't serialize lambda functions",
-    "AttributeError: Can't pickle local object",
-    ["Use dill library which extends pickle", "dill can serialize lambdas and closures"],
-    "import dill"
-  ),
-  ch(28, "Race Condition in Dict", "Shared dict updated without lock.", 260, 8, "python", "Advanced",
+  ch(22, "Lost Updates", "Concurrent increments drop writes.", 250, 8, "python", "Advanced",
     `import threading
 
-shared = {"count": 0}
+counter = {"count": 0}
 
 def increment():
     for _ in range(10000):
-        shared["count"] = shared["count"] + 1
+        counter["count"] = counter["count"] + 1
 
 t1 = threading.Thread(target=increment)
 t2 = threading.Thread(target=increment)
-t1.start()
-t2.start()
-t1.join()
-t2.join()
-print(shared["count"])`,
+t1.start(); t2.start(); t1.join(); t2.join()
+print(counter["count"])`,
     `import threading
 
 lock = threading.Lock()
@@ -542,87 +373,221 @@ lock = threading.Lock()
 def increment():
     for _ in range(10000):
         with lock:
-            shared["count"] = shared["count"] + 1`,
-    "read-modify-write on shared dict is not atomic",
-    "Output < 20000 — lost updates due to race",
-    ["Wrap the operation in threading.Lock()", "with lock: makes it atomic"],
+            counter["count"] = counter["count"] + 1`,
+    "read-modify-write is not atomic — threads interleave",
+    "Output is less than 20000 on every run",
+    ["Serialize the critical section with a Lock", "with lock: makes the update atomic"],
     "with lock:"
   ),
-  ch(29, "Missing Abstract Method", "Subclass doesn't implement all abstract methods.", 230, 7, "python", "Advanced",
-    `from abc import ABC, abstractmethod
+  ch(23, "Threads Don't Speed Up", "The GIL serializes CPU-bound work.", 240, 7, "python", "Advanced",
+    `import threading
+import time
 
-class Database(ABC):
-    @abstractmethod
-    def connect(self):
-        pass
-    @abstractmethod
-    def query(self, sql):
-        pass
-    @abstractmethod
-    def close(self):
-        pass
+def crunch(n):
+    total = 0
+    for i in range(n):
+        total += i * i
+    return total
 
-class MySQL(Database):
-    def connect(self):
-        pass
-    def query(self, sql):
-        pass
+start = time.time()
+t1 = threading.Thread(target=crunch, args=(30_000_000,))
+t2 = threading.Thread(target=crunch, args=(30_000_000,))
+t1.start(); t2.start(); t1.join(); t2.join()
+print(f"{time.time() - start:.2f}s")`,
+    `import multiprocessing
 
-db = MySQL()
-print("Connected")`,
-    `    def close(self):
-        pass`,
-    "MySQL class doesn't implement the close() method",
-    "TypeError: Can't instantiate abstract class MySQL",
-    ["Implement the close() method", "All @abstractmethod methods must be overridden"],
-    "def close(self):"
+if __name__ == "__main__":
+    with multiprocessing.Pool(2) as pool:
+        pool.map(crunch, [30_000_000, 30_000_000])`,
+    "the GIL only lets one thread run Python code at a time",
+    "Two threads take as long as one — sometimes longer",
+    ["Use multiprocessing for CPU-bound work", "multiprocessing.Pool runs true parallel processes"],
+    "multiprocessing.Pool"
   ),
-  ch(30, "Contextvars in Async Tasks", "Context lost between concurrent async tasks.", 270, 9, "python", "Advanced",
+  ch(24, "Property Feedback Loop", "The getter reads itself forever.", 250, 8, "python", "Advanced",
+    `class User:
+    def __init__(self, name):
+        self.name = name
+
+    @property
+    def name(self):
+        return self.name
+
+u = User("ada")
+print(u.name)`,
+    `class User:
+    def __init__(self, name):
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name`,
+    "self.name inside the name getter calls the getter again",
+    "RecursionError: maximum recursion depth exceeded",
+    ["Back the property with a private attribute", "self._name is a plain attribute, not a property"],
+    "self._name"
+  ),
+  ch(25, "Read-Only Field", "A descriptor without __set__ swallows writes.", 245, 8, "python", "Advanced",
+    `class Lowered:
+    def __get__(self, obj, objtype=None):
+        return getattr(obj, "_value", None)
+
+class Config:
+    key = Lowered()
+
+c = Config()
+c.key = "SECRET"
+print(c.key)`,
+    `class Lowered:
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        return getattr(obj, "_value", None)
+
+    def __set__(self, obj, value):
+        obj._value = value.lower()`,
+    "without __set__, assignment replaces the descriptor entirely",
+    "Output: 'SECRET' instead of the lowered 'secret'",
+    ["Data descriptors need __set__ to intercept writes", "Store the normalized value on the instance"],
+    "def __set__(self, obj, value):"
+  ),
+  ch(26, "Blocking the Loop", "A sync call freezes the entire event loop.", 240, 8, "python", "Advanced",
+    `import asyncio
+import time
+
+async def fetch():
+    await asyncio.sleep(0.1)
+    return "data"
+
+async def slow():
+    time.sleep(3)
+    return "done"
+
+async def main():
+    a = asyncio.create_task(fetch())
+    b = asyncio.create_task(slow())
+    print(await asyncio.gather(a, b))
+
+asyncio.run(main())`,
+    `async def slow():
+    await asyncio.sleep(3)
+    return "done"`,
+    "time.sleep blocks the loop — no other task can run",
+    "fetch() also takes 3 seconds",
+    ["Use await asyncio.sleep() inside coroutines", "time.sleep() belongs only in sync code"],
+    "await asyncio.sleep(3)"
+  ),
+  ch(27, "Erased Metadata", "The decorator hides the function's identity.", 230, 7, "python", "Advanced",
+    `def timed(func):
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return wrapper
+
+@timed
+def process():
+    """Handles the payload."""
+    return 42
+
+print(process.__name__)
+print(process.__doc__)`,
+    `import functools
+
+def timed(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return wrapper`,
+    "wrapper is returned bare — __name__ and __doc__ are lost",
+    "Output: wrapper, None",
+    ["Decorate the wrapper with @functools.wraps(func)", "wraps() copies __name__, __doc__, __module__"],
+    "functools.wraps(func)"
+  ),
+  ch(28, "Lost Cause Chain", "Raising from an except drops the original error.", 220, 7, "python", "Advanced",
+    `def load_file():
+    raise ValueError("corrupt file")
+
+def run():
+    try:
+        load_file()
+    except ValueError:
+        raise RuntimeError("load failed")
+
+try:
+    run()
+except RuntimeError as e:
+    print(type(e.__cause__).__name__ if e.__cause__ else "No cause")`,
+    `    except ValueError as e:
+        raise RuntimeError("load failed") from e`,
+    "without 'from e' the root cause is only implicit context",
+    "Output: No cause — a debugging dead end",
+    ["Chain with raise ... from e", "e.__cause__ then points at the original error"],
+    "from e"
+  ),
+  ch(29, "Generator Left Open", "A half-consumed generator holds its frame alive.", 225, 7, "python", "Advanced",
+    `def lines_from(handle):
+    for line in handle:
+        yield line.rstrip()
+
+src = ["a", "b", "c"]
+gen = lines_from(iter(src))
+print(next(gen))
+print(next(gen))
+# never exhausted — the frame and handle stay alive`,
+    `gen = lines_from(iter(src))
+print(next(gen))
+print(next(gen))
+gen.close()`,
+    "an abandoned generator keeps its locals until garbage collection",
+    "ResourceWarning: unclosed generator",
+    ["Close it explicitly when you stop early", "gen.close() releases the frame immediately"],
+    "gen.close()"
+  ),
+  ch(30, "Context Leak Across Tasks", "ContextVars do not follow gather() coroutines.", 270, 9, "python", "Advanced",
     `import asyncio
 from contextvars import ContextVar
 
-request_id = ContextVar("request_id")
+request_id = ContextVar("request_id", default="none")
 
 async def process():
-    print(f"Processing: {request_id.get()}")
+    print(f"handling {request_id.get()}")
     await asyncio.sleep(0.1)
 
 async def main():
-    request_id.set("req-123")
+    request_id.set("req-42")
     await asyncio.gather(process(), process())
 
 asyncio.run(main())`,
-    `    t1 = asyncio.create_task(process())
+    `async def main():
+    request_id.set("req-42")
+    t1 = asyncio.create_task(process())
     t2 = asyncio.create_task(process())
     await asyncio.gather(t1, t2)`,
-    "Context may not propagate to gather coroutines directly",
-    "Context shared or lost between concurrent tasks",
-    ["Use create_task() to create proper task contexts", "Each task gets its own copy of context variables"],
-    "create_task"
+    "gather() runs coroutines in the caller's context instead of fresh task contexts",
+    "Output: handling none, handling none — context lost",
+    ["Use asyncio.create_task() to give each task a context", "Each task inherits a snapshot of the current context"],
+    "asyncio.create_task(process())"
   ),
 ];
 
 const pythonNightmare: Challenge[] = [
-  ch(31, "Ctypes Memory Corruption", "Modifying Python internals causes segfault.", 350, 12, "python", "Nightmare",
+  ch(31, "Memory Sabotage", "ctypes writes over a CPython interned integer.", 350, 12, "python", "Nightmare",
     `import ctypes
-import sys
 
-def evil_modify():
+def sabotage():
     x = 42
-    id_x = id(x)
-    ctypes.c_int.from_address(id_x).value = 0
+    ctypes.c_int.from_address(id(x)).value = 0
     return x
 
-print(evil_modify())`,
-    `def safe_modify():
-    x = 42
-    return x
+print(sabotage())`,
+    `def sabotage():
+    value = 42
+    return value
 
-print(safe_modify())`,
-    "ctypes modifies Python object memory directly",
+print(sabotage())`,
+    "ctypes corrupts the object that all 42s share",
     "Segmentation fault / interpreter crash",
-    ["Never use ctypes on Python object internals", "Just return the value normally"],
-    "def safe_modify"
+    ["Never poke Python internals with ctypes", "Return the value normally"],
+    "value = 42"
   ),
   ch(32, "Circular Imports", "Top-level circular imports crash at startup.", 300, 10, "python", "Nightmare",
     `# module_a.py
@@ -636,20 +601,21 @@ from module_a import process_a
 
 def process_b(data):
     return process_a(data) + "_b"`,
-    `def process_a(data):
-    from module_b import process_b
+    `# module_a.py
+from module_b import process_b
+
+def process_a(data):
     return process_b(data) + "_a"
 
 # module_b.py
 def process_b(data):
-    from module_a import process_a
-    return process_a(data) + "_b"`,
-    "Top-level circular imports between modules",
+    return data + "_b"`,
+    "each module imports the other at the top level",
     "ImportError: partially initialized module",
-    ["Move imports inside functions (lazy imports)", "Lazy imports break the circular dependency"],
-    "from module_b import"
+    ["Break the cycle — module_b never needs module_a", "Drop the back-import"],
+    "return data + \"_b\""
   ),
-  ch(33, "Recursion Overflow", "Deep nesting exceeds recursion limit.", 300, 10, "python", "Nightmare",
+  ch(33, "Recursion Overflow", "Deep nesting exceeds Python's recursion limit.", 300, 10, "python", "Nightmare",
     `def flatten(nested):
     result = []
     for item in nested:
@@ -678,30 +644,33 @@ flatten(deep)`,
             else:
                 result.append(item)
     return result`,
-    "Deep nesting exceeds Python's recursion limit of 1000",
+    "nesting depth exceeds the default limit of 1000 frames",
     "RecursionError: maximum recursion depth exceeded",
-    ["Convert recursion to iteration with an explicit stack", "while loop with push/pop avoids the limit"],
+    ["Convert recursion into an explicit stack", "A while loop with push/pop avoids the limit"],
     "stack = [nested]"
   ),
-  ch(34, "Hash Randomization", "Dict order varies — hash is non-deterministic.", 290, 10, "python", "Nightmare",
+  ch(34, "Shifty Hash Order", "Dict order varies with the hash seed.", 290, 10, "python", "Nightmare",
     `import hashlib
 
-def serialize_config(config):
+def signature(config):
     result = ""
     for key, value in config.items():
         result += f"{key}={value};"
     return hashlib.md5(result.encode()).hexdigest()
 
 config = {"host": "localhost", "port": 8080, "debug": True}
-print(serialize_config(config))`,
-    `    for key in sorted(config.keys()):
-        result += f"{key}={config[key]};"`,
-    "Dict iteration order varies with PYTHONHASHSEED",
-    "Different MD5 hash on each run",
-    ["Sort keys before serialization for deterministic output", "sorted(config.keys()) guarantees consistent order"],
+print(signature(config))`,
+    `def signature(config):
+    result = ""
+    for key in sorted(config.keys()):
+        result += f"{key}={config[key]};"
+    return hashlib.md5(result.encode()).hexdigest()`,
+    "PYTHONHASHSEED makes dict iteration order non-deterministic",
+    "A different MD5 hash on every run",
+    ["Sort the keys before serializing", "sorted(config.keys()) gives a stable order"],
     "sorted(config.keys())"
   ),
-  ch(35, "Fork Bomb", "os.fork without exit creates exponential processes.", 340, 10, "python", "Nightmare",
+  ch(35, "Process Explosion", "os.fork without a depth guard multiplies processes.", 340, 10, "python", "Nightmare",
     `import os
 import sys
 
@@ -722,19 +691,19 @@ def worker(level=0):
         p = Process(target=worker, args=(level + 1,))
         p.start()
         p.join()`,
-    "os.fork duplicates the process — child also forks",
-    "Exponential process creation — system unresponsive",
-    ["Use multiprocessing.Process instead of os.fork", "Always join() child processes and limit depth"],
+    "every child also forks, so processes multiply exponentially",
+    "System becomes unresponsive",
+    ["Use multiprocessing.Process with a depth limit", "Always join() children and bound the recursion"],
     "multiprocessing"
   ),
-  ch(36, "__del__ + Reference Cycle", "__del__ prevents GC from collecting cycles.", 300, 10, "python", "Nightmare",
+  ch(36, "Uncollectable Cycle", "__del__ plus a reference cycle defeats the GC.", 300, 10, "python", "Nightmare",
     `import gc
 
 class Node:
     def __init__(self):
         self.child = None
     def __del__(self):
-        print(f"Deleting {id(self)}")
+        print(f"deleting {id(self)}")
 
 a = Node()
 b = Node()
@@ -743,18 +712,18 @@ b.child = a
 del a
 del b
 gc.collect()
-print("Done")`,
+print("done")`,
     `class Node:
     def __init__(self):
         self.child = None
     def close(self):
         self.child = None`,
-    "__del__ + reference cycle = GC can't collect",
-    "Objects never collected — memory leak",
-    ["Use explicit cleanup (close()) instead of __del__", "Or use weakref for back-references"],
+    "__del__ in a reference cycle means the GC gives up on it",
+    "Objects are never collected — memory leaks",
+    ["Prefer explicit cleanup like close()", "Or use weakref for back-references"],
     "def close(self):"
   ),
-  ch(37, "C-Stack Overflow", "High recursionlimit causes C stack crash.", 320, 10, "python", "Nightmare",
+  ch(37, "Exponential Fib", "Naive recursion makes 2^50 calls.", 320, 10, "python", "Nightmare",
     `import sys
 
 sys.setrecursionlimit(100000)
@@ -774,15 +743,14 @@ print(fibonacci(50))`,
     return b
 
 print(fibonacci(50))`,
-    "fib(50) naive recursion = 2^50 calls even with high limit",
-    "C stack overflow",
-    ["Use iterative approach for fibonacci", "Or @functools.lru_cache for memoization"],
+    "each call spawns two more — the tree explodes even with a high limit",
+    "C stack overflow / never finishes",
+    ["Switch to an iterative loop", "Or memoize with @functools.lru_cache"],
     "a, b = 0, 1"
   ),
-  ch(38, "Signal Handler Race", "Signal handler races with worker thread.", 330, 11, "python", "Nightmare",
+  ch(38, "Racy Shutdown", "A plain flag races between threads.", 330, 11, "python", "Nightmare",
     `import signal
 import threading
-import sys
 
 shutdown = False
 
@@ -805,12 +773,12 @@ def handle_signal(sig, frame):
 def worker():
     while not shutdown.is_set():
         shutdown.wait(timeout=0.1)`,
-    "Signal handlers run in main thread only — race with worker",
-    "Race condition on shutdown flag",
-    ["Use threading.Event for thread-safe signaling", "Event.wait(timeout) avoids busy-waiting"],
+    "the flag is not visible reliably across threads",
+    "Worker never stops — busy-spins at 100% CPU",
+    ["Use threading.Event for thread-safe signaling", "Event.wait(timeout) avoids the busy loop"],
     "threading.Event()"
   ),
-  ch(39, "Mutable Dataclass Default", "Mutable class default shared in dataclass.", 280, 9, "python", "Nightmare",
+  ch(39, "Dataclass Default Trap", "A mutable default is shared by every instance.", 280, 9, "python", "Nightmare",
     `from dataclasses import dataclass
 
 @dataclass
@@ -828,12 +796,12 @@ print(t2.tags)`,
 class Task:
     tags: list = field(default_factory=list)
     name: str = ""`,
-    "dataclass mutable default shared across instances",
-    "t2.tags = ['urgent'] — shared between instances!",
-    ["Use field(default_factory=list) in dataclass", "Never use mutable defaults in dataclass"],
+    "dataclasses evaluate defaults once, so the list is shared",
+    "Output: ['urgent'] — t2 inherits t1's tag",
+    ["Use field(default_factory=list)", "Mutable defaults must be produced per instance"],
     "field(default_factory=list)"
   ),
-  ch(40, "Singleton Metaclass", "Singleton pattern with inheritance issues.", 310, 10, "python", "Nightmare",
+  ch(40, "Trust the Singleton", "This code is actually correct — recognize it.", 310, 10, "python", "Nightmare",
     `class Singleton(type):
     _instances = {}
     def __call__(cls, *args, **kwargs):
@@ -852,682 +820,1090 @@ print(type(B()))`,
         if cls not in cls._instances:
             cls._instances[cls] = super().__call__(*args, **kwargs)
         return cls._instances[cls]`,
-    "Actually correct — each class gets its own instance",
-    "Code is correct — recognize when there's no bug!",
-    ["The Singleton pattern here is actually correct", "Sometimes the code is already right — no fix needed"],
+    "each class correctly gets its own singleton — there is no bug",
+    "Everything runs fine",
+    ["The pattern is right: each class has its own _instances entry", "Sometimes the code needs no fix — submit it as-is"],
     "_instances"
   ),
 ];
-
 /* ========= JAVASCRIPT TRACK ========= */
 const jsBeginner: Challenge[] = [
-  ch(101, "Undefined Property", "Accessing property on undefined crashes.", 40, 3, "javascript", "Beginner",
-    `const user = getUser();\nconsole.log(user.name);\n\nfunction getUser() {\n    return null;\n}`,
-    `const user = getUser();\nif (user) {\n    console.log(user.name);\n}`,
-    "Accessing .name on null",
-    "TypeError: Cannot read property 'name' of null",
-    ["Check if user exists first", "Use optional chaining user?.name"],
+  ch(101, "Property of Null", "Accessing a property on null crashes.", 40, 3, "javascript", "Beginner",
+    `const user = getUser();
+console.log(user.name);
+
+function getUser() {
+    return null;
+}`,
+    `const user = getUser();
+if (user) {
+    console.log(user.name);
+}`,
+    "Reading .name from null throws",
+    "TypeError: Cannot read properties of null",
+    ["Guard the access before reading", "Optional chaining user?.name also works"],
     "if (user)"
   ),
-  ch(102, "Var Hoisting", "Variable used before declaration gives undefined.", 50, 3, "javascript", "Beginner",
-    `console.log(score);\nvar score = 100;`,
-    `let score = 100;\nconsole.log(score);`,
-    "var hoisted, value is undefined at console.log",
-    "undefined",
-    ["var is hoisted, let/const are not", "Declare before use"],
-    "let score"
+  ch(102, "Hoisted Ghost", "The variable exists but has no value yet.", 45, 3, "javascript", "Beginner",
+    `console.log(score);
+var score = 100;`,
+    `let score = 100;
+console.log(score);`,
+    "var is hoisted, so score is undefined at the log",
+    "Output: undefined",
+    ["var hoists the declaration, not the value", "Declare before use and prefer let/const"],
+    "let score = 100;"
   ),
-  ch(103, "Missing Semicolon ASI", "Automatic semicolon insertion breaks return.", 55, 3, "javascript", "Beginner",
-    `function getValue() {\n    return\n    {\n        value: 42\n    };\n}\n\nconsole.log(getValue());`,
-    `function getValue() {\n    return {\n        value: 42\n    };\n}`,
-    "return on its own line returns undefined",
-    "undefined instead of {value: 42}",
-    ["Return with newline = return undefined", "Put return value on same line"],
+  ch(103, "Return Line Break", "ASI turns return into return; undefined.", 55, 3, "javascript", "Beginner",
+    `function getValue() {
+    return
+    {
+        value: 42
+    };
+}
+
+console.log(getValue());`,
+    `function getValue() {
+    return {
+        value: 42
+    };
+}`,
+    "a newline after return inserts a semicolon",
+    "Output: undefined instead of { value: 42 }",
+    ["The object must start on the return line", "return { opens the object on the same line"],
     "return {"
   ),
-  ch(104, "Type Coercion", "== does type coercion giving wrong results.", 45, 3, "javascript", "Beginner",
-    `console.log(0 == "0");\nconsole.log(0 == false);\nconsole.log("" == false);`,
-    `console.log(0 === "0");\nconsole.log(0 === false);\nconsole.log("" === false);`,
-    "== does implicit type coercion",
-    "true, true, true — all coerce to same",
-    ["Use === for strict comparison", "=== checks value AND type"],
+  ch(104, "Loose Coercion", "== silently converts types before comparing.", 45, 3, "javascript", "Beginner",
+    `console.log(0 == "0");
+console.log(0 == false);
+console.log("" == false);`,
+    `console.log(0 === "0");
+console.log(0 === false);
+console.log("" === false);`,
+    "== coerces both sides to a common type",
+    "Output: true, true, true",
+    ["=== compares value and type", "Avoid == except when coercion is intended"],
     "==="
   ),
-  ch(105, "Array Length Confusion", "Setting array.length truncates the array.", 50, 3, "javascript", "Beginner",
-    `const arr = [1, 2, 3, 4, 5];\narr.length = 3;\nconsole.log(arr);`,
-    `const arr = [1, 2, 3, 4, 5];\nconst sliced = arr.slice(0, 3);\nconsole.log(sliced);`,
-    "Setting length mutates original array in-place",
-    "[1,2,3] — original array was modified",
-    ["Use slice() to avoid mutation", "arr.length = n truncates in-place"],
-    ".slice(0"
+  ch(105, "Lexicographic Sort", "sort() orders numbers like strings.", 50, 3, "javascript", "Beginner",
+    `const nums = [10, 9, 100, 3];
+nums.sort();
+console.log(nums);`,
+    `const nums = [10, 9, 100, 3];
+nums.sort((a, b) => a - b);
+console.log(nums);`,
+    "the default comparator converts values to strings",
+    "Output: [10, 100, 3, 9]",
+    ["Pass a numeric comparator", "(a, b) => a - b sorts ascending"],
+    "(a, b) => a - b"
   ),
-  ch(106, "NaN Comparison", "NaN !== NaN — always true.", 55, 3, "javascript", "Beginner",
-    `function isValid(num) {\n    if (num !== NaN) {\n        return "Valid";\n    }\n    return "Invalid";\n}\n\nconsole.log(isValid(5));\nconsole.log(isValid(NaN));`,
-    `function isValid(num) {\n    if (!Number.isNaN(num)) {\n        return "Valid";\n    }\n    return "Invalid";\n}`,
-    "NaN never equals anything, even itself",
-    "Both return 'Valid' — NaN case wrong",
-    ["NaN !== NaN is always true", "Use Number.isNaN() to check"],
+  ch(106, "NaN Escapes Equality", "NaN never equals anything, even itself.", 55, 3, "javascript", "Beginner",
+    `function isValid(num) {
+    if (num !== NaN) {
+        return "valid";
+    }
+    return "invalid";
+}
+
+console.log(isValid(NaN));`,
+    `function isValid(num) {
+    if (!Number.isNaN(num)) {
+        return "valid";
+    }
+    return "invalid";
+}`,
+    "NaN !== NaN is always true, so the check never fires",
+    "Output: valid — the NaN case slips through",
+    ["Use Number.isNaN() to test for NaN", "Any comparison with NaN returns false"],
     "Number.isNaN"
   ),
-  ch(107, "String Split Gotcha", "split on empty string creates [''].", 45, 3, "javascript", "Beginner",
-    `const csv = "a,b,c";\nconst items = csv.split(",");\nconsole.log(items.length);\n\nconst empty = "";\nconst emptyItems = empty.split(",");\nconsole.log(emptyItems.length);`,
-    `const emptyItems = empty.length > 0 ? empty.split(",") : [];`,
-    '"".split(\',\') returns [\'\'] not []',
-    "1 instead of 0",
-    ["Check string length before splitting", "Empty string split returns ['']"],
-    "empty.length > 0"
+  ch(107, "Only First Match", "replace() fixes a single occurrence.", 45, 3, "javascript", "Beginner",
+    `const tag = "a-b-c";
+const fixed = tag.replace("-", "+");
+console.log(fixed);`,
+    `const tag = "a-b-c";
+const fixed = tag.replace(/-/g, "+");
+console.log(fixed);`,
+    "replace() only replaces the first match",
+    "Output: a+b-c",
+    ["Use a global regex /-/g", "Or replaceAll('-', '+')"],
+    "/-/g"
   ),
-  ch(108, "Object Reference", "Assigning object copies reference, not value.", 50, 3, "javascript", "Beginner",
-    `const a = { x: 1 };\nconst b = a;\nb.x = 99;\nconsole.log(a.x);`,
-    `const a = { x: 1 };\nconst b = { ...a };\nb.x = 99;\nconsole.log(a.x);`,
-    "Object assignment copies reference",
-    "99 — a was mutated through b",
-    ["Use spread operator for shallow copy", "{ ...a } creates a new object"],
+  ch(108, "Reference Copy", "Assigning an object copies the reference.", 50, 3, "javascript", "Beginner",
+    `const a = { x: 1 };
+const b = a;
+b.x = 99;
+console.log(a.x);`,
+    `const a = { x: 1 };
+const b = { ...a };
+b.x = 99;
+console.log(a.x);`,
+    "b and a point at the same object",
+    "Output: 99 — a was mutated through b",
+    ["Spread creates a shallow copy", "{ ...a } is a brand-new object"],
     "{ ...a }"
   ),
-  ch(109, "Loose Equality", "Comparing different types with == gives surprises.", 50, 3, "javascript", "Beginner",
-    `function check(value) {\n    if (value == 0) {\n        return "zero";\n    }\n    return "not zero";\n}\n\nconsole.log(check("0"));\nconsole.log(check(false));\nconsole.log(check([]));`,
-    `function check(value) {\n    if (value === 0) {\n        return "zero";\n    }\n    return "not zero";\n}`,
-    "== coerces types — 0 == false == '' all true",
-    "All return 'zero' incorrectly",
-    ["Use === for strict comparison", "=== doesn't coerce types"],
-    "==="
+  ch(109, "parseInt Truncates", "parseInt stops at the decimal point.", 45, 3, "javascript", "Beginner",
+    `const price = parseInt("39.99", 10);
+console.log(price);`,
+    `const price = parseFloat("39.99");
+console.log(price);`,
+    "parseInt reads digits until the dot, then stops",
+    "Output: 39",
+    ["parseFloat keeps the fraction", "Or Number('39.99')"],
+    "parseFloat"
   ),
-  ch(110, "Floating Point", "0.1 + 0.2 !== 0.3 in JavaScript too.", 50, 3, "javascript", "Beginner",
-    `console.log(0.1 + 0.2 === 0.3);\nconsole.log(0.1 + 0.2);`,
-    `console.log(Math.abs(0.1 + 0.2 - 0.3) < 0.0001);\nconsole.log((0.1 + 0.2).toFixed(1));`,
-    "0.1 + 0.2 = 0.30000000000000004",
-    "false, 0.30000000000000004",
-    ["Floating point precision issue", "Use toFixed() or epsilon comparison"],
-    "toFixed"
+  ch(110, "Length Truncation", "Assigning length mutates the array in place.", 50, 3, "javascript", "Beginner",
+    `const arr = [1, 2, 3, 4, 5];
+arr.length = 3;
+console.log(arr);`,
+    `const arr = [1, 2, 3, 4, 5];
+const sliced = arr.slice(0, 3);
+console.log(sliced);`,
+    "arr.length = 3 deletes elements permanently",
+    "Output: [1, 2, 3] — the original array was destroyed",
+    ["Use slice() to get a new array", "arr.length = n truncates in place"],
+    ".slice(0, 3)"
   ),
 ];
 
 const jsIntermediate: Challenge[] = [
-  ch(111, "Closure in Loop", "Closure captures loop variable by reference.", 220, 5, "javascript", "Intermediate",
-    `const buttons = document.querySelectorAll('.btn');\nfor (var i = 0; i < buttons.length; i++) {\n    buttons[i].addEventListener('click', function() {\n        console.log('Clicked button #' + i);\n    });\n}`,
+  ch(111, "Buttons All Say i", "Every handler closes over the same var.", 220, 5, "javascript", "Intermediate",
+    `const buttons = document.querySelectorAll('.btn');
+for (var i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener('click', function () {
+        console.log('Clicked button #' + i);
+    });
+}`,
     `for (let i = 0; i < buttons.length; i++) {`,
-    "var is function-scoped, all handlers see final i",
-    "All buttons log the same number",
-    ["Use let instead of var", "let is block-scoped — each iteration gets its own i"],
+    "var is function-scoped — all handlers share one i",
+    "Every button logs the same final number",
+    ["let is block-scoped per iteration", "Each iteration captures its own i"],
     "let i = 0"
   ),
-  ch(112, "This Binding Lost", "Method loses this when passed as callback.", 180, 5, "javascript", "Intermediate",
-    `const user = {\n    name: "Alice",\n    greet() {\n        console.log("Hello, " + this.name);\n    }\n};\n\nsetTimeout(user.greet, 100);`,
+  ch(112, "This Goes Missing", "The method loses its this as a callback.", 180, 5, "javascript", "Intermediate",
+    `const user = {
+    name: "Alice",
+    greet() {
+        console.log("Hello, " + this.name);
+    }
+};
+
+setTimeout(user.greet, 100);`,
     `setTimeout(() => user.greet(), 100);`,
-    "this is lost when method passed as callback",
-    "'Hello, undefined'",
-    ["Wrap in arrow function to preserve context", "Arrow functions don't rebind this"],
-    "user.greet()"
+    "user.greet is detached — this becomes undefined",
+    "Output: 'Hello, undefined'",
+    ["Wrap it in an arrow function", "Arrows keep the surrounding this"],
+    "() => user.greet()"
   ),
-  ch(113, "Promise Not Returned", "Async function doesn't return the promise chain.", 160, 5, "javascript", "Intermediate",
-    `function fetchData() {\n    fetch('/api/data')\n        .then(r => r.json())\n        .then(data => {\n            console.log(data);\n            return data;\n        });\n}\n\nconst result = fetchData();\nconsole.log(result);`,
-    `function fetchData() {\n    return fetch('/api/data')\n        .then(r => r.json())\n        .then(data => {\n            console.log(data);\n            return data;\n        });\n}`,
-    "Missing return on fetch chain",
-    "undefined — promise not returned",
-    ["Add return before fetch()", "The promise chain must be returned from the function"],
+  ch(113, "Unreturned Promise", "The chain runs but nothing is returned.", 160, 5, "javascript", "Intermediate",
+    `function fetchData() {
+    fetch('/api/data')
+        .then(r => r.json())
+        .then(data => {
+            console.log(data);
+            return data;
+        });
+}
+
+const result = fetchData();
+console.log(result);`,
+    `function fetchData() {
+    return fetch('/api/data')
+        .then(r => r.json())
+        .then(data => {
+            console.log(data);
+            return data;
+        });
+}`,
+    "without return the caller gets undefined",
+    "Output: undefined instead of a promise",
+    ["Return the whole chain", "return fetch(...) lets callers await it"],
     "return fetch"
   ),
-  ch(114, "Array forEach Return", "forEach doesn't return a new array.", 140, 5, "javascript", "Intermediate",
-    `const numbers = [1, 2, 3, 4];\nconst doubled = numbers.forEach(n => n * 2);\nconsole.log(doubled);`,
+  ch(114, "forEach Discards", "forEach always returns undefined.", 140, 5, "javascript", "Intermediate",
+    `const numbers = [1, 2, 3, 4];
+const doubled = numbers.forEach(n => n * 2);
+console.log(doubled);`,
     `const doubled = numbers.map(n => n * 2);`,
-    "forEach always returns undefined",
-    "undefined",
-    ["Use map() to transform arrays", "forEach always returns undefined"],
+    "forEach is for side effects, not transforms",
+    "Output: undefined",
+    ["map() builds a new array", "The return of forEach is ignored"],
     ".map("
   ),
-  ch(115, "Event Listener Memory Leak", "Listeners added but never removed.", 170, 6, "javascript", "Intermediate",
-    `function setupListeners() {\n    window.addEventListener('resize', handleResize);\n    window.addEventListener('scroll', handleScroll);\n}\n\nfunction cleanup() {\n    // listeners never removed\n}`,
-    `function cleanup() {\n    window.removeEventListener('resize', handleResize);\n    window.removeEventListener('scroll', handleScroll);\n}`,
-    "Event listeners never removed",
-    "Memory leak — handlers pile up",
-    ["Use removeEventListener to clean up", "Match exact function references"],
-    "removeEventListener"
-  ),
-  ch(116, "Async/Await Missing Await", "Forgot await — got promise instead of value.", 150, 5, "javascript", "Intermediate",
-    `async function getUser() {\n    const user = fetch('/api/user');\n    console.log(user.name);\n}\n\ngetUser();`,
-    `async function getUser() {\n    const user = await fetch('/api/user');\n    const data = await user.json();\n    console.log(data.name);\n}`,
-    "fetch returns a Promise, need await",
-    "undefined — user is a Promise object",
-    ["Add await before fetch()", "Also need to await .json()"],
-    "await fetch"
-  ),
-  ch(117, "Object.assign Mutates", "Object.assign modifies the first argument in-place.", 140, 5, "javascript", "Intermediate",
-    `const defaults = { theme: 'dark', lang: 'en' };\nconst userPrefs = { theme: 'light' };\nconst merged = Object.assign(defaults, userPrefs);\nconsole.log(defaults.theme);`,
+  ch(115, "Assign Mutates", "Object.assign writes into its first argument.", 140, 5, "javascript", "Intermediate",
+    `const defaults = { theme: 'dark', lang: 'en' };
+const userPrefs = { theme: 'light' };
+const merged = Object.assign(defaults, userPrefs);
+console.log(defaults.theme);`,
     `const merged = Object.assign({}, defaults, userPrefs);`,
-    "Object.assign mutates the first argument",
-    "'light' — defaults was modified!",
-    ["Pass {} as first argument for non-mutating merge", "Object.assign({}, target, source)"],
+    "defaults is the target — it gets overwritten",
+    "Output: 'light' — defaults was modified",
+    ["Pass {} as the target", "Object.assign({}, target, source) copies without mutation"],
     "{}, defaults"
   ),
-  ch(118, "Date Month Off-By-One", "JavaScript months are 0-indexed.", 130, 5, "javascript", "Intermediate",
-    `const birthday = new Date(1990, 5, 15);\nconsole.log(birthday.getMonth());\nconsole.log(birthday.getMonth() + 1);`,
-    `const month = birthday.getMonth() + 1;\nconsole.log(month);`,
-    "getMonth() returns 0-11, not 1-12",
-    "5 instead of 6 for June",
-    ["getMonth() is 0-indexed", "Add 1 for human-readable month"],
+  ch(116, "Forgotten Await", "fetch returns a promise, not data.", 150, 5, "javascript", "Intermediate",
+    `async function getUser() {
+    const user = fetch('/api/user');
+    console.log(user.name);
+}
+
+getUser();`,
+    `async function getUser() {
+    const user = await fetch('/api/user');
+    const data = await user.json();
+    console.log(data.name);
+}`,
+    "await is missing on both the fetch and the JSON",
+    "Output: undefined — user is a Promise",
+    ["await the fetch call", "Also await .json()"],
+    "await fetch"
+  ),
+  ch(117, "Reverse Side Effect", "reverse() mutates the original array.", 130, 5, "javascript", "Intermediate",
+    `const nums = [1, 2, 3];
+const reversed = nums.reverse();
+console.log(nums);`,
+    `const reversed = [...nums].reverse();`,
+    "reverse() works in place and returns the same array",
+    "Output: [3, 2, 1] — nums was flipped too",
+    ["Copy first with spread", "[...nums].reverse() keeps nums intact"],
+    "[...nums].reverse()"
+  ),
+  ch(118, "Month Off-By-One", "JavaScript months are 0-indexed.", 130, 5, "javascript", "Intermediate",
+    `const d = new Date(1990, 5, 15);
+console.log(d.getMonth());`,
+    `const month = d.getMonth() + 1;
+console.log(month);`,
+    "getMonth() returns 0-11, where 5 is June",
+    "Output: 5 instead of 6",
+    ["Add 1 for the human-readable month", "January is 0, December is 11"],
     "getMonth() + 1"
   ),
-  ch(119, "SetTimeout in Loop", "setTimeout captures final loop value.", 160, 6, "javascript", "Intermediate",
-    `for (var i = 1; i <= 3; i++) {\n    setTimeout(function() {\n        console.log(i);\n    }, i * 1000);\n}`,
-    `for (let i = 1; i <= 3; i++) {\n    setTimeout(function() {\n        console.log(i);\n    }, i * 1000);\n}`,
-    "var hoisted, all timeouts see final i=4",
-    "4, 4, 4 instead of 1, 2, 3",
-    ["Use let for block scope in the for loop", "Or use an IIFE to capture i"],
-    "let i"
+  ch(119, "Timer Loop Trap", "All timeouts see the final loop value.", 160, 6, "javascript", "Intermediate",
+    `for (var i = 1; i <= 3; i++) {
+    setTimeout(() => console.log(i), i * 100);
+}`,
+    `for (let i = 1; i <= 3; i++) {
+    setTimeout(() => console.log(i), i * 100);
+}`,
+    "var hoists one i that all callbacks share",
+    "Output: 4, 4, 4 instead of 1, 2, 3",
+    ["let gives each iteration its own binding", "Or wrap the body in an IIFE"],
+    "let i = 1"
   ),
-  ch(120, "Deep Equality", "Comparing objects with == always false.", 150, 5, "javascript", "Intermediate",
-    `const a = { x: 1, y: 2 };\nconst b = { x: 1, y: 2 };\nconsole.log(a == b);\nconsole.log(a === b);`,
-    `function deepEqual(a, b) {\n    return JSON.stringify(a) === JSON.stringify(b);\n}\nconsole.log(deepEqual(a, b));`,
-    "Objects compared by reference, not value",
-    "false, false — same content, different objects",
-    ["Objects compared by reference, not value", "Use JSON.stringify for deep comparison"],
-    "JSON.stringify"
+  ch(120, "Reference Equality", "Two objects with the same shape are not equal.", 150, 5, "javascript", "Intermediate",
+    `const a = { x: 1, y: 2 };
+const b = { x: 1, y: 2 };
+console.log(a === b);`,
+    `function deepEqual(a, b) {
+    return JSON.stringify(a) === JSON.stringify(b);
+}
+console.log(deepEqual(a, b));`,
+    "objects are compared by reference, not content",
+    "Output: false",
+    ["Compare values with JSON.stringify", "Or a deepEqual helper for nested data"],
+    "JSON.stringify(a)"
   ),
 ];
 
 const jsAdvanced: Challenge[] = [
-  ch(121, "Event Loop Starvation", "Sync code starves the event loop.", 240, 8, "javascript", "Advanced",
-    `function processQueue() {\n    while (queue.length > 0) {\n        const item = queue.shift();\n        process(item);\n    }\n}\n\nbutton.addEventListener('click', processQueue);`,
-    `function processQueue() {\n    const item = queue.shift();\n    if (item) {\n        process(item);\n        setTimeout(processQueue, 0);\n    }\n}`,
-    "While loop blocks the entire event loop",
-    "UI freezes during processing",
-    ["Break into chunks with setTimeout", "Process one item per tick"],
+  ch(121, "Starved Event Loop", "A long loop freezes the whole page.", 240, 8, "javascript", "Advanced",
+    `const queue = [/* many items */];
+
+function processQueue() {
+    while (queue.length > 0) {
+        const item = queue.shift();
+        process(item);
+    }
+}
+
+button.addEventListener('click', processQueue);`,
+    `function processQueue() {
+    const item = queue.shift();
+    if (item) {
+        process(item);
+        setTimeout(processQueue, 0);
+    }
+}`,
+    "the while loop never yields to the event loop",
+    "UI freezes until every item is done",
+    ["Process one item per tick", "setTimeout(processQueue, 0) yields between chunks"],
     "setTimeout(processQueue"
   ),
-  ch(122, "Prototype Chain", "Modifying prototype affects all instances.", 230, 7, "javascript", "Advanced",
-    `function Widget() {\n    this.data = [];\n}\n\nWidget.prototype.addData = function(item) {\n    this.data.push(item);\n};\n\nconst w1 = new Widget();\nconst w2 = new Widget();\nw1.addData("test");\nconsole.log(w2.data);`,
-    `function Widget() {\n    this.data = [];\n}\n\nWidget.prototype.addData = function(item) {\n    this.data.push(item);\n};`,
-    "Actually correct — this.data is per-instance",
-    "[] — each instance has its own data array. Code is correct.",
-    ["The code is actually correct", "this.data in constructor is per-instance"],
-    "this.data = []"
+  ch(122, "Polluted Prototype", "A naive merge overwrites __proto__.", 250, 8, "javascript", "Advanced",
+    `function merge(target, source) {
+    for (const key in source) {
+        target[key] = source[key];
+    }
+    return target;
+}
+
+const payload = JSON.parse('{"__proto__": {"admin": true}}');
+merge({}, payload);
+console.log({}.admin);`,
+    `function merge(target, source) {
+    for (const key in source) {
+        if (key === '__proto__' || key === 'constructor') continue;
+        target[key] = source[key];
+    }
+    return target;
+}`,
+    "assigning __proto__ silently changes the prototype chain",
+    "Output: true — every object now reports admin",
+    ["Skip __proto__ and constructor keys", "Or use Object.create(null) for untrusted keys"],
+    "key === '__proto__'"
   ),
-  ch(123, "WeakRef Garbage Collection", "WeakRef may return undefined after GC.", 250, 8, "javascript", "Advanced",
-    `class Component {\n    constructor(el) {\n        this.element = new WeakRef(el);\n    }\n    update() {\n        const el = this.element.deref();\n        el.textContent = 'updated';\n    }\n}`,
-    `class Component {\n    constructor(el) {\n        this.element = new WeakRef(el);\n    }\n    update() {\n        const el = this.element.deref();\n        if (el) {\n            el.textContent = 'updated';\n        }\n    }\n}`,
-    "WeakRef may be undefined after garbage collection",
-    "TypeError: Cannot set property of undefined",
-    ["Check if deref() returns undefined", "Guard the access with if (el)"],
+  ch(123, "Vanished WeakRef", "deref() can return undefined after GC.", 250, 8, "javascript", "Advanced",
+    `class Component {
+    constructor(el) {
+        this.element = new WeakRef(el);
+    }
+    update() {
+        const el = this.element.deref();
+        el.textContent = 'updated';
+    }
+}`,
+    `    update() {
+        const el = this.element.deref();
+        if (el) {
+            el.textContent = 'updated';
+        }
+    }`,
+    "the referenced object may already be collected",
+    "TypeError: Cannot set properties of undefined",
+    ["Guard with if (el)", "WeakRef gives no liveness guarantee"],
     "if (el)"
   ),
-  ch(124, "Proxy Handler Trap", "Proxy handler doesn't intercept all operations.", 260, 8, "javascript", "Advanced",
-    `const handler = {\n    get(target, prop) {\n        console.log('Reading ' + prop);\n        return target[prop];\n    }\n};\n\nconst obj = new Proxy({ name: 'test' }, handler);\nobj.name = 'changed';\nconsole.log(obj.name);`,
-    `const handler = {\n    get(target, prop) {\n        console.log('Reading ' + prop);\n        return target[prop];\n    },\n    set(target, prop, value) {\n        console.log('Writing ' + prop + ' = ' + value);\n        target[prop] = value;\n        return true;\n    }\n};`,
-    "No set trap — assignments not intercepted",
-    "No 'Writing' log for assignment",
-    ["Add set trap to the handler object", "set(target, prop, value) intercepts writes"],
+  ch(124, "Silent Proxy Writes", "No set trap means writes are not intercepted.", 260, 8, "javascript", "Advanced",
+    `const handler = {
+    get(target, prop) {
+        console.log('reading ' + prop);
+        return target[prop];
+    }
+};
+
+const obj = new Proxy({ name: 'test' }, handler);
+obj.name = 'changed';
+console.log(obj.name);`,
+    `const handler = {
+    get(target, prop) {
+        console.log('reading ' + prop);
+        return target[prop];
+    },
+    set(target, prop, value) {
+        console.log('writing ' + prop + ' = ' + value);
+        target[prop] = value;
+        return true;
+    }
+};`,
+    "without a set trap, assignments bypass the proxy",
+    "No 'writing' log appears",
+    ["Add a set trap to the handler", "set(target, prop, value) intercepts writes"],
     "set(target, prop, value):"
   ),
-  ch(125, "Generator Memory", "Generator stores all yielded values in memory.", 220, 7, "javascript", "Advanced",
-    `function* generateData() {\n    const results = [];\n    for (let i = 0; i < 1000000; i++) {\n        results.push(i * 2);\n        yield results[results.length - 1];\n    }\n}\n\nfor (const val of generateData()) {\n    console.log(val);\n}`,
-    `function* generateData() {\n    for (let i = 0; i < 1000000; i++) {\n        yield i * 2;\n    }\n}`,
-    "Storing all values in array defeats generator purpose",
-    "MemoryError — storing 1M values",
-    ["Don't store results in an array", "Yield directly: yield i * 2"],
+  ch(125, "Generator Hoarding", "Buffering defeats the point of a generator.", 220, 7, "javascript", "Advanced",
+    `function* generateData() {
+    const results = [];
+    for (let i = 0; i < 1000000; i++) {
+        results.push(i * 2);
+        yield results[results.length - 1];
+    }
+}
+
+for (const val of generateData()) {
+    console.log(val);
+}`,
+    `function* generateData() {
+    for (let i = 0; i < 1000000; i++) {
+        yield i * 2;
+    }
+}`,
+    "every yielded value is also stored forever",
+    "Memory grows to hold 1M values",
+    ["Yield directly", "yield i * 2 without the array"],
     "yield i * 2"
   ),
-  ch(126, "Microtask Queue Order", "Promise microtasks run before setTimeout callbacks.", 230, 7, "javascript", "Advanced",
-    `console.log(1);\nsetTimeout(() => console.log(2), 0);\nPromise.resolve().then(() => console.log(3));\nconsole.log(4);`,
-    `console.log(1);\nsetTimeout(() => console.log(2), 0);\nPromise.resolve().then(() => console.log(3));\nconsole.log(4);`,
-    "Actually correct — demonstrates event loop order",
-    "Output: 1, 4, 3, 2 — microtasks before macrotasks",
-    ["Microtasks (Promise) run before macrotasks (setTimeout)", "Output order: 1, 4, 3, 2"],
-    "setTimeout"
-  ),
-  ch(127, "Object Freeze Mutation", "Object.freeze doesn't prevent nested mutation.", 240, 8, "javascript", "Advanced",
-    `const config = Object.freeze({\n    theme: 'dark',\n    options: { debug: true }\n});\n\nconfig.options.debug = false;\nconsole.log(config.options.debug);`,
-    `const deepFreeze = (obj) => {\n    Object.keys(obj).forEach(key => {\n        if (typeof obj[key] === 'object' && obj[key] !== null) {\n            deepFreeze(obj[key]);\n        }\n    });\n    return Object.freeze(obj);\n};`,
-    "Object.freeze only shallow freezes objects",
-    "false — nested object still mutable!",
-    ["Object.freeze is shallow only", "Recursively freeze nested objects with deepFreeze"],
+  ch(126, "Shallow Freeze", "Object.freeze does not freeze nested objects.", 240, 8, "javascript", "Advanced",
+    `const config = Object.freeze({
+    theme: 'dark',
+    options: { debug: true }
+});
+
+config.options.debug = false;
+console.log(config.options.debug);`,
+    `const deepFreeze = (obj) => {
+    Object.keys(obj).forEach(key => {
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
+            deepFreeze(obj[key]);
+        }
+    });
+    return Object.freeze(obj);
+};`,
+    "freeze is shallow — nested objects stay writable",
+    "Output: false — the nested option changed",
+    ["Recursively freeze nested values", "deepFreeze walks the whole tree"],
     "deepFreeze"
   ),
-  ch(128, "Symbol Collision", "Symbols with same description are different.", 220, 7, "javascript", "Advanced",
-    `const KEY = Symbol('key');\nconst obj = { [KEY]: 'value' };\nconsole.log(obj[Symbol('key')]);`,
-    `const KEY = Symbol('key');\nconst obj = { [KEY]: 'value' };\nconsole.log(obj[KEY]);`,
-    "Each Symbol('key') creates a unique symbol instance",
-    "undefined — different symbol instances",
-    ["Symbols with same description are different", "Store Symbol in variable and reuse it"],
+  ch(127, "Unique Symbols", "Each Symbol() call creates a different key.", 220, 7, "javascript", "Advanced",
+    `const KEY = Symbol('key');
+const obj = { [KEY]: 'value' };
+console.log(obj[Symbol('key')]);`,
+    `console.log(obj[KEY]);`,
+    "Symbol('key') is never equal to another Symbol('key')",
+    "Output: undefined",
+    ["Reuse the stored Symbol variable", "Descriptions are only for debugging"],
     "obj[KEY]"
   ),
-  ch(129, "Reflect vs Direct", "Using Reflect for proper prototype chain handling.", 250, 8, "javascript", "Advanced",
-    `const handler = {\n    get(target, prop, receiver) {\n        return target[prop];\n    }\n};\n\nconst obj = new Proxy({}, handler);\nObject.setPrototypeOf(obj, { x: 1 });\nconsole.log(obj.x);`,
-    `const handler = {\n    get(target, prop, receiver) {\n        return Reflect.get(target, prop, receiver);\n    }\n};`,
-    "Direct property access doesn't respect proxy receiver",
-    "undefined — prototype chain broken through proxy",
-    ["Use Reflect.get(target, prop, receiver)", "Reflect preserves the correct 'this' binding"],
-    "Reflect.get"
+  ch(128, "Boolean Comparator", "sort() expects a number, not a boolean.", 230, 7, "javascript", "Advanced",
+    `const nums = [5, 2, 9, 1];
+nums.sort((a, b) => a < b);
+console.log(nums);`,
+    `nums.sort((a, b) => a - b);`,
+    "the boolean is coerced to 0 or 1 — order is wrong",
+    "Output: [2, 1, 5, 9] — scrambled",
+    ["Return a negative/positive number", "(a, b) => a - b is the correct comparator"],
+    "a - b"
   ),
-  ch(130, "Async Iterator Memory", "Async generator holds references preventing GC.", 260, 8, "javascript", "Advanced",
-    `async function* streamData() {\n    const buffer = [];\n    for await (const chunk of source) {\n        buffer.push(chunk);\n        yield buffer[buffer.length - 1];\n    }\n}\n\nfor await (const item of streamData()) {\n    console.log(item);\n}`,
-    `async function* streamData() {\n    for await (const chunk of source) {\n        yield chunk;\n    }\n}`,
-    "Buffer accumulates all chunks in memory",
-    "Memory leak — buffer never cleared",
-    ["Yield directly without buffering", "Remove the buffer array"],
-    "yield chunk"
+  ch(129, "Fresh Every Access", "A getter that rebuilds objects breaks identity checks.", 240, 8, "javascript", "Advanced",
+    `class Store {
+    get settings() {
+        return { theme: 'dark' };
+    }
+}
+
+const s = new Store();
+console.log(s.settings === s.settings);`,
+    `class Store {
+    constructor() {
+        this._settings = { theme: 'dark' };
+    }
+    get settings() {
+        return this._settings;
+    }
+}`,
+    "every access builds a new object",
+    "Output: false — the two reads are different objects",
+    ["Cache the object once", "Return this._settings, not a fresh literal"],
+    "this._settings"
+  ),
+  ch(130, "Trust the Order", "This code is correct — submit it as-is.", 230, 7, "javascript", "Advanced",
+    `console.log(1);
+setTimeout(() => console.log(2), 0);
+Promise.resolve().then(() => console.log(3));
+console.log(4);`,
+    `console.log(1);
+setTimeout(() => console.log(2), 0);
+Promise.resolve().then(() => console.log(3));
+console.log(4);`,
+    "microtasks run before macrotasks — this is the expected order",
+    "Output: 1, 4, 3, 2",
+    ["Promises (microtasks) beat setTimeout (macrotasks)", "The code is right — no fix needed"],
+    "setTimeout"
   ),
 ];
 
 const jsNightmare: Challenge[] = [
-  ch(131, "V8 Optimizer Bug", "V8 deopts on hidden class change.", 350, 12, "javascript", "Nightmare",
-    `class Point {\n    constructor(x, y) {\n        this.x = x;\n        this.y = y;\n    }\n}\n\nconst points = [];\nfor (let i = 0; i < 100000; i++) {\n    points.push(new Point(i, i));\n}\npoints[0].z = 0;`,
-    `class Point {\n    constructor(x, y, z = 0) {\n        this.x = x;\n        this.y = y;\n        this.z = z;\n    }\n}`,
-    "Adding property after construction breaks V8 hidden class",
-    "Performance cliff — V8 deoptimizes the whole loop",
-    ["Define all properties in the constructor", "Use default values for optional properties"],
-    "z = 0"
+  ch(131, "Hidden Class Split", "A late property breaks V8's shape assumption.", 350, 12, "javascript", "Nightmare",
+    `class Point {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+const points = [];
+for (let i = 0; i < 100000; i++) {
+    points.push(new Point(i, i));
+}
+points[0].z = 0;`,
+    `class Point {
+    constructor(x, y, z = 0) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+}`,
+    "adding a property after the fact forces a hidden-class transition",
+    "Performance cliff — the whole loop deoptimizes",
+    ["Declare every property in the constructor", "Use a default parameter for optional ones"],
+    "this.z = z"
   ),
-  ch(132, "SharedArrayBuffer Race", "Race condition on shared memory between workers.", 340, 11, "javascript", "Nightmare",
-    `const buffer = new SharedArrayBuffer(4);\nconst view = new Int32Array(buffer);\n\nAtomics.store(view, 0, 1);\nwhile (Atomics.load(view, 0) === 0) { /* spin */ }\nconsole.log('Done');`,
-    `Atomics.store(view, 0, 1);\nAtomics.notify(view, 0);\n\nwhile (Atomics.load(view, 0) === 0) {\n    Atomics.wait(view, 0, 0);\n}\nconsole.log('Done');`,
-    "Busy-wait spin wastes 100% CPU",
-    "100% CPU usage on worker 2",
-    ["Use Atomics.wait() and Atomics.notify()", "Atomics.wait blocks without spinning"],
+  ch(132, "Busy-Wait Burn", "A spin loop eats an entire CPU core.", 340, 11, "javascript", "Nightmare",
+    `const buffer = new SharedArrayBuffer(4);
+const view = new Int32Array(buffer);
+
+Atomics.store(view, 0, 1);
+while (Atomics.load(view, 0) === 0) { /* spin */ }
+console.log('Done');`,
+    `Atomics.store(view, 0, 1);
+Atomics.notify(view, 0);
+
+while (Atomics.load(view, 0) === 0) {
+    Atomics.wait(view, 0, 0);
+}
+console.log('Done');`,
+    "the loop spins at 100% CPU while it waits",
+    "Worker 2 pegs a full core",
+    ["Atomics.wait() blocks without spinning", "Pair it with Atomics.notify()"],
     "Atomics.wait"
   ),
-  ch(133, "FinalizationRegistry Order", "FinalizationRegistry doesn't guarantee cleanup order.", 300, 10, "javascript", "Nightmare",
-    `const registry = new FinalizationRegistry(key => {\n    console.log('Cleaned up:', key);\n});\n\nlet a = { name: 'a' };\nlet b = { name: 'b' };\nregistry.register(a, 'a');\nregistry.register(b, 'b');\na = null;\nb = null;`,
-    `const registry = new FinalizationRegistry(key => {\n    console.log('Cleaned up:', key);\n});`,
-    "FinalizationRegistry timing is unpredictable",
-    "Order and timing of cleanup is not guaranteed",
-    ["FinalizationRegistry is best-effort only", "Don't rely on specific cleanup order"],
-    "FinalizationRegistry"
+  ch(133, "Unregisterable", "Cleanup cannot be cancelled without a token.", 300, 10, "javascript", "Nightmare",
+    `const registry = new FinalizationRegistry(key => {
+    console.log('cleaned up: ' + key);
+});
+
+let a = { name: 'a' };
+registry.register(a, 'a');
+a = null;`,
+    `const registry = new FinalizationRegistry(key => {
+    console.log('cleaned up: ' + key);
+});
+
+let a = { name: 'a' };
+const token = {};
+registry.register(a, 'a', token);
+// later, if still needed:
+// registry.unregister(token);`,
+    "no unregister token means cleanup can never be cancelled",
+    "The object is finalized even when you still need it",
+    ["Pass a token to register()", "registry.unregister(token) cancels cleanup"],
+    "registry.unregister(token)"
   ),
-  ch(134, "WebAssembly Memory", "Wasm memory grows but doesn't shrink automatically.", 320, 10, "javascript", "Nightmare",
-    `const memory = new WebAssembly.Memory({ initial: 256, maximum: 512 });\nconst view = new Uint8Array(memory.buffer);\n\nfor (let i = 0; i < view.length; i++) view[i] = i % 256;\nview.fill(0);\nconsole.log(memory.buffer.byteLength);`,
-    `const memory = new WebAssembly.Memory({ initial: 256, maximum: 512 });`,
-    "Wasm memory can never be shrunk",
-    "byteLength still 256 pages — can't shrink",
-    ["Wasm memory only grows, never shrinks", "Create new Memory instance to effectively shrink"],
-    "new WebAssembly.Memory"
+  ch(134, "Tiny Wasm Heap", "The module runs out of memory at startup.", 320, 10, "javascript", "Nightmare",
+    `const memory = new WebAssembly.Memory({ initial: 1 });
+const view = new Uint8Array(memory.buffer);
+view.set(loadDataset());`,
+    `const memory = new WebAssembly.Memory({ initial: 256 });`,
+    "a single 64KB page cannot hold the dataset",
+    "RangeError: Out of memory (wasm memory)",
+    ["Grow the initial pages", "initial: 256 reserves 16MB"],
+    "initial: 256"
   ),
-  ch(135, "Atomics CompareExchange", "Lock-free counter using compareExchange has race window.", 330, 11, "javascript", "Nightmare",
-    `const buffer = new SharedArrayBuffer(4);\nconst view = new Int32Array(buffer);\n\nfunction increment() {\n    Atomics.store(view, 0, Atomics.load(view, 0) + 1);\n}`,
-    `function increment() {\n    let oldVal;\n    do {\n        oldVal = Atomics.load(view, 0);\n    } while (Atomics.compareExchange(view, 0, oldVal, oldVal + 1) !== oldVal);\n}`,
-    "Load-then-store is not atomic",
-    "Lost updates when multiple threads increment",
-    ["Use compareExchange loop for atomic increment", "CAS (Compare-And-Swap) is the atomic operation"],
+  ch(135, "Lost CAS Updates", "Load-then-store is not atomic.", 330, 11, "javascript", "Nightmare",
+    `const buffer = new SharedArrayBuffer(4);
+const view = new Int32Array(buffer);
+
+function increment() {
+    Atomics.store(view, 0, Atomics.load(view, 0) + 1);
+}`,
+    `function increment() {
+    let oldVal;
+    do {
+        oldVal = Atomics.load(view, 0);
+    } while (Atomics.compareExchange(view, 0, oldVal, oldVal + 1) !== oldVal);
+}`,
+    "two threads can read the same value and both write it back",
+    "Lost increments under concurrency",
+    ["Use a compare-exchange loop", "CAS retries until the update wins"],
     "compareExchange"
   ),
-  ch(136, "Structured Clone Bug", "structuredClone can't clone functions or DOM nodes.", 290, 9, "javascript", "Nightmare",
-    `const config = {\n    name: 'app',\n    handler: () => console.log('click'),\n    element: document.getElementById('app')\n};\n\nconst copy = structuredClone(config);\nconsole.log(copy.handler);`,
-    `const config = {\n    name: 'app',\n};`,
-    "structuredClone can't clone functions or DOM nodes",
+  ch(136, "Uncloneable Handlers", "structuredClone rejects functions and DOM nodes.", 290, 9, "javascript", "Nightmare",
+    `const config = {
+    name: 'app',
+    handler: () => console.log('click'),
+    element: document.getElementById('app')
+};
+
+const copy = structuredClone(config);
+console.log(copy.handler);`,
+    `const config = { name: 'app' };
+const copy = structuredClone(config);
+console.log(copy.name);`,
+    "functions and DOM nodes are not structured-cloneable",
     "DataCloneError",
-    ["structuredClone only handles serializable data", "Remove functions and DOM references"],
-    "name: 'app'"
+    ["Keep only serializable data", "Move handlers and DOM refs out of the payload"],
+    "name: 'app' }"
   ),
-  ch(137, "Temporal API Precision", "Date precision loss in arithmetic operations.", 280, 9, "javascript", "Nightmare",
-    `const now = new Date();\nconst later = new Date(now.getTime() + 86400000);\nconsole.log(now.toISOString());\nconsole.log(later.toISOString());`,
-    `const now = new Date();\nconst later = new Date(now.getTime() + 86400000);`,
-    "Actually correct for day arithmetic",
-    "Wrong time on DST transition days",
-    ["Date arithmetic doesn't account for DST", "Use UTC methods or a library like date-fns"],
-    "getTime()"
-  ),
-  ch(138, "Import Map Caching", "Import maps can't be updated at runtime.", 300, 10, "javascript", "Nightmare",
-    `// Import map set once at page load\n// Can't be updated dynamically`,
-    `const module = await import('https://cdn.example.com/lodash@4.17.21');`,
-    "Import maps are static — can't change after parse",
-    "Can't update import map at runtime",
-    ["Use dynamic import() for runtime flexibility", "Import maps are only parsed once"],
-    "await import("
-  ),
-  ch(139, "WeakMap Key Identity", "WeakMap uses object identity, not equality.", 280, 9, "javascript", "Nightmare",
-    `const cache = new WeakMap();\nconst key1 = { id: 1 };\nconst key2 = { id: 1 };\n\ncache.set(key1, 'data');\nconsole.log(cache.get(key2));`,
-    `const cache = new Map();\nconst key1 = { id: 1 };\ncache.set(key1.id, 'data');\nconsole.log(cache.get(1));`,
-    "WeakMap keys are compared by identity, not value",
-    "undefined — different object references",
-    ["WeakMap compares keys by reference identity", "Use primitive keys with regular Map for value comparison"],
+  ch(137, "WeakMap By Identity", "WeakMap keys compare by reference, not value.", 280, 9, "javascript", "Nightmare",
+    `const cache = new WeakMap();
+const key1 = { id: 1 };
+const key2 = { id: 1 };
+
+cache.set(key1, 'data');
+console.log(cache.get(key2));`,
+    `const cache = new Map();
+const key1 = { id: 1 };
+cache.set(key1.id, 'data');
+console.log(cache.get(1));`,
+    "key1 and key2 are different objects, so the lookup misses",
+    "Output: undefined",
+    ["WeakMap uses reference identity", "Use primitive keys with a regular Map"],
     "cache.set(key1.id"
   ),
-  ch(140, "Performance Observer", "PerformanceObserver doesn't catch all metrics.", 310, 10, "javascript", "Nightmare",
-    `const observer = new PerformanceObserver((list) => {\n    for (const entry of list.getEntries()) {\n        console.log(entry.name, entry.duration);\n    }\n});\nobserver.observe({ type: 'navigation', buffered: true });`,
+  ch(138, "Static Import Map", "Import maps cannot change after parse.", 300, 10, "javascript", "Nightmare",
+    `// import map declared once in HTML
+// cannot be updated after the page parses`,
+    `const module = await import('https://cdn.example.com/lodash@4.17.21');`,
+    "the mapping is fixed at parse time",
+    "Runtime updates are impossible",
+    ["Use dynamic import() for runtime flexibility", "Import maps are read once"],
+    "await import("
+  ),
+  ch(139, "Missing Paint Metrics", "The observer only watches navigation entries.", 310, 10, "javascript", "Nightmare",
+    `const observer = new PerformanceObserver((list) => {
+    for (const entry of list.getEntries()) {
+        console.log(entry.name, entry.duration);
+    }
+});
+observer.observe({ type: 'navigation', buffered: true });`,
     `observer.observe({ entryTypes: ['navigation', 'resource', 'paint'] });`,
-    "Only observing navigation, missing paint events",
-    "First paint not reported",
-    ["Observe multiple entry types", "Add 'paint' to entryTypes array"],
+    "paint and resource entries are never delivered",
+    "First paint is never reported",
+    ["Observe multiple entry types", "Add 'paint' to entryTypes"],
     "'paint'"
   ),
-];
+  ch(140, "JSON Eats Functions", "JSON round-trips drop functions and undefined.", 300, 10, "javascript", "Nightmare",
+    `const config = {
+    name: 'api',
+    retries: 3,
+    timeout: undefined,
+    retry() { return this.retries; }
+};
 
+const copy = JSON.parse(JSON.stringify(config));
+console.log(copy.retry, copy.timeout);`,
+    `const copy = structuredClone(config);
+console.log(copy.retry, copy.timeout);`,
+    "JSON.stringify silently discards functions and undefined",
+    "Output: undefined undefined",
+    ["structuredClone preserves more types", "Keep functions out of serialized state"],
+    "structuredClone(config)"
+  ),
+];
 /* ========= SQL TRACK ========= */
 const sqlBeginner: Challenge[] = [
-  ch(201, "Missing WHERE Clause", "Query affects all rows instead of one.", 50, 3, "sql", "Beginner",
+  ch(201, "Update Everything", "An UPDATE without WHERE hits every row.", 50, 3, "sql", "Beginner",
     `UPDATE users SET active = false;`,
     `UPDATE users SET active = false WHERE id = 42;`,
-    "No WHERE clause — every row gets updated",
-    "All users deactivated!",
-    ["Always add WHERE to UPDATE statements", "WHERE id = 42 targets a specific row"],
+    "no WHERE clause means every row is affected",
+    "All users deactivated at once",
+    ["Always scope UPDATE with WHERE", "WHERE id = 42 targets one row"],
     "WHERE id = 42"
   ),
-  ch(202, "String Quotes", "Unquoted string treated as column name.", 45, 3, "sql", "Beginner",
+  ch(202, "Bare String", "Unquoted text is read as a column name.", 45, 3, "sql", "Beginner",
     `SELECT * FROM users WHERE status = active;`,
     `SELECT * FROM users WHERE status = 'active';`,
-    "'active' treated as column name, not a string literal",
+    "'active' is parsed as an identifier, not a literal",
     "Unknown column 'active'",
-    ["Strings need quotes in SQL", "WHERE status = 'active'"],
-    "'active'"
+    ["Strings need single quotes", "WHERE status = 'active'"],
+    "status = 'active'"
   ),
-  ch(203, "COUNT vs SUM", "COUNT counts rows, not sums values.", 50, 3, "sql", "Beginner",
+  ch(203, "Count vs Sum", "COUNT tallies rows, not amounts.", 50, 3, "sql", "Beginner",
     `SELECT COUNT(amount) AS total FROM orders;`,
     `SELECT SUM(amount) AS total FROM orders;`,
-    "COUNT returns the number of rows",
+    "COUNT counts non-null values instead of adding them",
     "Returns 100 (rows) instead of 5000 (sum)",
-    ["Use SUM for adding numeric values", "COUNT only counts non-null rows"],
+    ["SUM adds numeric values", "COUNT is for row counts"],
     "SUM(amount)"
   ),
-  ch(204, "NULL Comparison", "NULL compared with = always returns unknown.", 55, 3, "sql", "Beginner",
+  ch(204, "NULL Never Equals", "= NULL is always unknown, never true.", 55, 3, "sql", "Beginner",
     `SELECT * FROM users WHERE deleted_at = NULL;`,
     `SELECT * FROM users WHERE deleted_at IS NULL;`,
-    "NULL = NULL is unknown, not true",
-    "Returns no rows at all",
-    ["Use IS NULL, not = NULL", "NULL comparisons need the IS operator"],
+    "comparing with = NULL yields no rows",
+    "Returns zero rows",
+    ["Use IS NULL", "NULL comparisons need IS, not ="],
     "IS NULL"
   ),
-  ch(205, "LIMIT Without ORDER", "LIMIT without ORDER BY returns arbitrary rows.", 50, 3, "sql", "Beginner",
+  ch(205, "Arbitrary Ten", "LIMIT without ORDER BY is a dice roll.", 50, 3, "sql", "Beginner",
     `SELECT * FROM products LIMIT 10;`,
     `SELECT * FROM products ORDER BY id LIMIT 10;`,
-    "No ORDER BY — results are unpredictable",
-    "Different rows returned each time",
-    ["Always pair LIMIT with ORDER BY", "ORDER BY id for consistent results"],
-    "ORDER BY"
+    "the database picks whichever rows it wants",
+    "Different rows on different runs",
+    ["Always pair LIMIT with ORDER BY", "ORDER BY id makes it deterministic"],
+    "ORDER BY id LIMIT 10"
   ),
-  ch(206, "LIKE Without Wildcard", "LIKE without % acts like = but slower.", 45, 3, "sql", "Beginner",
+  ch(206, "LIKE Without Wildcard", "LIKE 'alice' is just a slow equality.", 45, 3, "sql", "Beginner",
     `SELECT * FROM users WHERE name LIKE 'alice';`,
     `SELECT * FROM users WHERE name = 'alice';`,
-    "LIKE without wildcard is inefficient equivalent of =",
-    "Works but can't use index efficiently",
-    ["Use = for exact matches", "LIKE is for patterns with % or _"],
-    "= 'alice'"
+    "LIKE without % or _ cannot use indexes well",
+    "Works, but slowly and unnecessarily",
+    ["Use = for exact matches", "LIKE is for patterns"],
+    "name = 'alice'"
   ),
-  ch(207, "Duplicate INSERT", "INSERT without uniqueness check creates duplicates.", 55, 3, "sql", "Beginner",
+  ch(207, "Duplicated Tag", "INSERT happily creates duplicates.", 55, 3, "sql", "Beginner",
     `INSERT INTO tags (name) VALUES ('python');`,
     `INSERT OR IGNORE INTO tags (name) VALUES ('python');`,
-    "No uniqueness constraint — duplicate entries created",
-    "Multiple 'python' tags created",
-    ["Use INSERT OR IGNORE or INSERT ... ON CONFLICT", "Add UNIQUE constraint on the column"],
+    "there is no uniqueness guard on this insert",
+    "Multiple 'python' rows accumulate",
+    ["Use INSERT OR IGNORE", "Or add a UNIQUE constraint"],
     "INSERT OR IGNORE"
   ),
-  ch(208, "Implicit Conversion", "Comparing string column with number forces conversion.", 50, 3, "sql", "Beginner",
+  ch(208, "Aggregate Without Group", "A bare aggregate mixes one row with many.", 50, 3, "sql", "Beginner",
+    `SELECT city, COUNT(*) FROM users;`,
+    `SELECT city, COUNT(*) FROM users GROUP BY city;`,
+    "COUNT(*) collapses the table but city stays ungrouped",
+    "Error or nonsense rows depending on the engine",
+    ["Group by the non-aggregated column", "GROUP BY city"],
+    "GROUP BY city"
+  ),
+  ch(209, "Number in a Text Column", "The comparison forces a type conversion.", 50, 3, "sql", "Beginner",
     `SELECT * FROM users WHERE phone_number = 5551234;`,
     `SELECT * FROM users WHERE phone_number = '5551234';`,
-    "String compared to number — implicit type conversion",
-    "May miss matches or use wrong index",
-    ["Quote numbers that are string data", "phone_number is VARCHAR — use quotes"],
-    "'5551234'"
+    "VARCHAR compared to a number converts every value",
+    "Indexes get ignored; matches may be missed",
+    ["Quote string data", "phone_number is VARCHAR — use quotes"],
+    "= '5551234'"
   ),
-  ch(209, "SELECT * Anti-Pattern", "SELECT * returns unnecessary columns.", 45, 3, "sql", "Beginner",
-    `SELECT * FROM users;`,
-    `SELECT id, name, email FROM users;`,
-    "SELECT * fetches all columns wastefully",
-    "Extra data transferred over the network",
-    ["Specify only the columns you need", "SELECT id, name, email"],
-    "SELECT id, name, email"
-  ),
-  ch(210, "Missing GROUP BY", "Aggregate without GROUP BY returns one row.", 55, 3, "sql", "Beginner",
-    `SELECT department, COUNT(*) FROM employees;`,
-    `SELECT department, COUNT(*) FROM employees GROUP BY department;`,
-    "Mixing aggregate and non-aggregate columns",
-    "One row with wrong department name",
-    ["Add GROUP BY for non-aggregate columns", "GROUP BY department"],
-    "GROUP BY department"
+  ch(210, "Log Purge Gone Wrong", "DELETE without WHERE wipes the table.", 55, 3, "sql", "Beginner",
+    `DELETE FROM logs;`,
+    `DELETE FROM logs WHERE created_at < '2024-01-01';`,
+    "no filter means every log row is removed",
+    "All logs are gone",
+    ["Always filter destructive statements", "WHERE created_at < '2024-01-01'"],
+    "WHERE created_at"
   ),
 ];
 
 const sqlIntermediate: Challenge[] = [
-  ch(211, "N+1 Query Problem", "Loop fires one query per row.", 160, 5, "sql", "Intermediate",
-    `SELECT id, name FROM users;\nSELECT COUNT(*) FROM orders WHERE user_id = ?;`,
-    `SELECT u.id, u.name, COUNT(o.id) as order_count\nFROM users u\nLEFT JOIN orders o ON o.user_id = u.id\nGROUP BY u.id, u.name;`,
-    "N+1 queries — one per user",
-    "400 queries for 400 users",
-    ["Use JOIN with GROUP BY", "A single query replaces all N queries"],
+  ch(211, "Vanishing Customers", "INNER JOIN drops customers without orders.", 130, 5, "sql", "Intermediate",
+    `SELECT c.name, COUNT(o.id) AS orders
+FROM customers c
+JOIN orders o ON o.customer_id = c.id
+GROUP BY c.name;`,
+    `SELECT c.name, COUNT(o.id) AS orders
+FROM customers c
+LEFT JOIN orders o ON o.customer_id = c.id
+GROUP BY c.name;`,
+    "customers with zero orders disappear from the report",
+    "Missing rows instead of 0",
+    ["LEFT JOIN keeps the left table's rows", "COUNT(o.id) counts only matched orders"],
     "LEFT JOIN orders"
   ),
-  ch(212, "Cross Join Explosion", "Missing join condition creates Cartesian product.", 150, 5, "sql", "Intermediate",
-    `SELECT u.name, o.total\nFROM users u, orders o;`,
-    `SELECT u.name, o.total\nFROM users u\nJOIN orders o ON o.user_id = u.id;`,
-    "No join condition = Cartesian product of all rows",
-    "users × orders rows returned",
-    ["Add ON clause for the join condition", "JOIN ... ON specifies the relationship"],
-    "JOIN orders o ON"
+  ch(212, "WHERE Can't Aggregate", "Filtering a SUM inside WHERE fails.", 140, 5, "sql", "Intermediate",
+    `SELECT customer_id, SUM(total)
+FROM orders
+WHERE SUM(total) > 100
+GROUP BY customer_id;`,
+    `SELECT customer_id, SUM(total)
+FROM orders
+GROUP BY customer_id
+HAVING SUM(total) > 100;`,
+    "WHERE runs before grouping, so aggregates are illegal there",
+    "Error: aggregate function not allowed in WHERE",
+    ["Filter groups with HAVING", "HAVING runs after GROUP BY"],
+    "HAVING SUM(total) > 100"
   ),
-  ch(213, "Subquery Returns Multiple", "Subquery used where scalar expected.", 140, 5, "sql", "Intermediate",
-    `SELECT * FROM products\nWHERE category_id = (SELECT id FROM categories WHERE name = 'Electronics');`,
-    `SELECT * FROM products\nWHERE category_id IN (SELECT id FROM categories WHERE name = 'Electronics');`,
-    "Subquery might return multiple rows",
-    "Subquery returns more than 1 row error",
-    ["Use IN instead of = for multi-row subquery", "= expects exactly one row"],
+  ch(213, "Blank Phone Numbers", "NULLs leak into the export.", 125, 5, "sql", "Intermediate",
+    `SELECT name, phone FROM users;`,
+    `SELECT name, COALESCE(phone, 'N/A') AS phone FROM users;`,
+    "NULL phone values show up empty",
+    "Rows with empty phone fields",
+    ["COALESCE supplies a default", "COALESCE(phone, 'N/A')"],
+    "COALESCE(phone"
+  ),
+  ch(214, "Function on Column", "YEAR() hides the index from the planner.", 145, 5, "sql", "Intermediate",
+    `SELECT * FROM orders WHERE YEAR(created_at) = 2024;`,
+    `SELECT * FROM orders
+WHERE created_at >= '2024-01-01' AND created_at < '2025-01-01';`,
+    "wrapping the column prevents index use",
+    "Full table scan on a big orders table",
+    ["Compare the raw column to a range", ">= start AND < next-start"],
+    "created_at >= '2024-01-01'"
+  ),
+  ch(215, "Subquery Returns Many", "= with a multi-row subquery errors out.", 135, 5, "sql", "Intermediate",
+    `SELECT * FROM orders
+WHERE user_id = (SELECT id FROM users WHERE active = true);`,
+    `SELECT * FROM orders
+WHERE user_id IN (SELECT id FROM users WHERE active = true);`,
+    "the subquery may return more than one row",
+    "Error: subquery returns more than 1 row",
+    ["IN accepts a list", "= needs exactly one value"],
     "IN (SELECT"
   ),
-  ch(214, "HAVING vs WHERE", "Filtering aggregate result with WHERE.", 140, 5, "sql", "Intermediate",
-    `SELECT department, AVG(salary)\nFROM employees\nWHERE AVG(salary) > 50000\nGROUP BY department;`,
-    `SELECT department, AVG(salary)\nFROM employees\nGROUP BY department\nHAVING AVG(salary) > 50000;`,
-    "WHERE can't filter aggregate results",
-    "Aggregate functions not allowed in WHERE clause",
-    ["Use HAVING for aggregate filters", "WHERE filters rows, HAVING filters groups"],
-    "HAVING AVG(salary)"
+  ch(216, "COUNT Skips NULLs", "COUNT(commission) ignores null commissions.", 130, 5, "sql", "Intermediate",
+    `SELECT COUNT(commission) FROM sales;`,
+    `SELECT COUNT(*) FROM sales WHERE commission IS NOT NULL;`,
+    "COUNT(col) only counts non-null values",
+    "A lower number than the real row count",
+    ["COUNT(*) counts all rows", "Filter explicitly when you mean non-null"],
+    "commission IS NOT NULL"
   ),
-  ch(215, "Self Join Alias", "Joining table to itself needs LEFT JOIN.", 130, 5, "sql", "Intermediate",
-    `SELECT e1.name, e2.name as manager\nFROM employees e1\nJOIN employees e2 ON e1.manager_id = e2.id;`,
-    `SELECT e1.name, e2.name as manager\nFROM employees e1\nLEFT JOIN employees e2 ON e1.manager_id = e2.id;`,
-    "Regular JOIN misses employees without managers",
-    "CEO (no manager) not in results",
-    ["Use LEFT JOIN for optional relationships", "LEFT JOIN keeps all left table rows"],
-    "LEFT JOIN"
+  ch(217, "Half a Name", "Concatenating a NULL yields NULL.", 130, 5, "sql", "Intermediate",
+    `SELECT first || ' ' || last AS full_name FROM users;`,
+    `SELECT COALESCE(first, '') || ' ' || COALESCE(last, '') AS full_name FROM users;`,
+    "one NULL poisons the whole concatenation",
+    "full_name is NULL whenever last is NULL",
+    ["COALESCE the pieces first", "COALESCE(last, '') keeps the output non-null"],
+    "COALESCE(last"
   ),
-  ch(216, "OR Precedence with AND", "OR/AND precedence groups differently than intended.", 150, 5, "sql", "Intermediate",
-    `SELECT * FROM users\nWHERE status = 'active' AND role = 'admin' OR created_at > '2024-01-01';`,
-    `SELECT * FROM users\nWHERE status = 'active' AND (role = 'admin' OR created_at > '2024-01-01');`,
-    "AND binds tighter than OR in SQL",
-    "Returns inactive users created after Jan 2024",
-    ["Add parentheses around the OR condition", "AND has higher precedence than OR"],
-    "AND (role"
+  ch(218, "DISTINCT Ordering", "ORDER BY needs the DISTINCT column.", 130, 5, "sql", "Intermediate",
+    `SELECT DISTINCT department FROM employees ORDER BY salary;`,
+    `SELECT DISTINCT department FROM employees ORDER BY department;`,
+    "salary is not part of the DISTINCT output",
+    "Error: ORDER BY expression must appear in select list",
+    ["Order by a selected column", "DISTINCT and ORDER BY must agree"],
+    "ORDER BY department"
   ),
-  ch(217, "CASE Missing ELSE", "CASE expression without ELSE returns NULL.", 120, 5, "sql", "Intermediate",
-    `SELECT name,\n    CASE WHEN score >= 90 THEN 'A'\n         WHEN score >= 80 THEN 'B'\n    END as grade\nFROM students;`,
-    `SELECT name,\n    CASE WHEN score >= 90 THEN 'A'\n         WHEN score >= 80 THEN 'B'\n         ELSE 'C'\n    END as grade\nFROM students;`,
-    "No ELSE clause — unmatched rows get NULL",
-    "Students with score < 80 get NULL grade",
-    ["Add an ELSE clause", "ELSE handles all unmatched cases"],
-    "ELSE"
+  ch(219, "Uncommitted Transfer", "The transaction never commits.", 140, 5, "sql", "Intermediate",
+    `BEGIN;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;`,
+    `BEGIN;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+COMMIT;`,
+    "without COMMIT the work rolls back",
+    "The transfer vanishes",
+    ["Finish with COMMIT;", "Or ROLLBACK if something failed"],
+    "COMMIT;"
   ),
-  ch(218, "DISTINCT on Join", "DISTINCT hides the real problem of row multiplication.", 140, 5, "sql", "Intermediate",
-    `SELECT DISTINCT u.name, o.total\nFROM users u\nJOIN orders o ON u.id = o.user_id;`,
-    `SELECT u.name, SUM(o.total) as total\nFROM users u\nJOIN orders o ON u.id = o.user_id\nGROUP BY u.id, u.name;`,
-    "DISTINCT masks multiple order rows per user",
-    "Multiple rows per user if they have multiple orders",
-    ["Aggregate with GROUP BY instead of DISTINCT", "Use SUM() with GROUP BY"],
-    "SUM(o.total)"
-  ),
-  ch(219, "Window Function Percentage", "Window function correct but missing percentage calc.", 160, 6, "sql", "Intermediate",
-    `SELECT name, salary, MAX(salary) OVER (PARTITION BY department)\nFROM employees;`,
-    `SELECT name, salary,\n    MAX(salary) OVER (PARTITION BY department) as dept_max,\n    salary * 100.0 / MAX(salary) OVER (PARTITION BY department) as pct_of_max\nFROM employees;`,
-    "Can't calculate percentage without the comparison",
-    "Missing percentage of department max",
-    ["Add the percentage calculation", "Divide salary by dept_max * 100"],
-    "pct_of_max"
-  ),
-  ch(220, "Index Not Used", "Function on indexed column prevents index usage.", 150, 5, "sql", "Intermediate",
-    `SELECT * FROM users WHERE YEAR(created_at) = 2024;`,
-    `SELECT * FROM users WHERE created_at >= '2024-01-01' AND created_at < '2025-01-01';`,
-    "YEAR() function prevents index usage (full scan)",
-    "Full table scan instead of index seek",
-    ["Don't wrap indexed column in a function", "Use range comparison for index usage"],
-    "created_at >="
+  ch(220, "Self-Join Explosion", "Missing ON multiplies every row by every row.", 140, 5, "sql", "Intermediate",
+    `SELECT a.name AS emp, b.name AS manager
+FROM employees a
+JOIN employees b;`,
+    `SELECT a.name AS emp, b.name AS manager
+FROM employees a
+JOIN employees b ON a.manager_id = b.id;`,
+    "a join with no condition is a cartesian product",
+    "100 employees become 10,000 rows",
+    ["Always supply the join condition", "ON a.manager_id = b.id"],
+    "ON a.manager_id = b.id"
   ),
 ];
 
 const sqlAdvanced: Challenge[] = [
-  ch(221, "Deadlock via Update Order", "Two transactions update rows in different order.", 260, 8, "sql", "Advanced",
-    `-- Transaction 1\nUPDATE accounts SET balance = balance - 100 WHERE id = 1;\nUPDATE accounts SET balance = balance + 100 WHERE id = 2;\n\n-- Transaction 2\nUPDATE accounts SET balance = balance - 50 WHERE id = 2;\nUPDATE accounts SET balance = balance + 50 WHERE id = 1;`,
-    `UPDATE accounts SET balance = balance - 100 WHERE id = 1;\nUPDATE accounts SET balance = balance + 100 WHERE id = 2;`,
-    "Different update order between transactions = deadlock",
-    "Deadlock detected — one transaction killed",
-    ["Always update rows in the same order", "Order by ID: always lock row 1 before row 2"],
-    "WHERE id = 1"
-  ),
-  ch(222, "Transaction Isolation", "Phantom reads in REPEATABLE READ mode.", 240, 7, "sql", "Advanced",
-    `SELECT COUNT(*) FROM orders;`,
-    `SET TRANSACTION ISOLATION LEVEL READ COMMITTED;`,
-    "REPEATABLE READ prevents seeing new committed rows",
-    "Second count still 100 — phantom reads blocked",
-    ["Change isolation level to READ COMMITTED", "READ COMMITTED sees committed changes"],
-    "READ COMMITTED"
-  ),
-  ch(223, "Recursive CTE Infinite", "Recursive CTE without termination condition.", 250, 8, "sql", "Advanced",
-    `WITH RECURSIVE org_tree AS (\n    SELECT id, name, manager_id FROM employees WHERE manager_id IS NULL\n    UNION ALL\n    SELECT e.id, e.name, e.manager_id\n    FROM employees e\n    JOIN org_tree o ON e.manager_id = o.id\n)\nSELECT * FROM org_tree;`,
-    `WITH RECURSIVE org_tree AS (\n    SELECT id, name, manager_id, 0 as depth FROM employees WHERE manager_id IS NULL\n    UNION ALL\n    SELECT e.id, e.name, e.manager_id, o.depth + 1\n    FROM employees e\n    JOIN org_tree o ON e.manager_id = o.id\n    WHERE o.depth < 10\n)\nSELECT * FROM org_tree;`,
-    "No depth limit — cycles cause infinite recursion",
-    "Infinite loop on circular manager references",
-    ["Add a depth counter to track recursion level", "WHERE depth < 10 prevents infinite cycles"],
-    "depth < 10"
-  ),
-  ch(224, "Materialized View Stale", "Materialized view not refreshed after data changes.", 230, 7, "sql", "Advanced",
-    `CREATE MATERIALIZED VIEW mv_sales AS\nSELECT department, SUM(amount) as total FROM sales GROUP BY department;\n\nINSERT INTO sales VALUES (...);\n\nSELECT * FROM mv_sales;`,
-    `REFRESH MATERIALIZED VIEW mv_sales;\nSELECT * FROM mv_sales;`,
-    "Materialized views don't auto-update",
-    "Stale data shown after INSERT",
-    ["Manually refresh the materialized view", "REFRESH MATERIALIZED VIEW"],
-    "REFRESH MATERIALIZED VIEW"
-  ),
-  ch(225, "Partial Index Miss", "Query doesn't match partial index condition.", 240, 8, "sql", "Advanced",
-    `CREATE INDEX idx_active_users ON users(email) WHERE status = 'active';\n\nSELECT * FROM users WHERE email = 'test@example.com' AND status != 'deleted';`,
-    `SELECT * FROM users WHERE email = 'test@example.com' AND status = 'active';`,
-    "Query filter doesn't match the partial index condition",
-    "Full scan — partial index not used",
-    ["Query WHERE must match index WHERE condition", "Use status = 'active' to match the partial index"],
-    "status = 'active'"
-  ),
-  ch(226, "Lock Escalation", "Mass update escalates row locks to table lock.", 260, 8, "sql", "Advanced",
-    `UPDATE inventory SET quantity = quantity - 1\nWHERE product_id IN (SELECT id FROM products WHERE category = 'electronics');`,
-    `UPDATE inventory SET quantity = quantity - 1\nWHERE id IN (SELECT i.id FROM inventory i\n    JOIN products p ON i.product_id = p.id\n    WHERE p.category = 'electronics'\n    LIMIT 100);`,
-    "Mass update escalates to table-level lock",
-    "Table lock blocks all other transactions",
-    ["Update in batches with LIMIT clause", "Avoid updating thousands of rows at once"],
-    "LIMIT 100"
-  ),
-  ch(227, "NULL in NOT IN", "NOT IN with NULL subquery returns no rows.", 250, 8, "sql", "Advanced",
-    `SELECT * FROM products\nWHERE category_id NOT IN (SELECT category_id FROM excluded_categories);`,
-    `SELECT * FROM products\nWHERE category_id NOT IN (SELECT category_id FROM excluded_categories WHERE category_id IS NOT NULL);`,
-    "NOT IN with any NULL in subquery returns zero rows",
-    "Zero rows if subquery contains any NULL",
-    ["NOT IN with NULL always evaluates to false", "Filter NULL out from the subquery"],
-    "IS NOT NULL"
-  ),
-  ch(228, "Correlated Subquery Performance", "Correlated subquery runs once per outer row.", 240, 7, "sql", "Advanced",
-    `SELECT u.name,\n    (SELECT COUNT(*) FROM orders WHERE user_id = u.id) as order_count\nFROM users u;`,
-    `SELECT u.name, COUNT(o.id) as order_count\nFROM users u\nLEFT JOIN orders o ON o.user_id = u.id\nGROUP BY u.id, u.name;`,
-    "Correlated subquery = one extra query per user",
-    "N+1 performance problem",
-    ["Replace with JOIN + GROUP BY", "A single query is much faster"],
+  ch(221, "Per-User Counts", "A correlated subquery runs once per row.", 240, 8, "sql", "Advanced",
+    `SELECT c.name,
+  (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id) AS orders
+FROM customers c;`,
+    `SELECT c.name, COUNT(o.id) AS orders
+FROM customers c
+LEFT JOIN orders o ON o.customer_id = c.id
+GROUP BY c.name;`,
+    "the subquery executes for every customer",
+    "Slow on large customer tables",
+    ["Rewrite as a LEFT JOIN with GROUP BY", "Set-based work beats row-by-row"],
     "LEFT JOIN orders"
   ),
-  ch(229, "Trigger Side Effects", "Trigger causes cascading updates unintentionally.", 260, 8, "sql", "Advanced",
-    `CREATE TRIGGER update_timestamp\nAFTER UPDATE ON orders\nFOR EACH ROW\nBEGIN\n    UPDATE customers SET updated_at = NOW()\n    WHERE id = NEW.customer_id;\nEND;`,
-    `CREATE TRIGGER update_timestamp\nAFTER UPDATE ON orders\nFOR EACH ROW\nWHEN (OLD.status IS DISTINCT FROM NEW.status)\nBEGIN\n    UPDATE customers SET updated_at = NOW()\n    WHERE id = NEW.customer_id;\nEND;`,
-    "Trigger fires on every update, even trivial ones",
-    "customers table hammered on every order change",
-    ["Add WHEN clause to limit trigger scope", "Only fire when status actually changes"],
-    "WHEN"
+  ch(222, "Missing Partition", "The window spans the whole table.", 230, 8, "sql", "Advanced",
+    `SELECT name, department, salary,
+       MAX(salary) OVER () AS dept_max
+FROM employees;`,
+    `SELECT name, department, salary,
+       MAX(salary) OVER (PARTITION BY department) AS dept_max
+FROM employees;`,
+    "OVER () computes a global maximum",
+    "dept_max is the same for every row",
+    ["Add PARTITION BY department", "Windows need explicit partitioning"],
+    "PARTITION BY department"
   ),
-  ch(230, "Partition Pruning Fail", "Query function prevents partition pruning.", 250, 8, "sql", "Advanced",
-    `SELECT * FROM sales WHERE EXTRACT(YEAR FROM sale_date) = 2024;`,
-    `SELECT * FROM sales WHERE sale_date >= '2024-01-01' AND sale_date < '2025-01-01';`,
-    "EXTRACT function prevents partition pruning",
-    "All partitions scanned instead of just 2024",
-    ["Don't wrap partition key in a function", "Use range comparison for pruning"],
-    "sale_date >="
+  ch(223, "Blocked Delete", "Foreign keys refuse the delete.", 220, 7, "sql", "Advanced",
+    `DELETE FROM departments WHERE id = 3;`,
+    `DELETE FROM employees WHERE department_id = 3;
+DELETE FROM departments WHERE id = 3;`,
+    "employees still reference the department",
+    "Error: foreign key constraint failed",
+    ["Remove children first", "Or define ON DELETE CASCADE"],
+    "DELETE FROM employees WHERE department_id = 3"
+  ),
+  ch(224, "Portable Upsert", "UPDATE...JOIN syntax is engine-specific.", 240, 8, "sql", "Advanced",
+    `UPDATE orders JOIN customers ON orders.customer_id = customers.id
+SET orders.status = 'vip'
+WHERE customers.tier = 'gold';`,
+    `UPDATE orders SET status = 'vip'
+WHERE customer_id IN (SELECT id FROM customers WHERE tier = 'gold');`,
+    "UPDATE...JOIN works on MySQL but not SQLite/Postgres",
+    "Syntax error on other engines",
+    ["Use a subquery instead", "WHERE customer_id IN (SELECT ...)"],
+    "IN (SELECT id FROM customers WHERE tier = 'gold')"
+  ),
+  ch(225, "Unstable Pages", "Ties reshuffle across pages.", 225, 7, "sql", "Advanced",
+    `SELECT * FROM items ORDER BY score LIMIT 10 OFFSET 20;`,
+    `SELECT * FROM items ORDER BY score, id LIMIT 10 OFFSET 20;`,
+    "equal scores can be ordered differently per query",
+    "Rows are skipped or repeated between pages",
+    ["Add a unique tiebreaker", "ORDER BY score, id"],
+    "ORDER BY score, id"
+  ),
+  ch(226, "Leading Wildcard", "LIKE '%phone' cannot use an index.", 215, 7, "sql", "Advanced",
+    `SELECT * FROM products WHERE name LIKE '%phone';`,
+    `SELECT * FROM products WHERE name LIKE 'phone%';`,
+    "a leading % forces a full scan",
+    "Slow searches as the table grows",
+    ["Anchor the pattern on the left", "name LIKE 'phone%' can use an index"],
+    "name LIKE 'phone%'"
+  ),
+  ch(227, "NOT IN and NULL", "A NULL in the list empties the result.", 230, 7, "sql", "Advanced",
+    `SELECT * FROM users
+WHERE id NOT IN (SELECT user_id FROM banned);`,
+    `SELECT * FROM users u
+WHERE NOT EXISTS (SELECT 1 FROM banned b WHERE b.user_id = u.id);`,
+    "NULL in the subquery makes NOT IN return nothing",
+    "Every user vanishes from the result",
+    ["Use NOT EXISTS", "NOT IN with NULLs is always empty"],
+    "NOT EXISTS"
+  ),
+  ch(228, "Truncated Prices", "CAST to INT chops off the cents.", 210, 7, "sql", "Advanced",
+    `SELECT name, CAST(price AS INT) AS price FROM products;`,
+    `SELECT name, ROUND(price, 2) AS price FROM products;`,
+    "casting to integer discards the fraction",
+    "19.99 becomes 19",
+    ["ROUND keeps the precision you want", "Store money as NUMERIC, not INT"],
+    "ROUND(price"
+  ),
+  ch(229, "Loose Grouping", "One ungrouped column ruins the query.", 220, 7, "sql", "Advanced",
+    `SELECT customer_id, order_date, SUM(total)
+FROM orders
+GROUP BY customer_id;`,
+    `SELECT customer_id, order_date, SUM(total)
+FROM orders
+GROUP BY customer_id, order_date;`,
+    "order_date is neither grouped nor aggregated",
+    "Error in strict mode; arbitrary values otherwise",
+    ["Group by every plain column", "GROUP BY customer_id, order_date"],
+    "GROUP BY customer_id, order_date"
+  ),
+  ch(230, "Repeatable Archive", "Re-running the INSERT duplicates rows.", 230, 7, "sql", "Advanced",
+    `INSERT INTO archive SELECT * FROM orders WHERE created_at < '2023-01-01';`,
+    `INSERT OR IGNORE INTO archive SELECT * FROM orders WHERE created_at < '2023-01-01';`,
+    "a second run inserts the same rows again",
+    "Duplicate archive rows",
+    ["Make the insert idempotent", "INSERT OR IGNORE skips existing keys"],
+    "INSERT OR IGNORE INTO archive"
   ),
 ];
 
 const sqlNightmare: Challenge[] = [
-  ch(231, "MVCC Bloat", "Long transactions prevent vacuum cleanup.", 300, 10, "sql", "Nightmare",
-    `BEGIN;\nSELECT * FROM large_table;\n-- (transaction stays open while doing other work)`,
-    `BEGIN;\nSELECT * FROM large_table;\nCOMMIT;\n\n-- Process other work outside transaction`,
-    "Long open transactions prevent dead row cleanup",
-    "Table bloat — disk usage grows unbounded",
-    ["Keep transactions as short as possible", "Commit before doing non-DB work"],
-    "COMMIT"
+  ch(231, "Read-Then-Write Race", "Two transactions can read the same balance.", 330, 11, "sql", "Nightmare",
+    `BEGIN;
+SELECT balance FROM accounts WHERE id = 1;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+COMMIT;`,
+    `BEGIN;
+SELECT balance FROM accounts WHERE id = 1 FOR UPDATE;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+COMMIT;`,
+    "the read and the write are not atomic together",
+    "Two debits both see 1000 — one credit is lost",
+    ["Lock the row during the read", "SELECT ... FOR UPDATE"],
+    "FOR UPDATE"
   ),
-  ch(232, "Index B-Tree Split", "Sequential inserts cause B-tree page splits.", 280, 9, "sql", "Nightmare",
-    `CREATE TABLE logs (\n    id SERIAL PRIMARY KEY,\n    message TEXT,\n    created_at TIMESTAMP DEFAULT NOW()\n);`,
-    `CREATE TABLE logs (\n    id SERIAL PRIMARY KEY,\n    message TEXT,\n    created_at TIMESTAMP DEFAULT NOW()\n) WITH (fillfactor = 70);`,
-    "Pages fill to 100% then split on every insert",
-    "Frequent B-tree page splits degrade performance",
-    ["Set fillfactor below 100% to leave room for growth", "WITH (fillfactor = 70) prevents constant splitting"],
-    "fillfactor"
-  ),
-  ch(233, "Lock Timeout Cascade", "No lock timeout — transactions wait forever.", 320, 10, "sql", "Nightmare",
-    `BEGIN;\nUPDATE accounts SET balance = 1000 WHERE id = 1;`,
-    `SET lock_timeout = '5s';\nBEGIN;\nUPDATE accounts SET balance = 2000 WHERE id = 1;`,
-    "No lock timeout — transactions wait indefinitely",
-    "Indefinite wait or application-level timeout",
-    ["Set lock_timeout at the session level", "SET lock_timeout = '5s' prevents forever waits"],
-    "lock_timeout"
-  ),
-  ch(234, "Connection Pool Exhaustion", "Leaked connections exhaust the pool.", 310, 10, "sql", "Nightmare",
-    `for i in range(1000):\n    conn = psycopg2.connect(dsn)\n    cur = conn.cursor()\n    cur.execute("SELECT 1")`,
-    `for i in range(1000):\n    with psycopg2.connect(dsn) as conn:\n        with conn.cursor() as cur:\n            cur.execute("SELECT 1")`,
-    "Connections never closed — pool exhausted",
-    "FATAL: too many connections for role",
-    ["Use context managers (with) for auto-cleanup", "with auto-closes connections"],
-    "with psycopg2.connect"
-  ),
-  ch(235, "Replication Lag", "Reading from replica immediately after write.", 300, 10, "sql", "Nightmare",
-    `INSERT INTO orders (user_id, total) VALUES (1, 99.99);\nSELECT * FROM orders WHERE user_id = 1;`,
-    `INSERT INTO orders (user_id, total) VALUES (1, 99.99);\nSELECT * FROM orders WHERE user_id = 1;`,
-    "Replica hasn't received the write yet",
-    "Empty result — replication lag",
-    ["Read from primary after a write", "Or use read-your-writes consistency"],
-    "primary"
-  ),
-  ch(236, "Query Plan Cache Poison", "Cached plan bad for some parameter values.", 290, 9, "sql", "Nightmare",
-    `PREPARE get_users(int) AS\nSELECT * FROM users WHERE status = $1;`,
-    `EXECUTE get_users('deleted');`,
-    "Generic plan may be suboptimal for some parameter values",
-    "Sequential scan when index would be faster",
-    ["Use custom plan for specific parameter values", "SET plan_cache_mode = force_custom_plan"],
-    "force_custom_plan"
-  ),
-  ch(237, "TOAST Table Bloat", "Large text columns in TOAST grow unbounded.", 280, 9, "sql", "Nightmare",
-    `CREATE TABLE documents (\n    id SERIAL PRIMARY KEY,\n    content TEXT,\n    updated_at TIMESTAMP\n);`,
-    `CREATE TABLE documents (\n    id SERIAL PRIMARY KEY,\n    content TEXT,\n    updated_at TIMESTAMP\n) WITH (toast_tuple_target = 2048);`,
-    "TOAST storage for large columns bloats over time",
-    "Disk usage grows even after updates",
-    ["Adjust toast_tuple_target for large text columns", "Schedule regular VACUUM FULL"],
-    "toast_tuple_target"
-  ),
-  ch(238, "Hot Standby Conflict", "Long query on standby conflicts with WAL replay.", 310, 10, "sql", "Nightmare",
-    `BEGIN;\nSELECT * FROM large_table;`,
-    `SET statement_timeout = '5min';\nSELECT * FROM large_table;`,
-    "Long query conflicts with WAL replay on standby",
-    "Canceling statement due to conflict with recovery",
-    ["Set statement_timeout to keep queries short", "Long queries on replicas cause conflicts"],
-    "statement_timeout"
-  ),
-  ch(239, "Autovacuum Threshold", "Autovacuum doesn't run on rarely-updated tables.", 290, 9, "sql", "Nightmare",
-    `CREATE TABLE audit_log (\n    id SERIAL PRIMARY KEY,\n    action TEXT,\n    timestamp TIMESTAMP\n);`,
+  ch(232, "Autovacuum Blind Spot", "Append-only tables bloat silently.", 290, 9, "sql", "Nightmare",
+    `CREATE TABLE audit_log (
+    id SERIAL PRIMARY KEY,
+    action TEXT,
+    timestamp TIMESTAMP
+);`,
     `ALTER TABLE audit_log SET (autovacuum_vacuum_threshold = 50000, autovacuum_analyze_threshold = 50000);`,
-    "Default autovacuum thresholds too high for append-only table",
-    "Table bloat — dead rows never cleaned",
-    ["Lower autovacuum thresholds per-table", "ALTER TABLE SET (autovacuum...)"],
+    "the default thresholds never trigger for a huge log table",
+    "Table bloat — dead rows pile up",
+    ["Tune autovacuum per table", "ALTER TABLE SET (autovacuum_vacuum_threshold ...)"],
     "autovacuum_vacuum_threshold"
   ),
-  ch(240, "Partitioned Table Constraint", "CHECK constraint on parent ignored by partitions.", 300, 10, "sql", "Nightmare",
-    `CREATE TABLE events (\n    id SERIAL,\n    event_date DATE,\n    CHECK (event_date >= '2024-01-01' AND event_date < '2025-01-01')\n) PARTITION BY RANGE (event_date);`,
-    `CREATE TABLE events_y2024 (\n    CHECK (event_date >= '2024-01-01' AND event_date < '2025-01-01')\n) PARTITION OF events;`,
-    "CHECK on parent doesn't apply to child partitions",
-    "Partition pruning doesn't work",
-    ["Add CHECK constraints to each partition", "Each partition needs its own constraint for pruning"],
-    "PARTITION BY RANGE"
+  ch(233, "Pruning Without Constraints", "Parent CHECKs do not help partitions prune.", 300, 10, "sql", "Nightmare",
+    `CREATE TABLE events (
+    id SERIAL,
+    event_date DATE,
+    CHECK (event_date >= '2024-01-01' AND event_date < '2025-01-01')
+) PARTITION BY RANGE (event_date);`,
+    `CREATE TABLE events_y2024 (
+    CHECK (event_date >= '2024-01-01' AND event_date < '2025-01-01')
+) PARTITION OF events;`,
+    "partition pruning needs per-partition constraints",
+    "Every query scans all partitions",
+    ["Add CHECK constraints to each partition", "Constraints on children enable pruning"],
+    "PARTITION OF events"
+  ),
+  ch(234, "Standby Conflict", "Long queries collide with WAL replay.", 310, 10, "sql", "Nightmare",
+    `BEGIN;
+SELECT * FROM large_table;`,
+    `SET statement_timeout = '5min';
+SELECT * FROM large_table;`,
+    "an open snapshot blocks replication on the standby",
+    "Canceling statement due to conflict with recovery",
+    ["Cap query time with statement_timeout", "Long reads on replicas cause conflicts"],
+    "statement_timeout"
+  ),
+  ch(235, "Injectable WHERE", "String-built SQL lets input rewrite the query.", 330, 11, "sql", "Nightmare",
+    `-- built with string interpolation
+SELECT * FROM users WHERE name = '<input>';`,
+    `-- parameterized
+SELECT * FROM users WHERE name = ?;`,
+    "user input can close the quote and inject SQL",
+    "Data exfiltration or destruction",
+    ["Use bound parameters", "Never interpolate input into SQL"],
+    "name = ?"
+  ),
+  ch(236, "Endless Hierarchy", "A cyclic org chart never terminates.", 320, 10, "sql", "Nightmare",
+    `WITH RECURSIVE org AS (
+    SELECT id, name, manager_id FROM employees WHERE id = 1
+    UNION ALL
+    SELECT e.id, e.name, e.manager_id FROM employees e
+    JOIN org o ON e.manager_id = o.id
+)
+SELECT * FROM org;`,
+    `WITH RECURSIVE org AS (
+    SELECT id, name, manager_id, 1 AS depth FROM employees WHERE id = 1
+    UNION ALL
+    SELECT e.id, e.name, e.manager_id, o.depth + 1 FROM employees e
+    JOIN org o ON e.manager_id = o.id WHERE o.depth < 10
+)
+SELECT * FROM org;`,
+    "a reporting loop makes the recursion infinite",
+    "The query never returns",
+    ["Track depth and cap it", "WHERE o.depth < 10 bounds the walk"],
+    "o.depth < 10"
+  ),
+  ch(237, "Missing FK Index", "Deletes on the parent scan the child.", 290, 9, "sql", "Nightmare",
+    `CREATE TABLE orders (
+    id INT PRIMARY KEY,
+    customer_id INT,
+    FOREIGN KEY (customer_id) REFERENCES customers(id)
+);`,
+    `CREATE TABLE orders (
+    id INT PRIMARY KEY,
+    customer_id INT,
+    FOREIGN KEY (customer_id) REFERENCES customers(id)
+);
+CREATE INDEX idx_orders_customer ON orders(customer_id);`,
+    "no index backs the foreign key column",
+    "Child scans on every parent delete",
+    ["Index the referencing column", "CREATE INDEX idx_orders_customer ..."],
+    "idx_orders_customer"
+  ),
+  ch(238, "SELECT * Overhead", "Unneeded columns break covering-index plans.", 280, 9, "sql", "Nightmare",
+    `SELECT * FROM users WHERE email = 'a@b.com';`,
+    `SELECT id FROM users WHERE email = 'a@b.com';`,
+    "every column is fetched even when only the id is needed",
+    "Wasted IO on hot lookups",
+    ["List only the columns you need", "A covering index can serve this"],
+    "SELECT id FROM users WHERE email"
+  ),
+  ch(239, "Accidental Case-Fold", "Collation makes 'Admin' match 'admin'.", 300, 10, "sql", "Nightmare",
+    `SELECT * FROM users WHERE username = 'Admin';`,
+    `SELECT * FROM users WHERE username = 'Admin' COLLATE BINARY;`,
+    "a case-insensitive collation hides the distinction",
+    "The wrong account is returned",
+    ["Force a binary collation", "COLLATE BINARY for exact matches"],
+    "COLLATE BINARY"
+  ),
+  ch(240, "Trust the Window", "This query is correct — submit it as-is.", 290, 9, "sql", "Nightmare",
+    `SELECT name, salary, department,
+       RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS rnk
+FROM employees;`,
+    `SELECT name, salary, department,
+       RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS rnk
+FROM employees;`,
+    "per-department ranking with RANK() is right",
+    "Works correctly",
+    ["RANK() skips ranks after ties", "The query is fine — no fix needed"],
+    "RANK() OVER (PARTITION BY department ORDER BY salary DESC)"
   ),
 ];
-
 /* ========= AUTO-GENERATED TRACKS HELPER ========= */
-// Generates 40 realistic-looking practice challenges (10 per difficulty) for a new tech stack.
-// Each challenge has a starter buggy snippet, a fix, and a `checkKey` used by the challenge validator.
+// Generates challenges for a tech stack from explicit per-difficulty problem pools.
+// Every difficulty level gets its own genuinely different problems — nothing is recycled.
+
+interface StackProblem {
+  title: string;
+  desc: string;
+  bug: string;
+  code: string;
+  solution: string;
+  checkKey: string;
+  hints: string[];
+  expectedError: string;
+}
 
 interface StackTemplate {
   slug: string;
@@ -1537,48 +1913,37 @@ interface StackTemplate {
   accent: string;
   lang: string; // The display name
   monacoLang: string; // The technical ID
-  problems: Array<{
-    title: string;
-    desc: string;
-    bug: string;
-    code: string;
-    solution: string;
-    checkKey: string;
-    hints: string[];
-    expectedError: string;
-  }>;
+  problems: Record<Difficulty, StackProblem[]>;
 }
 
 const nextIdBase = { current: 1000 };
 
 function buildTrack(tmpl: StackTemplate): Track {
-  const perDiff = 10;
-  const difficulties: Difficulty[] = ["Beginner", "Intermediate", "Advanced", "Nightmare"];
+  const order: Difficulty[] = ["Beginner", "Intermediate", "Advanced", "Nightmare"];
   const xpByDiff = { Beginner: 50, Intermediate: 140, Advanced: 250, Nightmare: 320 };
   const timeByDiff = { Beginner: 3, Intermediate: 5, Advanced: 8, Nightmare: 11 };
 
   const challenges: Challenge[] = [];
-  difficulties.forEach((diff, di) => {
-    for (let i = 0; i < perDiff; i++) {
-      const src = tmpl.problems[(di * perDiff + i) % tmpl.problems.length];
+  order.forEach((diff) => {
+    (tmpl.problems[diff] || []).forEach((p, i) => {
       nextIdBase.current += 1;
       challenges.push({
         id: nextIdBase.current,
-        title: src.title,
-        desc: src.desc,
+        title: p.title,
+        desc: p.desc,
         xp: xpByDiff[diff] + i * 4,
         timeMin: timeByDiff[diff],
         lang: tmpl.lang,
         monacoLang: tmpl.monacoLang,
         difficulty: diff,
-        code: src.code,
-        solution: src.solution,
-        bug: src.bug,
-        expectedError: src.expectedError,
-        hints: src.hints,
-        checkKey: src.checkKey,
+        code: p.code,
+        solution: p.solution,
+        bug: p.bug,
+        expectedError: p.expectedError,
+        hints: p.hints,
+        checkKey: p.checkKey,
       });
-    }
+    });
   });
 
   return {
@@ -1598,380 +1963,556 @@ function buildTrack(tmpl: StackTemplate): Track {
 const stackTemplates: StackTemplate[] = [
   {
     slug: "flask", name: "Flask", icon: "flask", desc: "Fix broken Flask web applications", accent: "#ef4444", lang: "Flask", monacoLang: "python",
-    problems: [
-      { title: "Missing Route Method", desc: "POST route only accepts GET requests.", bug: "methods=['POST'] missing", code: `@app.route('/users')\ndef create():\n    return 'ok'`, solution: `@app.route('/users', methods=['POST'])\ndef create():\n    return 'ok'`, checkKey: "methods=['POST']", hints: ["Add methods parameter", "POST needs to be in methods list"], expectedError: "405 Method Not Allowed" },
-      { title: "Request JSON None", desc: "request.json returns None on wrong content-type.", bug: "No force parsing", code: `data = request.json\nname = data['name']`, solution: `data = request.get_json(force=True)\nname = data['name']`, checkKey: "get_json(force=True)", hints: ["Use get_json()", "Force parameter"], expectedError: "AttributeError: NoneType" },
-      { title: "Missing CORS", desc: "Frontend can't reach the API.", bug: "No CORS config", code: `app = Flask(__name__)`, solution: `from flask_cors import CORS\napp = Flask(__name__)\nCORS(app)`, checkKey: "CORS(app)", hints: ["Install flask-cors", "Wrap app in CORS()"], expectedError: "CORS error in browser" },
-      { title: "Template Not Found", desc: "Jinja can't find the HTML file.", bug: "Missing folder", code: `return render_template('home.html')`, solution: `return render_template('home.html')  # ensure templates/ folder exists`, checkKey: "render_template('home.html')", hints: ["Templates folder required", "Check filename"], expectedError: "TemplateNotFound" },
-      { title: "Session Without Secret", desc: "Sessions crash without secret_key.", bug: "No secret_key", code: `app = Flask(__name__)`, solution: `app = Flask(__name__)\napp.secret_key = 'change-me'`, checkKey: "secret_key", hints: ["Sessions need secret key", "Set app.secret_key"], expectedError: "RuntimeError: session unavailable" },
-      { title: "SQL Injection Risk", desc: "Query concatenates user input.", bug: "f-string in SQL", code: `db.execute(f\"SELECT * FROM t WHERE name='{name}'\")`, solution: `db.execute(\"SELECT * FROM t WHERE name=?\", (name,))`, checkKey: "(name,)", hints: ["Use parameterized queries", "Placeholders with tuple"], expectedError: "SQL injection vulnerability" },
-      { title: "Blueprint No Prefix", desc: "Blueprint routes not prefixed.", bug: "Missing url_prefix", code: `app.register_blueprint(api)`, solution: `app.register_blueprint(api, url_prefix='/api')`, checkKey: "url_prefix='/api'", hints: ["Pass url_prefix", "Prefix all blueprint routes"], expectedError: "404 on /api/*" },
-      { title: "Debug Mode in Prod", desc: "debug=True exposes debugger.", bug: "debug=True", code: `app.run(debug=True)`, solution: `app.run(debug=False)`, checkKey: "debug=False", hints: ["Never debug=True in prod", "Set debug=False"], expectedError: "Security warning" },
-      { title: "Missing Error Handler", desc: "500 errors show ugly HTML.", bug: "No handler", code: `@app.route('/x')\ndef x():\n    return None['a']`, solution: `@app.errorhandler(Exception)\ndef err(e):\n    return {'error': str(e)}, 500`, checkKey: "errorhandler", hints: ["Register error handler", "Return JSON for API"], expectedError: "HTML 500 page" },
-      { title: "Static File Path", desc: "Static folder misconfigured.", bug: "Wrong folder name", code: `app = Flask(__name__, static_folder='assets')`, solution: `app = Flask(__name__, static_folder='static')`, checkKey: "static_folder='static'", hints: ["Use default 'static'", "Match actual folder"], expectedError: "404 on /static/*" },
-      { title: "Missing @app.route", desc: "Function not registered as route.", bug: "No decorator", code: `def home():\n    return 'hi'`, solution: `@app.route('/')\ndef home():\n    return 'hi'`, checkKey: "@app.route('/')", hints: ["Add @app.route decorator", "Path required"], expectedError: "404 Not Found" },
-      { title: "Response Wrong Type", desc: "Returning dict fails on older Flask.", bug: "Return dict directly", code: `return {'a': 1}`, solution: `from flask import jsonify\nreturn jsonify({'a': 1})`, checkKey: "jsonify", hints: ["Use jsonify()", "Wraps dict as JSON response"], expectedError: "TypeError on old Flask" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "Missing Route Method", desc: "The POST route only answers GET requests.", bug: "methods=['POST'] is missing", code: `@app.route('/users')\ndef create_user():\n    return 'created'`, solution: `@app.route('/users', methods=['POST'])\ndef create_user():\n    return 'created'`, checkKey: "methods=['POST']", hints: ["POST needs to be listed", "Add methods=['POST'] to the route"], expectedError: "405 Method Not Allowed" },
+        { title: "Template Not Found", desc: "Jinja cannot locate the page.", bug: "wrong template name", code: `return render_template('user_profile.html')`, solution: `return render_template('profile.html')`, checkKey: "'profile.html'", hints: ["Check the templates/ folder", "Match the actual filename"], expectedError: "TemplateNotFound" },
+        { title: "Wrong Endpoint Name", desc: "url_for points at a missing endpoint.", bug: "stale endpoint name", code: `return redirect(url_for('homepage'))`, solution: `return redirect(url_for('index'))`, checkKey: "url_for('index')", hints: ["Endpoint names come from def names", "Rename to url_for('index')"], expectedError: "BuildError" },
+      ],
+      Intermediate: [
+        { title: "SQL String Building", desc: "User input is pasted into the query.", bug: "f-string in SQL", code: `cur.execute(f"SELECT * FROM users WHERE name = '{name}'")`, solution: `cur.execute("SELECT * FROM users WHERE name = ?", (name,))`, checkKey: "(name,)", hints: ["Use parameter placeholders", "Pass values as a tuple"], expectedError: "SQL injection hole" },
+        { title: "CORS Blocked", desc: "The browser rejects API calls.", bug: "no CORS configuration", code: `app = Flask(__name__)`, solution: `from flask_cors import CORS\napp = Flask(__name__)\nCORS(app)`, checkKey: "CORS(app)", hints: ["Install flask-cors", "Wrap the app with CORS()"], expectedError: "CORS error in the browser" },
+        { title: "Blueprint Without Prefix", desc: "Routes 404 under /api.", bug: "url_prefix missing", code: `app.register_blueprint(api)`, solution: `app.register_blueprint(api, url_prefix='/api')`, checkKey: "url_prefix='/api'", hints: ["Prefix the blueprint", "url_prefix='/api'"], expectedError: "404 on /api/*" },
+      ],
+      Advanced: [
+        { title: "JSON Payload Is None", desc: "The wrong content type nulls the body.", bug: "request.json without force", code: `data = request.json\nname = data['name']`, solution: `data = request.get_json(force=True)\nname = data['name']`, checkKey: "get_json(force=True)", hints: ["Use request.get_json()", "force=True parses any content type"], expectedError: "AttributeError: NoneType" },
+        { title: "Session Without Secret", desc: "Sessions crash without a secret key.", bug: "no secret_key", code: `app = Flask(__name__)\n\n@app.route('/')\ndef index():\n    session['hits'] = session.get('hits', 0) + 1\n    return 'ok'`, solution: `app = Flask(__name__)\napp.secret_key = 'change-me'\n\n@app.route('/')\ndef index():\n    session['hits'] = session.get('hits', 0) + 1\n    return 'ok'`, checkKey: "secret_key", hints: ["Sessions need a key", "Set app.secret_key"], expectedError: "RuntimeError: session unavailable" },
+        { title: "Unserializable Response", desc: "A set cannot be JSON-encoded.", bug: "raw set in dict", code: `return {'users': user_set}`, solution: `return {'users': list(user_set)}`, checkKey: "list(user_set)", hints: ["Convert containers first", "list(user_set) is JSON-safe"], expectedError: "TypeError: Object of type set is not JSON serializable" },
+      ],
+      Nightmare: [
+        { title: "Racy Cache", desc: "The in-memory cache races under threads.", bug: "unsynchronized dict", code: `cache = {}\n\ndef get(key):\n    if key not in cache:\n        cache[key] = expensive(key)\n    return cache[key]`, solution: `import threading\n\ncache = {}\nlock = threading.Lock()\n\ndef get(key):\n    with lock:\n        if key not in cache:\n            cache[key] = expensive(key)\n        return cache[key]`, checkKey: "threading.Lock()", hints: ["Serialize the cache access", "with lock: guards read-modify-write"], expectedError: "Lost updates / crash" },
+        { title: "N+1 in Route Loop", desc: "A query fires per order.", bug: "queries inside a loop", code: `for order in orders:\n    items = db.execute(\n        "SELECT * FROM items WHERE order_id = ?", (order["id"],)\n    ).fetchall()`, solution: `ids = [o["id"] for o in orders]\nplaceholders = ",".join("?" * len(ids))\nrows = db.execute(\n    f"SELECT * FROM items WHERE order_id IN ({placeholders})", ids\n).fetchall()`, checkKey: "order_id IN (", hints: ["Fetch once with IN", "One query beats N"], expectedError: "Slow endpoint" },
+        { title: "Autoescape Off", desc: "User input renders as raw HTML.", bug: "autoescape disabled", code: `app.jinja_env.autoescape = False\n\n@app.route('/show')\ndef show():\n    return render_template('show.html', title=user_input)`, solution: `from markupsafe import escape\n\n@app.route('/show')\ndef show():\n    return render_template('show.html', title=escape(user_input))`, checkKey: "escape(user_input)", hints: ["Escape untrusted input", "escape() neutralizes markup"], expectedError: "Stored XSS" },
+      ],
+    },
   },
   {
     slug: "c", name: "C", icon: "c", desc: "Fix segfaults, leaks, and pointer bugs in C", accent: "#3b82f6", lang: "C", monacoLang: "c",
-    problems: [
-      { title: "Null Pointer Deref", desc: "Dereferencing NULL crashes the program.", bug: "No null check", code: `int *p = NULL;\nprintf(\"%d\", *p);`, solution: `int *p = NULL;\nif (p) printf(\"%d\", *p);`, checkKey: "if (p)", hints: ["Always check for NULL", "Guard the deref"], expectedError: "Segmentation fault" },
-      { title: "Uninitialized Var", desc: "Using variable before assigning.", bug: "No init", code: `int x;\nprintf(\"%d\", x);`, solution: `int x = 0;\nprintf(\"%d\", x);`, checkKey: "int x = 0", hints: ["Initialize to 0", "Undefined behavior otherwise"], expectedError: "Garbage value printed" },
-      { title: "Missing free()", desc: "Memory leak after malloc.", bug: "No free", code: `int *p = malloc(sizeof(int));\n*p = 5;`, solution: `int *p = malloc(sizeof(int));\n*p = 5;\nfree(p);`, checkKey: "free(p)", hints: ["Free every malloc", "Prevent leaks"], expectedError: "Memory leak" },
-      { title: "Buffer Overflow", desc: "Writing past array bounds.", bug: "Off-by-one", code: `char buf[5];\nstrcpy(buf, \"hello\");`, solution: `char buf[6];\nstrcpy(buf, \"hello\");`, checkKey: "char buf[6]", hints: ["Include null terminator", "Size = strlen + 1"], expectedError: "Buffer overflow / stack smashing" },
-      { title: "Wrong printf Format", desc: "Format string mismatches type.", bug: "%d for float", code: `float x = 3.14;\nprintf(\"%d\", x);`, solution: `float x = 3.14;\nprintf(\"%f\", x);`, checkKey: '"%f"', hints: ["Match format to type", "%f for float, %d for int"], expectedError: "Undefined output" },
-      { title: "Integer Overflow", desc: "int can't hold large value.", bug: "int too small", code: `int x = 2147483647;\nx++;`, solution: `long long x = 2147483647;\nx++;`, checkKey: "long long x", hints: ["Use larger type", "long long for big numbers"], expectedError: "Overflow to negative" },
-      { title: "Missing Return", desc: "Non-void function has no return.", bug: "No return", code: `int add(int a, int b) {\n    int c = a + b;\n}`, solution: `int add(int a, int b) {\n    return a + b;\n}`, checkKey: "return a + b", hints: ["Add return statement", "Non-void must return"], expectedError: "Undefined return value" },
-      { title: "Double Free", desc: "Freeing pointer twice crashes.", bug: "Free called twice", code: `free(p);\nfree(p);`, solution: `free(p);\np = NULL;`, checkKey: "p = NULL", hints: ["Set to NULL after free", "Prevents double-free"], expectedError: "Double free detected" },
-      { title: "Array Decay", desc: "sizeof on array parameter is wrong.", bug: "sizeof on pointer", code: `void f(int arr[]) {\n    int n = sizeof(arr)/sizeof(int);\n}`, solution: `void f(int arr[], int n) {\n    // use n directly\n}`, checkKey: "int n)", hints: ["Pass size as parameter", "Arrays decay to pointers"], expectedError: "Wrong size calculation" },
-      { title: "Missing #include", desc: "Function not declared.", bug: "No stdio.h", code: `int main() {\n    printf(\"hi\");\n}`, solution: `#include <stdio.h>\nint main() {\n    printf(\"hi\");\n}`, checkKey: "#include <stdio.h>", hints: ["Include the header", "printf needs stdio.h"], expectedError: "Implicit declaration warning" },
-      { title: "Assignment vs Compare", desc: "Using = instead of ==.", bug: "= in if", code: `if (x = 5) { }`, solution: `if (x == 5) { }`, checkKey: "x == 5", hints: ["= assigns, == compares", "Common typo"], expectedError: "Always true" },
-      { title: "String Not Null Term", desc: "String missing null terminator.", bug: "No \\0", code: `char s[3] = {'h','i'};`, solution: `char s[3] = {'h','i','\\0'};`, checkKey: "'\\\\0'", hints: ["C strings need \\0", "Otherwise reads garbage"], expectedError: "Undefined string output" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "Null Deref", desc: "Dereferencing NULL crashes.", bug: "no null guard", code: `int *p = NULL;\nprintf("%d", *p);`, solution: `int *p = NULL;\nif (p) printf("%d", *p);`, checkKey: "if (p)", hints: ["Check for NULL first", "Guard the deref"], expectedError: "Segmentation fault" },
+        { title: "Garbage Value", desc: "An uninitialized variable is used.", bug: "no init", code: `int x;\nprintf("%d", x);`, solution: `int x = 0;\nprintf("%d", x);`, checkKey: "int x = 0", hints: ["Initialize to 0", "Undefined behavior otherwise"], expectedError: "Garbage output" },
+        { title: "Leaked Heap", desc: "malloc is never freed.", bug: "no free", code: `int *p = malloc(sizeof(int));\n*p = 5;`, solution: `int *p = malloc(sizeof(int));\n*p = 5;\nfree(p);`, checkKey: "free(p)", hints: ["Free every malloc", "Prevent leaks"], expectedError: "Memory leak" },
+      ],
+      Intermediate: [
+        { title: "Buffer Clobber", desc: "strcpy writes past the array.", bug: "no bounds check", code: `char buf[5];\nstrcpy(buf, "hello");`, solution: `char buf[6];\nstrncpy(buf, "hello", sizeof(buf) - 1);\nbuf[sizeof(buf) - 1] = '\0';`, checkKey: "sizeof(buf) - 1", hints: ["Leave room for the NUL", "Use strncpy and size the buffer"], expectedError: "Stack smashing" },
+        { title: "Format Mismatch", desc: "The format string does not match the type.", bug: "%d for a float", code: `float x = 3.14;\nprintf("%d", x);`, solution: `float x = 3.14;\nprintf("%f", x);`, checkKey: '"%f"', hints: ["Match the specifier to the type", "%f for float, %d for int"], expectedError: "Undefined output" },
+        { title: "Overflow to Negative", desc: "int cannot hold the value.", bug: "int too small", code: `int x = 2147483647;\nx++;`, solution: `long long x = 2147483647;\nx++;`, checkKey: "long long x", hints: ["Use a wider type", "long long for big numbers"], expectedError: "Wraps to negative" },
+      ],
+      Advanced: [
+        { title: "Use After Free", desc: "The pointer is used after free.", bug: "dangling pointer", code: `char *p = malloc(16);\nstrcpy(p, "hello");\nfree(p);\nprintf("%s", p);`, solution: `char *p = malloc(16);\nstrcpy(p, "hello");\nfree(p);\np = NULL;`, checkKey: "p = NULL", hints: ["Null the pointer after free", "Never deref freed memory"], expectedError: "Use-after-free" },
+        { title: "Dangling Return", desc: "A function returns a local address.", bug: "returns local", code: `int *make(void) {\n    int x = 42;\n    return &x;\n}\nint *p = make();`, solution: `int *make(void) {\n    static int x = 42;\n    return &x;\n}\nint *p = make();`, checkKey: "static int x", hints: ["Locals die on return", "static or heap storage survives"], expectedError: "Garbage value" },
+        { title: "Unsigned Countdown", desc: "size_t never drops below zero.", bug: "unsigned comparison", code: `for (size_t i = 9; i >= 0; i--) {\n    printf("%d\\n", arr[i]);\n}`, solution: `for (int i = 9; i >= 0; i--) {\n    printf("%d\\n", arr[i]);\n}`, checkKey: "int i = 9", hints: ["size_t is unsigned — i >= 0 never fails", "Use a signed loop index"], expectedError: "Infinite loop / crash" },
+      ],
+      Nightmare: [
+        { title: "Overlapping Copy", desc: "memcpy on overlapping regions is UB.", bug: "memcpy overlap", code: `char buf[32];\nstrcpy(buf, "0123456789");\nmemcpy(buf + 2, buf, 10);`, solution: `char buf[32];\nstrcpy(buf, "0123456789");\nmemmove(buf + 2, buf, 10);`, checkKey: "memmove", hints: ["memcpy requires non-overlap", "memmove handles overlap"], expectedError: "Undefined content" },
+        { title: "Format Injection", desc: "User input becomes a format string.", bug: "printf(buf)", code: `char *name = getenv("USER");\nprintf(name);`, solution: `char *name = getenv("USER");\nprintf("%s", name);`, checkKey: '"%s", name', hints: ["Never pass data as the format", 'Use printf("%s", name)'], expectedError: "Reads the stack / crash" },
+        { title: "Signed Shift", desc: "Shifting a signed value is UB.", bug: "signed right shift", code: `int x = -8;\nprintf("%d", x >> 2);`, solution: `unsigned int x = -8;\nprintf("%u", x >> 2);`, checkKey: "unsigned int x", hints: ["Signed shifts are implementation-defined", "Cast to unsigned first"], expectedError: "Unexpected result" },
+      ],
+    },
   },
   {
     slug: "cpp", name: "C++", icon: "cpp", desc: "Debug modern C++ code, STL, and templates", accent: "#60a5fa", lang: "C++", monacoLang: "cpp",
-    problems: [
-      { title: "Iterator Invalidation", desc: "Modifying vector during iteration.", bug: "erase in loop", code: `for (auto it = v.begin(); it != v.end(); ++it)\n    if (*it == 0) v.erase(it);`, solution: `v.erase(std::remove(v.begin(), v.end(), 0), v.end());`, checkKey: "std::remove", hints: ["Use erase-remove idiom", "Never modify while iterating"], expectedError: "Iterator invalidation crash" },
-      { title: "Slicing Object", desc: "Copying derived to base slices data.", bug: "Value copy", code: `Base b = derived;`, solution: `Base& b = derived;`, checkKey: "Base& b", hints: ["Use reference or pointer", "Value copy slices"], expectedError: "Object slicing" },
-      { title: "Missing Virtual Dtor", desc: "Base class dtor not virtual.", bug: "No virtual", code: `class Base { ~Base(){} };`, solution: `class Base { virtual ~Base(){} };`, checkKey: "virtual ~Base", hints: ["Base dtor must be virtual", "Otherwise leaks derived data"], expectedError: "Derived dtor not called" },
-      { title: "Raw new/delete", desc: "Manual memory management leaks.", bug: "new without delete", code: `Widget *w = new Widget();`, solution: `auto w = std::make_unique<Widget>();`, checkKey: "make_unique", hints: ["Use smart pointers", "make_unique is safe"], expectedError: "Memory leak" },
-      { title: "Reference to Temp", desc: "Reference to local var goes dangling.", bug: "Return local ref", code: `int& f() { int x = 5; return x; }`, solution: `int f() { int x = 5; return x; }`, checkKey: "int f()", hints: ["Return by value", "Local vars die on return"], expectedError: "Dangling reference" },
-      { title: "auto Type Wrong", desc: "auto deduces unexpected type.", bug: "auto strips ref", code: `auto x = getRef();  // strips reference`, solution: `auto& x = getRef();`, checkKey: "auto& x", hints: ["Use auto& for reference", "auto strips ref/const"], expectedError: "Unnecessary copy" },
-      { title: "std::move Misuse", desc: "Using moved-from object.", bug: "Use after move", code: `auto b = std::move(a);\ncout << a.data;`, solution: `auto b = std::move(a);\n// don't touch a`, checkKey: "// don't touch a", hints: ["Moved-from is empty", "Never use after move"], expectedError: "Undefined behavior" },
-      { title: "Template Deduction", desc: "Template can't deduce type.", bug: "No explicit type", code: `auto x = std::max(1, 2.5);`, solution: `auto x = std::max<double>(1, 2.5);`, checkKey: "max<double>", hints: ["Specify template arg", "Mixed types fail deduction"], expectedError: "Template ambiguity" },
-      { title: "Uninitialized Member", desc: "Class member never initialized.", bug: "No init", code: `class W { int x; };`, solution: `class W { int x = 0; };`, checkKey: "int x = 0", hints: ["Init in class body", "Or in constructor"], expectedError: "Garbage value" },
-      { title: "Copy vs Move", desc: "Expensive copy where move works.", bug: "Copy in return", code: `vector<int> f() { vector<int> v; return v; }`, solution: `vector<int> f() { vector<int> v; return std::move(v); }`, checkKey: "std::move(v)", hints: ["Move on return", "Avoids copy"], expectedError: "Slow performance" },
-      { title: "const Correctness", desc: "Method should be const.", bug: "Missing const", code: `int get() { return x; }`, solution: `int get() const { return x; }`, checkKey: "const {", hints: ["Add const after ()", "Marks method as read-only"], expectedError: "Can't call on const object" },
-      { title: "Include Guard Missing", desc: "Header included multiple times.", bug: "No guard", code: `// widget.h\nclass Widget {};`, solution: `#pragma once\nclass Widget {};`, checkKey: "#pragma once", hints: ["Add #pragma once", "Or use ifndef guards"], expectedError: "Redefinition error" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "Invalidated Iterator", desc: "Erasing while iterating crashes.", bug: "erase in loop", code: `for (auto it = v.begin(); it != v.end(); ++it)\n    if (*it == 0) v.erase(it);`, solution: `v.erase(std::remove(v.begin(), v.end(), 0), v.end());`, checkKey: "std::remove", hints: ["Use the erase-remove idiom", "Never modify while iterating"], expectedError: "Iterator invalidation" },
+        { title: "Sliced Derived", desc: "Copying to base loses derived data.", bug: "value copy", code: `Base b = derived;`, solution: `Base& b = derived;`, checkKey: "Base& b", hints: ["Use a reference or pointer", "Value copy slices"], expectedError: "Object slicing" },
+        { title: "Bare New", desc: "Manual memory management leaks.", bug: "new without delete", code: `Widget *w = new Widget();\nw->start();`, solution: `auto w = std::make_unique<Widget>();\nw->start();`, checkKey: "make_unique", hints: ["Prefer smart pointers", "make_unique is exception-safe"], expectedError: "Memory leak" },
+      ],
+      Intermediate: [
+        { title: "Non-Virtual Dtor", desc: "Derived data is never destroyed.", bug: "no virtual", code: `class Base { public: ~Base() {} };\nBase *p = new Derived();\ndelete p;`, solution: `class Base { public: virtual ~Base() {} };`, checkKey: "virtual ~Base", hints: ["Base destructors must be virtual", "Otherwise derived is leaked"], expectedError: "Undefined behavior" },
+        { title: "Ref to Temp", desc: "A dangling reference to a local.", bug: "returns local ref", code: `int& f() { int x = 5; return x; }\nint& r = f();`, solution: `int f() { int x = 5; return x; }`, checkKey: "int f()", hints: ["Return by value", "Locals die on return"], expectedError: "Dangling reference" },
+        { title: "auto Strips Ref", desc: "auto drops the reference qualifier.", bug: "unnecessary copy", code: `auto x = getRef();  // strips the reference`, solution: `auto& x = getRef();`, checkKey: "auto& x", hints: ["auto& keeps the reference", "auto copies"], expectedError: "Copy overhead / stale value" },
+      ],
+      Advanced: [
+        { title: "Moved-From Access", desc: "Using an object after std::move.", bug: "use after move", code: `auto b = std::move(a);\nstd::cout << a.size();`, solution: `auto b = std::move(a);\n// do not touch a after the move`, checkKey: "do not touch a", hints: ["Moved-from is valid but empty", "Never use after move"], expectedError: "Undefined behavior" },
+        { title: "Number to String", desc: "Concatenating a number to a string fails.", bug: "operator+ on int", code: `int n = 5;\nstd::string s = "count: " + n;`, solution: `int n = 5;\nstd::string s = "count: " + std::to_string(n);`, checkKey: "std::to_string", hints: ["Numbers need conversion", "std::to_string(n)"], expectedError: "Compile error" },
+        { title: "Reallocation Darting", desc: "A pointer into a vector dangles on push_back.", bug: "stale element address", code: `int* p = &v[0];\nv.push_back(1);\nstd::cout << *p;`, solution: `v.reserve(100);\nint* p = &v[0];\nv.push_back(1);\nstd::cout << *p;`, checkKey: "v.reserve", hints: ["push_back can reallocate", "Reserve capacity first"], expectedError: "Dangling pointer" },
+      ],
+      Nightmare: [
+        { title: "Reinterpret Trick", desc: "Pointer-to-int casts break on 64-bit.", bug: "reinterpret_cast to int", code: `int addr = reinterpret_cast<int>(p);`, solution: `uintptr_t addr = reinterpret_cast<uintptr_t>(p);`, checkKey: "uintptr_t", hints: ["int is 32-bit, pointers are 64", "Use uintptr_t"], expectedError: "Truncation" },
+        { title: "Throwing Dtor", desc: "An exception in a destructor aborts.", bug: "noexcept violation", code: `~Resource() {\n    if (!close()) throw std::runtime_error("close failed");\n}`, solution: `~Resource() noexcept {\n    try { close(); } catch (...) { /* log */ }\n}`, checkKey: "noexcept", hints: ["Destructors must not throw", "Swallow or log inside noexcept"], expectedError: "std::terminate" },
+        { title: "Const Override", desc: "const_cast on immutable data is UB.", bug: "cast away const", code: `const char* s = "fixed";\nchar* p = const_cast<char*>(s);\np[0] = 'F';`, solution: `char buf[] = "fixed";\nchar* p = buf;\np[0] = 'F';`, checkKey: "char buf[]", hints: ["String literals may be read-only", "Copy into a mutable buffer"], expectedError: "Segmentation fault" },
+      ],
+    },
   },
   {
     slug: "java", name: "Java", icon: "java", desc: "Fix Java code and enterprise patterns", accent: "#f97316", lang: "Java", monacoLang: "java",
-    problems: [
-      { title: "NullPointerException", desc: "Calling method on null.", bug: "No null check", code: `String s = null;\nint n = s.length();`, solution: `String s = null;\nint n = (s != null) ? s.length() : 0;`, checkKey: "s != null", hints: ["Check for null first", "Or use Optional"], expectedError: "NullPointerException" },
-      { title: "String == Compare", desc: "== compares references, not values.", bug: "Using ==", code: `if (a == b) { }`, solution: `if (a.equals(b)) { }`, checkKey: ".equals(b)", hints: ["Use .equals() for strings", "== is reference compare"], expectedError: "Wrong comparison result" },
-      { title: "Integer Division", desc: "int/int loses decimals.", bug: "Both operands int", code: `double avg = sum / count;`, solution: `double avg = (double) sum / count;`, checkKey: "(double)", hints: ["Cast to double", "Prevents int truncation"], expectedError: "Truncated result" },
-      { title: "ConcurrentModification", desc: "Modifying list during iteration.", bug: "list.remove in loop", code: `for (String s : list) if (s.isEmpty()) list.remove(s);`, solution: `list.removeIf(String::isEmpty);`, checkKey: "removeIf", hints: ["Use removeIf()", "Or Iterator.remove()"], expectedError: "ConcurrentModificationException" },
-      { title: "Autoboxing Cache", desc: "Integer == fails outside cache.", bug: "== on Integer", code: `Integer a = 200, b = 200;\nif (a == b) { }`, solution: `Integer a = 200, b = 200;\nif (a.equals(b)) { }`, checkKey: "a.equals(b)", hints: ["Use equals() for Integer", "Cache is -128 to 127"], expectedError: "Fails for values > 127" },
-      { title: "Try-With-Resources", desc: "Resource not closed on exception.", bug: "Manual close", code: `FileReader r = new FileReader(f);\nr.read();\nr.close();`, solution: `try (FileReader r = new FileReader(f)) {\n    r.read();\n}`, checkKey: "try (FileReader", hints: ["Use try-with-resources", "Auto-closes on exit"], expectedError: "Leaked file handle" },
-      { title: "Missing @Override", desc: "Method doesn't actually override.", bug: "Typo, no annotation", code: `public void toStrng() { }`, solution: `@Override\npublic String toString() { return \"\"; }`, checkKey: "@Override", hints: ["Add @Override annotation", "Compiler catches typos"], expectedError: "Method not overriding" },
-      { title: "Static Field Race", desc: "Static field accessed unsynchronized.", bug: "No sync", code: `static int count;\nvoid inc() { count++; }`, solution: `static AtomicInteger count = new AtomicInteger();\nvoid inc() { count.incrementAndGet(); }`, checkKey: "AtomicInteger", hints: ["Use AtomicInteger", "Or synchronized block"], expectedError: "Race condition" },
-      { title: "Exception Swallow", desc: "Catch block does nothing.", bug: "Empty catch", code: `try { } catch (Exception e) { }`, solution: `try { } catch (Exception e) { logger.error(e); throw e; }`, checkKey: "throw e", hints: ["Log and rethrow", "Never silently swallow"], expectedError: "Silent failures" },
-      { title: "Immutable Broken", desc: "Class exposes internal list.", bug: "Return direct ref", code: `List<String> getItems() { return items; }`, solution: `List<String> getItems() { return Collections.unmodifiableList(items); }`, checkKey: "unmodifiableList", hints: ["Return unmodifiable view", "Or defensive copy"], expectedError: "External mutation possible" },
-      { title: "Wrong Collection", desc: "Using ArrayList for lookups.", bug: "O(n) lookup", code: `List<String> ids = new ArrayList<>();\nboolean has = ids.contains(x);`, solution: `Set<String> ids = new HashSet<>();\nboolean has = ids.contains(x);`, checkKey: "HashSet", hints: ["Use Set for lookups", "O(1) contains"], expectedError: "Slow performance" },
-      { title: "String Concat Loop", desc: "Building string with + in loop.", bug: "String +", code: `String s = \"\";\nfor (int i=0;i<n;i++) s += i;`, solution: `StringBuilder sb = new StringBuilder();\nfor (int i=0;i<n;i++) sb.append(i);\nString s = sb.toString();`, checkKey: "StringBuilder", hints: ["Use StringBuilder", "String is immutable"], expectedError: "O(n^2) performance" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "Null Method Call", desc: "Calling a method on null throws.", bug: "no null check", code: `String s = null;\nint n = s.length();`, solution: `String s = null;\nint n = (s != null) ? s.length() : 0;`, checkKey: "s != null", hints: ["Check for null first", "Or use Optional"], expectedError: "NullPointerException" },
+        { title: "Reference Equality", desc: "== compares references, not values.", bug: "== on strings", code: `if (a == b) {\n    System.out.println("same");\n}`, solution: `if (a.equals(b)) {\n    System.out.println("same");\n}`, checkKey: ".equals(b)", hints: ["Use .equals() for strings", "== is reference compare"], expectedError: "Wrong comparison result" },
+        { title: "Int Division", desc: "int/int loses the fraction.", bug: "both operands int", code: `double avg = sum / count;`, solution: `double avg = (double) sum / count;`, checkKey: "(double)", hints: ["Cast one operand to double", "Prevents integer truncation"], expectedError: "Truncated result" },
+      ],
+      Intermediate: [
+        { title: "Concurrent Modify", desc: "Removing from a list while iterating throws.", bug: "list.remove in loop", code: `for (String s : list) {\n    if (s.isEmpty()) list.remove(s);\n}`, solution: `list.removeIf(String::isEmpty);`, checkKey: "removeIf", hints: ["Use removeIf()", "Or Iterator.remove()"], expectedError: "ConcurrentModificationException" },
+        { title: "Autoboxing Trap", desc: "== on Integers fails beyond the cache.", bug: "== on wrapper", code: `Integer a = 200, b = 200;\nif (a == b) {\n    System.out.println("equal");\n}`, solution: `Integer a = 200, b = 200;\nif (a.equals(b)) {\n    System.out.println("equal");\n}`, checkKey: "a.equals(b)", hints: ["Use equals() for Integer", "Cache only covers -128..127"], expectedError: "Fails for values > 127" },
+        { title: "Leaked Handle", desc: "Files stay open on exceptions.", bug: "manual close", code: `FileReader r = new FileReader(f);\nr.read();\nr.close();`, solution: `try (FileReader r = new FileReader(f)) {\n    r.read();\n}`, checkKey: "try (FileReader", hints: ["Use try-with-resources", "Auto-closes on exit"], expectedError: "Leaked file handle" },
+      ],
+      Advanced: [
+        { title: "Silent Override Miss", desc: "A typo means the method is never called.", bug: "wrong signature", code: `public void toStrng() {\n    System.out.println("hi");\n}`, solution: `@Override\npublic String toString() {\n    return "hi";\n}`, checkKey: "@Override", hints: ["@Override catches typos", "Match the exact signature"], expectedError: "Method not overriding" },
+        { title: "Shared Test State", desc: "A static field leaks between tests.", bug: "static mutable", code: `private static List<String> cache = new ArrayList<>();`, solution: `private static List<String> cache = new ArrayList<>();\n\n@BeforeEach\nvoid reset() {\n    cache.clear();\n}`, checkKey: "@BeforeEach", hints: ["Static state persists", "Reset it before each test"], expectedError: "Order-dependent tests" },
+        { title: "Loop String Growth", desc: "+= in a loop is quadratic.", bug: "string concat in loop", code: `String out = "";\nfor (String s : parts) {\n    out += s;\n}`, solution: `StringBuilder sb = new StringBuilder();\nfor (String s : parts) {\n    sb.append(s);\n}\nString out = sb.toString();`, checkKey: "StringBuilder", hints: ["Strings are immutable", "Use StringBuilder"], expectedError: "O(n^2) concatenation" },
+      ],
+      Nightmare: [
+        { title: "Broken Hash Contract", desc: "equals() without hashCode() breaks maps.", bug: "no hashCode", code: `public boolean equals(Object o) {\n    return o instanceof Key k && k.id == id;\n}`, solution: `public boolean equals(Object o) {\n    return o instanceof Key k && k.id == id;\n}\n\n@Override\npublic int hashCode() {\n    return Integer.hashCode(id);\n}`, checkKey: "public int hashCode()", hints: ["Equal objects need equal hashes", "Implement hashCode"], expectedError: "Lookups fail" },
+        { title: "Money in Doubles", desc: "Floating point corrupts currency math.", bug: "double for money", code: `double total = 0.0;\ntotal += 0.1;\ntotal += 0.2;`, solution: `BigDecimal total = BigDecimal.ZERO;\ntotal = total.add(new BigDecimal("0.1"));\ntotal = total.add(new BigDecimal("0.2"));`, checkKey: "BigDecimal", hints: ["Doubles cannot represent cents exactly", "Use BigDecimal for money"], expectedError: "0.30000000000000004" },
+        { title: "Inner Class Leak", desc: "An inner class pins the outer instance.", bug: "non-static inner", code: `class Outer {\n    class Leak {\n        void run() { }\n    }\n    Leak makeLeak() { return new Leak(); }\n}`, solution: `class Outer {\n    static class Leak {\n        void run() { }\n    }\n    Leak makeLeak() { return new Leak(); }\n}`, checkKey: "static class Leak", hints: ["Non-static inners hold outer", "Make it static"], expectedError: "Memory leak" },
+      ],
+    },
   },
   {
     slug: "django", name: "Django", icon: "django", desc: "Fix Django models, views, and ORM issues", accent: "#10b981", lang: "Django", monacoLang: "python",
-    problems: [
-      { title: "N+1 in Template", desc: "Template loops trigger DB queries.", bug: "No select_related", code: `books = Book.objects.all()`, solution: `books = Book.objects.select_related('author').all()`, checkKey: "select_related", hints: ["Use select_related for FK", "prefetch_related for M2M"], expectedError: "N+1 queries" },
-      { title: "Missing CSRF", desc: "Form submission blocked by CSRF.", bug: "No csrf_token", code: `<form method='post'>`, solution: `<form method='post'>{% csrf_token %}`, checkKey: "{% csrf_token %}", hints: ["Add csrf_token tag", "Required for POST"], expectedError: "403 Forbidden" },
-      { title: "Migration Not Applied", desc: "Model changed but no migration.", bug: "No makemigrations", code: `# model changed`, solution: `python manage.py makemigrations\npython manage.py migrate`, checkKey: "makemigrations", hints: ["Run makemigrations", "Then migrate"], expectedError: "Column doesn't exist" },
-      { title: "URL Reverse Error", desc: "URL name doesn't match.", bug: "Wrong name", code: `reverse('user-detail')`, solution: `reverse('users:detail')`, checkKey: "'users:detail'", hints: ["Include namespace", "Check urls.py app_name"], expectedError: "NoReverseMatch" },
-      { title: "Manager vs QuerySet", desc: "Calling .all() unnecessarily.", bug: "Extra .all()", code: `User.objects.all().filter(active=True)`, solution: `User.objects.filter(active=True)`, checkKey: "User.objects.filter", hints: ["Filter directly", ".all() is redundant"], expectedError: "Slower query" },
-      { title: "auto_now_add on Update", desc: "Timestamp doesn't update.", bug: "auto_now_add", code: `updated = models.DateTimeField(auto_now_add=True)`, solution: `updated = models.DateTimeField(auto_now=True)`, checkKey: "auto_now=True", hints: ["auto_now for updates", "auto_now_add is create-only"], expectedError: "Timestamp never updates" },
-      { title: "SECRET_KEY Committed", desc: "Secret in settings.py.", bug: "Hardcoded", code: `SECRET_KEY = 'abc123'`, solution: `import os\nSECRET_KEY = os.environ['SECRET_KEY']`, checkKey: "os.environ['SECRET_KEY']", hints: ["Use environment var", "Never commit secrets"], expectedError: "Security risk" },
-      { title: "DEBUG in Production", desc: "DEBUG=True in production.", bug: "DEBUG=True", code: `DEBUG = True`, solution: `DEBUG = False`, checkKey: "DEBUG = False", hints: ["Set DEBUG=False in prod", "Exposes stack traces"], expectedError: "Info disclosure" },
-      { title: "Missing Related Name", desc: "Reverse relation ambiguous.", bug: "No related_name", code: `author = models.ForeignKey(User, on_delete=CASCADE)`, solution: `author = models.ForeignKey(User, on_delete=CASCADE, related_name='books')`, checkKey: "related_name='books'", hints: ["Add related_name", "Enables user.books.all()"], expectedError: "Related manager unclear" },
-      { title: "get() Multiple Objects", desc: "get() finds more than one.", bug: "get() when many match", code: `User.objects.get(city='NY')`, solution: `User.objects.filter(city='NY').first()`, checkKey: ".filter(city='NY').first()", hints: ["Use filter().first()", "get() throws on multiple"], expectedError: "MultipleObjectsReturned" },
-      { title: "Signal Loop", desc: "post_save signal saves again.", bug: "Infinite loop", code: `@receiver(post_save, sender=User)\ndef h(sender, instance, **kw):\n    instance.save()`, solution: `@receiver(post_save, sender=User)\ndef h(sender, instance, created, **kw):\n    if created:\n        User.objects.filter(pk=instance.pk).update(x=1)`, checkKey: ".update(x=1)", hints: ["Use .update() not .save()", "Or check 'created' flag"], expectedError: "Infinite recursion" },
-      { title: "Static Files 404", desc: "Static files not served.", bug: "No STATIC_URL", code: `# no config`, solution: `STATIC_URL = '/static/'\nSTATICFILES_DIRS = [BASE_DIR / 'static']`, checkKey: "STATIC_URL = '/static/'", hints: ["Set STATIC_URL", "Configure STATICFILES_DIRS"], expectedError: "404 on /static/*" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "CSRF Rejected", desc: "The form post is blocked.", bug: "no csrf token", code: `<form method="post">\n    <input name="title">\n</form>`, solution: `<form method="post">\n    {% csrf_token %}\n    <input name="title">\n</form>`, checkKey: "{% csrf_token %}", hints: ["Add the token tag", "Required for POST"], expectedError: "403 Forbidden" },
+        { title: "Column Missing", desc: "The model changed but the DB did not.", bug: "no migration", code: `# model edited, no migration made`, solution: `python manage.py makemigrations\npython manage.py migrate`, checkKey: "makemigrations", hints: ["Generate migrations", "Then apply them"], expectedError: "no such column" },
+        { title: "Reverse Miss", desc: "The URL name does not resolve.", bug: "wrong name", code: `return redirect(reverse('user-detail'))`, solution: `return redirect(reverse('users:detail'))`, checkKey: "'users:detail'", hints: ["Include the namespace", "Check app_name in urls.py"], expectedError: "NoReverseMatch" },
+      ],
+      Intermediate: [
+        { title: "N+1 Templates", desc: "Each row fires a fresh query.", bug: "no select_related", code: `books = Book.objects.all()\nfor book in books:\n    print(book.author.name)`, solution: `books = Book.objects.select_related('author').all()\nfor book in books:\n    print(book.author.name)`, checkKey: "select_related('author')", hints: ["select_related for FKs", "prefetch_related for M2M"], expectedError: "N+1 queries" },
+        { title: "Frozen Timestamp", desc: "updated_at never changes on edits.", bug: "auto_now_add", code: `updated_at = models.DateTimeField(auto_now_add=True)`, solution: `updated_at = models.DateTimeField(auto_now=True)`, checkKey: "auto_now=True", hints: ["auto_now updates on save", "auto_now_add is create-only"], expectedError: "Stale timestamp" },
+        { title: "Committed Secret", desc: "SECRET_KEY sits in settings.py.", bug: "hardcoded", code: `SECRET_KEY = 'abc123'`, solution: `import os\nSECRET_KEY = os.environ['SECRET_KEY']`, checkKey: "os.environ['SECRET_KEY']", hints: ["Read from the environment", "Never commit secrets"], expectedError: "Security risk" },
+      ],
+      Advanced: [
+        { title: "Redundant .all()", desc: "Chaining .all() then filter is wasteful.", bug: "extra .all()", code: `User.objects.all().filter(active=True)`, solution: `User.objects.filter(active=True)`, checkKey: "User.objects.filter", hints: ["Filter directly on the manager", ".all() is redundant here"], expectedError: "Slower query" },
+        { title: "Stock Oversell", desc: "Two orders read the same stock.", bug: "read-modify-write", code: `product = Product.objects.get(pk=id)\nproduct.stock -= quantity\nproduct.save()`, solution: `Product.objects.filter(pk=id, stock__gte=quantity).update(stock=F('stock') - quantity)`, checkKey: "F('stock')", hints: ["Update atomically with F()", "Check stock in the filter"], expectedError: "Negative stock" },
+        { title: "Half a Transfer", desc: "A crash leaves accounts inconsistent.", bug: "no transaction", code: `a.balance -= 100\na.save()\nb.balance += 100\nb.save()`, solution: `from django.db import transaction\n\nwith transaction.atomic():\n    a.balance -= 100\n    a.save()\n    b.balance += 100\n    b.save()`, checkKey: "transaction.atomic()", hints: ["Wrap multi-step writes", "Atomic blocks roll back together"], expectedError: "Partial updates" },
+      ],
+      Nightmare: [
+        { title: "Mass Assignment", desc: "User input flows straight into fields.", bug: "setattr loop", code: `user = User.objects.get(pk=id)\nfor key, value in request.POST.items():\n    setattr(user, key, value)\nuser.save()`, solution: `user = UserForm(request.POST, instance=user)\nuser.save()`, checkKey: "UserForm(request.POST", hints: ["Bind the form instead", "Only whitelisted fields change"], expectedError: "Privilege escalation" },
+        { title: "Stale Instance", desc: "F() bypasses the in-memory object.", bug: "no refresh", code: `Product.objects.filter(pk=id).update(stock=F('stock') - 1)\nprint(product.stock)  # stale`, solution: `Product.objects.filter(pk=id).update(stock=F('stock') - 1)\nproduct.refresh_from_db()\nprint(product.stock)`, checkKey: "refresh_from_db()", hints: ["update() skips the instance", "refresh_from_db() reloads"], expectedError: "Stale value" },
+        { title: "Debug in Prod", desc: "DEBUG=True ships a backdoor.", bug: "hardcoded DEBUG", code: `DEBUG = True`, solution: `import os\nDEBUG = os.environ.get('DJANGO_DEBUG') == '1'`, checkKey: "DJANGO_DEBUG", hints: ["Drive DEBUG from the env", "Debug pages leak internals"], expectedError: "Security risk" },
+      ],
+    },
   },
   {
     slug: "git", name: "Git", icon: "git", desc: "Fix Git configuration and workflow errors", accent: "#f97316", lang: "Git", monacoLang: "shell",
-    problems: [
-      { title: "Committed Secret", desc: "API key pushed to repo.", bug: "Secret in history", code: `git add .env\ngit commit -m 'add'`, solution: `git rm --cached .env\necho '.env' >> .gitignore\ngit filter-branch --index-filter 'git rm --cached --ignore-unmatch .env' HEAD`, checkKey: "filter-branch", hints: ["Rewrite history", "Rotate the secret too"], expectedError: "Secret exposed" },
-      { title: "Detached HEAD", desc: "Committing without a branch.", bug: "Detached", code: `git checkout abc123\n# make commits`, solution: `git checkout -b my-fix abc123`, checkKey: "checkout -b", hints: ["Create branch first", "Commits get lost otherwise"], expectedError: "Commits lost on switch" },
-      { title: "Merge Conflict Left", desc: "<<<<<<< marker in code.", bug: "Unresolved conflict", code: `<<<<<<< HEAD\nfoo\n=======\nbar\n>>>>>>> branch`, solution: `foo\nbar`, checkKey: "foo\\nbar", hints: ["Manually resolve", "Remove markers"], expectedError: "Syntax error" },
-      { title: "Force Push Disaster", desc: "git push --force overwrote work.", bug: "--force", code: `git push --force`, solution: `git push --force-with-lease`, checkKey: "--force-with-lease", hints: ["Use --force-with-lease", "Safer than --force"], expectedError: "Team lost commits" },
-      { title: "Wrong Author", desc: "Commit author is wrong.", bug: "Wrong config", code: `git commit -m 'x'`, solution: `git config user.email 'me@example.com'\ngit commit --amend --reset-author`, checkKey: "--amend --reset-author", hints: ["Set user.email", "Amend to fix author"], expectedError: "Wrong contributor" },
-      { title: "Rebase Onto Main", desc: "Feature branch behind main.", bug: "Not rebased", code: `git checkout feature\n# no rebase`, solution: `git checkout feature\ngit rebase main`, checkKey: "git rebase main", hints: ["Rebase onto main", "Keeps history linear"], expectedError: "Merge conflicts on PR" },
-      { title: "Untracked in gitignore", desc: "gitignore has no effect.", bug: "Already tracked", code: `# .gitignore ignored`, solution: `git rm --cached file.log\necho 'file.log' >> .gitignore`, checkKey: "rm --cached", hints: ["Untrack first", "Then add to gitignore"], expectedError: ".gitignore ignored for tracked files" },
-      { title: "Stash Lost", desc: "git stash pop gave conflicts.", bug: "Lost stash", code: `git stash pop\n# conflicts`, solution: `git stash list\ngit stash apply stash@{0}`, checkKey: "stash apply", hints: ["Use apply not pop", "Keeps stash intact"], expectedError: "Stash removed on conflict" },
-      { title: "Wrong Remote URL", desc: "Pushing to wrong repo.", bug: "Bad remote", code: `git remote -v\n# origin: wrong.git`, solution: `git remote set-url origin git@github.com:me/right.git`, checkKey: "remote set-url", hints: ["Update remote URL", "Verify with -v"], expectedError: "Push fails or wrong destination" },
-      { title: "Commit on Main", desc: "Should be on feature branch.", bug: "Direct commit", code: `# committed to main`, solution: `git branch feature\ngit reset --hard origin/main\ngit checkout feature`, checkKey: "reset --hard origin/main", hints: ["Save commit on branch", "Reset main to remote"], expectedError: "Main has WIP" },
-      { title: "Submodule Empty", desc: "Cloned repo has empty submodules.", bug: "No --recurse", code: `git clone url.git`, solution: `git clone --recurse-submodules url.git`, checkKey: "--recurse-submodules", hints: ["Add --recurse-submodules", "Or git submodule init"], expectedError: "Submodule folders empty" },
-      { title: "Line Ending Mess", desc: "CRLF vs LF causing diffs.", bug: "No .gitattributes", code: `# no config`, solution: `echo '* text=auto' > .gitattributes`, checkKey: "text=auto", hints: ["Add .gitattributes", "Normalizes line endings"], expectedError: "Whole file marked changed" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "Secret in History", desc: "An API key is committed.", bug: "secret pushed", code: `git add .env\ngit commit -m "add env"`, solution: `git rm --cached .env\necho ".env" >> .gitignore\ngit filter-branch --index-filter "git rm --cached --ignore-unmatch .env" HEAD`, checkKey: "filter-branch", hints: ["Rewrite history", "Rotate the secret afterwards"], expectedError: "Exposed credentials" },
+        { title: "Detached Work", desc: "Commits made off any branch.", bug: "no branch", code: `git checkout abc123\n# commits made here`, solution: `git checkout -b my-fix abc123`, checkKey: "checkout -b", hints: ["Create a branch first", "Otherwise commits can be lost"], expectedError: "Lost commits" },
+        { title: "Conflict Leftovers", desc: "Merge markers are still in the code.", bug: "unresolved markers", code: `<<<<<<< HEAD\nflag = true\n=======\nflag = false\n>>>>>>> branch`, solution: `flag = read_flag()`, checkKey: "read_flag()", hints: ["Resolve the conflict", "Replace the marked block"], expectedError: "Syntax error" },
+      ],
+      Intermediate: [
+        { title: "Force Push Wipe", desc: "A force push erased teammates' work.", bug: "--force", code: `git push --force`, solution: `git push --force-with-lease`, checkKey: "--force-with-lease", hints: ["--force-with-lease is safer", "Refuses if the remote moved"], expectedError: "Lost commits" },
+        { title: "Wrong Author", desc: "Commits carry the wrong identity.", bug: "bad config", code: `git commit -m "fix"`, solution: `git config user.email "me@example.com"\ngit commit --amend --reset-author`, checkKey: "--amend --reset-author", hints: ["Set user.email", "Amend resets the author"], expectedError: "Wrong contributor" },
+        { title: "Ignored, Not Ignored", desc: "gitignore does not apply to tracked files.", bug: "already tracked", code: `# .gitignore added but file still tracked`, solution: `git rm --cached file.log\necho "file.log" >> .gitignore`, checkKey: "git rm --cached", hints: ["Untrack it first", "Then ignore it"], expectedError: "File keeps changing" },
+      ],
+      Advanced: [
+        { title: "Rebasing Shared", desc: "Rebase rewrites public history.", bug: "rebase on shared", code: `git checkout feature\ngit rebase main\ngit push --force-with-lease`, solution: `git checkout main\ngit merge feature`, checkKey: "git merge feature", hints: ["Never rebase shared branches", "Merge to integrate"], expectedError: "Diverged history" },
+        { title: "Hard Reset Damage", desc: "git reset --hard threw away work.", bug: "hard reset", code: `git reset --hard HEAD~3`, solution: `git reset --hard HEAD~3\n# recover with\ngit reflog`, checkKey: "git reflog", hints: ["reflog keeps old commits", "Find the SHA and reset back"], expectedError: "Lost commits" },
+        { title: "Shallow Clone", desc: "History stops at the depth limit.", bug: "shallow clone", code: `git clone --depth 1 repo.git`, solution: `git clone --depth 1 repo.git\ncd repo\ngit fetch --unshallow`, checkKey: "--unshallow", hints: ["Shallow clones lack history", "git fetch --unshallow completes it"], expectedError: "Missing history" },
+      ],
+      Nightmare: [
+        { title: "Dangling Submodule", desc: "The submodule pointer moved.", bug: "stale pointer", code: `git submodule update --init`, solution: `git submodule update --remote`, checkKey: "submodule update --remote", hints: ["--remote pulls latest", "Or commit the pointer bump"], expectedError: "Wrong submodule version" },
+        { title: "Cherry-Pick Rerun", desc: "Re-applying an already merged commit.", bug: "duplicate apply", code: `git cherry-pick abc123`, solution: `git cherry-pick -x abc123`, checkKey: "cherry-pick -x", hints: ["-x records the source", "Check git log for duplicates"], expectedError: "Duplicate change" },
+        { title: "LFS Bypassed", desc: "Big files are not stored in LFS.", bug: "no LFS tracking", code: `git add model.bin`, solution: `git lfs track "*.bin"\ngit add .gitattributes model.bin`, checkKey: "git lfs track", hints: ["Track patterns with LFS", "Commit .gitattributes"], expectedError: "Bloated repository" },
+      ],
+    },
   },
   {
     slug: "node", name: "Node.js", icon: "node", desc: "Debug Node.js server-side code", accent: "#22c55e", lang: "Node.js", monacoLang: "javascript",
-    problems: [
-      { title: "Callback Hell", desc: "Nested callbacks are unreadable.", bug: "Nested callbacks", code: `fs.readFile(a, (e,d) => fs.readFile(b, (e,d2) => { }));`, solution: `const d = await fs.promises.readFile(a);\nconst d2 = await fs.promises.readFile(b);`, checkKey: "await fs.promises", hints: ["Use promises + async/await", "Flat is better"], expectedError: "Unreadable code" },
-      { title: "Unhandled Promise", desc: "Promise rejection crashes process.", bug: "No .catch", code: `fetchData().then(handle);`, solution: `fetchData().then(handle).catch(console.error);`, checkKey: ".catch(", hints: ["Always add .catch()", "Or try/catch with await"], expectedError: "UnhandledPromiseRejection" },
-      { title: "Sync in Async", desc: "readFileSync blocks event loop.", bug: "Sync API", code: `const d = fs.readFileSync(f);`, solution: `const d = await fs.promises.readFile(f);`, checkKey: "await fs.promises.readFile", hints: ["Use async API", "Never block event loop"], expectedError: "Server freezes" },
-      { title: "Missing await", desc: "Function returns Promise, not value.", bug: "Forgot await", code: `const data = fetch(url);\nconsole.log(data.body);`, solution: `const data = await fetch(url);\nconsole.log(data.body);`, checkKey: "await fetch", hints: ["Add await before fetch", "data is a Promise otherwise"], expectedError: "undefined property" },
-      { title: "Event Listener Leak", desc: "Listeners added forever.", bug: "No remove", code: `emitter.on('data', h);`, solution: `emitter.once('data', h);`, checkKey: "emitter.once", hints: ["Use .once() for one-time", "Or removeListener"], expectedError: "MaxListenersExceeded" },
-      { title: "process.env Missing", desc: "Env var is undefined.", bug: "No fallback", code: `const port = process.env.PORT;`, solution: `const port = process.env.PORT || 3000;`, checkKey: "|| 3000", hints: ["Provide default", "Env vars may be undefined"], expectedError: "Undefined port" },
-      { title: "require() in ESM", desc: "Mixing CommonJS and ESM.", bug: "require in .mjs", code: `const x = require('foo');`, solution: `import x from 'foo';`, checkKey: "import x from", hints: ["Use import in ESM", "Or rename to .cjs"], expectedError: "require not defined" },
-      { title: "Streams Not Piped", desc: "Buffering entire file in memory.", bug: "readFile then write", code: `const d = await fs.promises.readFile(a);\nawait fs.promises.writeFile(b, d);`, solution: `fs.createReadStream(a).pipe(fs.createWriteStream(b));`, checkKey: "createReadStream", hints: ["Use streams for large files", "pipe() avoids memory"], expectedError: "Out of memory" },
-      { title: "Path Traversal", desc: "User input in file path.", bug: "No validation", code: `res.sendFile(req.query.name);`, solution: `res.sendFile(path.join(__dirname, path.basename(req.query.name)));`, checkKey: "path.basename", hints: ["Sanitize path", "Use path.basename"], expectedError: "Directory traversal attack" },
-      { title: "Missing CORS", desc: "Browser blocks API calls.", bug: "No CORS", code: `app.get('/api', handler);`, solution: `const cors = require('cors');\napp.use(cors());`, checkKey: "app.use(cors())", hints: ["Install cors package", "app.use(cors())"], expectedError: "CORS error" },
-      { title: "JSON Parse Crash", desc: "Invalid JSON crashes server.", bug: "No try/catch", code: `const data = JSON.parse(body);`, solution: `let data;\ntry { data = JSON.parse(body); } catch { return res.status(400).end(); }`, checkKey: "try { data = JSON.parse", hints: ["Wrap in try/catch", "Return 400 on bad input"], expectedError: "SyntaxError: Unexpected token" },
-      { title: "Missing helmet", desc: "No security headers.", bug: "No helmet", code: `app.use(express.json());`, solution: `const helmet = require('helmet');\napp.use(helmet());\napp.use(express.json());`, checkKey: "app.use(helmet())", hints: ["Add helmet middleware", "Sets security headers"], expectedError: "Missing X-Frame-Options etc" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "Unhandled Rejection", desc: "A failed promise crashes the process.", bug: "no catch", code: `fetchData().then(handle);`, solution: `fetchData().then(handle).catch(console.error);`, checkKey: ".catch(", hints: ["Always attach .catch()", "Or try/catch with await"], expectedError: "UnhandledPromiseRejection" },
+        { title: "Blocking Read", desc: "readFileSync freezes the server.", bug: "sync API", code: `const data = fs.readFileSync(f);`, solution: `const data = await fs.promises.readFile(f);`, checkKey: "await fs.promises.readFile", hints: ["Use the async API", "Never block the event loop"], expectedError: "Server freezes" },
+        { title: "Await Forgotten", desc: "fetch returns a promise, not data.", bug: "missing await", code: `const data = fetch(url);\nconsole.log(data.body);`, solution: `const data = await fetch(url);\nconsole.log(data.body);`, checkKey: "await fetch", hints: ["Add await before fetch", "data is a Promise otherwise"], expectedError: "undefined property" },
+      ],
+      Intermediate: [
+        { title: "Callback Pyramid", desc: "Nested callbacks are unreadable.", bug: "nested callbacks", code: `fs.readFile(a, (e, d) => {\n    fs.readFile(b, (e2, d2) => {\n        console.log(d, d2);\n    });\n});`, solution: `const d = await fs.promises.readFile(a);\nconst d2 = await fs.promises.readFile(b);\nconsole.log(d, d2);`, checkKey: "await fs.promises", hints: ["Use promises + async/await", "Flat is better than nested"], expectedError: "Unreadable code" },
+        { title: "Undefined Port", desc: "An env var that is not set.", bug: "no fallback", code: `const port = process.env.PORT;\nserver.listen(port);`, solution: `const port = process.env.PORT || 3000;\nserver.listen(port);`, checkKey: "|| 3000", hints: ["Provide a default", "Env vars may be undefined"], expectedError: "listen EADDRINUSE / undefined" },
+        { title: "CJS in ESM", desc: "require() fails in a module scope.", bug: "require in ESM", code: `const x = require('foo');`, solution: `import x from 'foo';`, checkKey: "import x from", hints: ["Use import in ESM", "Or rename the file to .cjs"], expectedError: "require is not defined" },
+      ],
+      Advanced: [
+        { title: "Listener Pileup", desc: "The emitter never removes listeners.", bug: "no removal", code: `emitter.on('data', handler);`, solution: `emitter.once('data', handler);`, checkKey: "emitter.once", hints: ["Use .once() for one-shots", "Or removeListener"], expectedError: "MaxListenersExceededWarning" },
+        { title: "Abrupt Exit", desc: "process.exit drops in-flight work.", bug: "force exit", code: `server.listen(3000);\nprocess.on('SIGTERM', () => process.exit(0));`, solution: `server.listen(3000);\nprocess.on('SIGTERM', () => {\n    server.close(() => process.exit(0));\n});`, checkKey: "server.close(", hints: ["Close before exiting", "Let requests drain"], expectedError: "Truncated requests" },
+        { title: "Unhandled Global", desc: "A stray rejection kills the app.", bug: "no global handler", code: `app.get('/x', async (req, res) => {\n    throw new Error('boom');\n});`, solution: `process.on('unhandledRejection', (err) => console.error(err));`, checkKey: "unhandledRejection", hints: ["Catch at the process level", "Or wrap routes in try/catch"], expectedError: "Process crash" },
+      ],
+      Nightmare: [
+        { title: "Zombie Child", desc: "A child process outlives the parent.", bug: "orphaned child", code: `const child = spawn('long-task');`, solution: `const child = spawn('long-task');\nprocess.on('exit', () => child.kill());`, checkKey: "child.kill()", hints: ["Kill children on exit", "Avoid detached processes"], expectedError: "Orphan process" },
+        { title: "No Backpressure", desc: "A fast reader overwhelms a slow writer.", bug: "manual piping", code: `reader.on('data', (c) => writer.write(c));`, solution: `stream.pipeline(reader, writer, (err) => console.error(err));`, checkKey: "stream.pipeline", hints: ["pipeline handles backpressure", "It also propagates errors"], expectedError: "Memory blow-up" },
+        { title: "Polluted JSON", desc: "__proto__ lands in parsed objects.", bug: "unsafe parse", code: `const user = JSON.parse(raw);\nmerge(config, user);`, solution: `const user = JSON.parse(raw);\nmerge(Object.create(null), user);`, checkKey: "Object.create(null)", hints: ["Null-prototype objects resist pollution", "Guard merge keys too"], expectedError: "Prototype pollution" },
+      ],
+    },
   },
   {
     slug: "aspnet", name: "ASP.NET", icon: "aspnet", desc: "Fix ASP.NET Core web APIs and MVC apps", accent: "#8b5cf6", lang: "ASP.NET", monacoLang: "csharp",
-    problems: [
-      { title: "Missing [ApiController]", desc: "Model validation not automatic.", bug: "No attribute", code: `public class UsersController : ControllerBase { }`, solution: `[ApiController]\npublic class UsersController : ControllerBase { }`, checkKey: "[ApiController]", hints: ["Add [ApiController]", "Auto-validates model state"], expectedError: "Manual ModelState checks needed" },
-      { title: "DI Scope Wrong", desc: "Scoped service in singleton.", bug: "AddSingleton", code: `services.AddSingleton<IUserService, UserService>();`, solution: `services.AddScoped<IUserService, UserService>();`, checkKey: "AddScoped", hints: ["Use AddScoped for DB services", "Singleton captures DB context"], expectedError: "Cannot resolve scoped service" },
-      { title: "Await Async in Ctor", desc: "Can't await in constructor.", bug: "Blocking .Result", code: `public Ctor() { var x = LoadAsync().Result; }`, solution: `public static async Task<Class> CreateAsync() { var x = await LoadAsync(); return new Class(x); }`, checkKey: "async Task<Class>", hints: ["Use static factory", "Ctors can't be async"], expectedError: "Deadlock in .NET Framework" },
-      { title: "Missing CORS Policy", desc: "Frontend blocked.", bug: "No CORS", code: `services.AddControllers();`, solution: `services.AddCors(o => o.AddDefaultPolicy(b => b.AllowAnyOrigin()));\napp.UseCors();`, checkKey: "AddCors", hints: ["Add CORS service", "Call app.UseCors()"], expectedError: "CORS error" },
-      { title: "Config Not Loaded", desc: "appsettings.json ignored.", bug: "Wrong path", code: `var s = config['MyKey'];`, solution: `var s = config.GetValue<string>(\"MyKey\");`, checkKey: "GetValue<string>", hints: ["Use GetValue<T>", "Or GetSection"], expectedError: "Null value" },
-      { title: "Sync Over Async", desc: "Calling .Result blocks thread.", bug: ".Result", code: `var r = fetchAsync().Result;`, solution: `var r = await fetchAsync();`, checkKey: "await fetchAsync", hints: ["Use await", "Never .Result in async"], expectedError: "Thread pool exhaustion" },
-      { title: "Missing [FromBody]", desc: "POST body not deserialized.", bug: "No attribute", code: `public IActionResult Post(User u) { }`, solution: `public IActionResult Post([FromBody] User u) { }`, checkKey: "[FromBody]", hints: ["Add [FromBody]", "Explicit binding source"], expectedError: "Model is null" },
-      { title: "DbContext Not Disposed", desc: "Manual new of DbContext.", bug: "Not disposed", code: `var ctx = new AppDbContext();`, solution: `using var ctx = new AppDbContext();`, checkKey: "using var ctx", hints: ["Use 'using' declaration", "Or inject via DI"], expectedError: "Connection leak" },
-      { title: "Missing Authorize", desc: "Endpoint exposed to public.", bug: "No [Authorize]", code: `public IActionResult GetSecret() { }`, solution: `[Authorize]\npublic IActionResult GetSecret() { }`, checkKey: "[Authorize]", hints: ["Add [Authorize]", "Restricts to logged-in"], expectedError: "Unauthenticated access" },
-      { title: "SQL Injection", desc: "String concat in query.", bug: "String interpolation", code: `ctx.Users.FromSqlRaw($\"SELECT * FROM Users WHERE Name='{name}'\");`, solution: `ctx.Users.FromSqlRaw(\"SELECT * FROM Users WHERE Name={0}\", name);`, checkKey: "FromSqlRaw(\"SELECT * FROM Users WHERE Name={0}\"", hints: ["Use parameterized queries", "Placeholders + args"], expectedError: "SQL injection" },
-      { title: "Options Pattern", desc: "Hardcoded config.", bug: "Direct read", code: `var url = \"https://api.example.com\";`, solution: `services.Configure<ApiOpts>(config.GetSection(\"Api\"));`, checkKey: "services.Configure<ApiOpts>", hints: ["Use IOptions<T>", "Bind config section"], expectedError: "Not configurable" },
-      { title: "Circular Reference JSON", desc: "Serialization loop crashes.", bug: "Nav prop loop", code: `return Ok(user); // has Posts, Posts have User`, solution: `services.AddControllers().AddJsonOptions(o => o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);`, checkKey: "ReferenceHandler.IgnoreCycles", hints: ["Configure JSON options", "Ignore cycles"], expectedError: "JsonException on cycle" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "No ApiController", desc: "Model validation is never automatic.", bug: "missing attribute", code: `public class UsersController : ControllerBase { }`, solution: `[ApiController]\npublic class UsersController : ControllerBase { }`, checkKey: "[ApiController]", hints: ["Add [ApiController]", "Auto-validates model state"], expectedError: "Manual checks needed" },
+        { title: "Scoped as Singleton", desc: "The DbContext is captured once.", bug: "AddSingleton", code: `services.AddSingleton<IUserService, UserService>();`, solution: `services.AddScoped<IUserService, UserService>();`, checkKey: "AddScoped", hints: ["Scoped per request", "Singletons capture DbContext"], expectedError: "Cannot resolve scoped service" },
+        { title: "Blocking Async", desc: ".Result deadlocks or stalls.", bug: "sync over async", code: `public User Get() {\n    return _repo.LoadAsync(id).Result;\n}`, solution: `public async Task<User> Get() {\n    return await _repo.LoadAsync(id);\n}`, checkKey: "async Task<User>", hints: ["Await all the way up", "Never call .Result"], expectedError: "Deadlock" },
+      ],
+      Intermediate: [
+        { title: "async void Crash", desc: "Exceptions in async void kill the app.", bug: "async void", code: `async void Save() {\n    await _db.SaveChangesAsync();\n}`, solution: `async Task Save() {\n    await _db.SaveChangesAsync();\n}`, checkKey: "async Task Save()", hints: ["Return Task, not void", "Exceptions then flow to the caller"], expectedError: "Unobserved exception" },
+        { title: "Entity Leak", desc: "Database entities cross the wire.", bug: "returns entity", code: `return Ok(user);`, solution: `return Ok(user.ToDto());`, checkKey: "ToDto()", hints: ["Expose DTOs", "Hide internal fields"], expectedError: "Overexposed data" },
+        { title: "CORS Blocked", desc: "The SPA cannot reach the API.", bug: "no CORS", code: `app.UseRouting();`, solution: `app.UseCors(policy => policy.AllowAnyOrigin().AllowAnyHeader());\napp.UseRouting();`, checkKey: "UseCors", hints: ["Add UseCors before routing", "Configure a named policy"], expectedError: "CORS error" },
+      ],
+      Advanced: [
+        { title: "Captured Scope", desc: "A singleton holds a scoped service.", bug: "ctor injection in singleton", code: `public class EmailSender {\n    private readonly DbContext _db;\n    public EmailSender(DbContext db) { _db = db; }\n}`, solution: `public class EmailSender {\n    private readonly IServiceScopeFactory _scopeFactory;\n    public EmailSender(IServiceScopeFactory f) { _scopeFactory = f; }\n\n    public async Task Send() {\n        using var scope = _scopeFactory.CreateScope();\n        var db = scope.ServiceProvider.GetRequiredService<DbContext>();\n    }\n}`, checkKey: "IServiceScopeFactory", hints: ["Create a scope per operation", "Never inject scoped into singleton"], expectedError: "Stale/closed DbContext" },
+        { title: "String SQL", desc: "User input is interpolated into SQL.", bug: "string concat", code: `var sql = $"SELECT * FROM Users WHERE Name = '{name}'";`, solution: `var users = _db.Users.FromSqlInterpolated($"SELECT * FROM Users WHERE Name = {name}").ToList();`, checkKey: "FromSqlInterpolated", hints: ["Parameterize with interpolation", "EF compiles safe parameters"], expectedError: "SQL injection" },
+        { title: "Unvalidated Input", desc: "Bad payloads pass straight through.", bug: "no ModelState check", code: `[HttpPost]\npublic IActionResult Create(UserDto dto) {\n    return Ok(_service.Create(dto));\n}`, solution: `[HttpPost]\npublic IActionResult Create(UserDto dto) {\n    if (!ModelState.IsValid) return BadRequest(ModelState);\n    return Ok(_service.Create(dto));\n}`, checkKey: "ModelState.IsValid", hints: ["Check ModelState", "Return 400 on invalid"], expectedError: "Invalid data accepted" },
+      ],
+      Nightmare: [
+        { title: "Sync Over Async", desc: "GetAwaiter can deadlock the UI thread.", bug: ".GetAwaiter().GetResult()", code: `var data = _svc.FetchAsync().GetAwaiter().GetResult();`, solution: `var data = await _svc.FetchAsync().ConfigureAwait(false);`, checkKey: "ConfigureAwait(false)", hints: ["ConfigureAwait(false) avoids capture", "Better: await all the way"], expectedError: "Deadlock" },
+        { title: "Hosted Scope", desc: "Background services misuse scoped DI.", bug: "inject scoped in hosted", code: `public class Worker : BackgroundService {\n    private readonly DbContext _db;\n    public Worker(DbContext db) { _db = db; }\n}`, solution: `public class Worker : BackgroundService {\n    private readonly IServiceScopeFactory _scopeFactory;\n    public Worker(IServiceScopeFactory f) { _scopeFactory = f; }\n\n    protected override async Task ExecuteAsync(CancellationToken ct) {\n        using var scope = _scopeFactory.CreateScope();\n        var db = scope.ServiceProvider.GetRequiredService<DbContext>();\n    }\n}`, checkKey: "CreateScope()", hints: ["Hosted services are singletons", "Create a scope per iteration"], expectedError: "DbContext disposed" },
+        { title: "Cancellation Ignored", desc: "Requests keep running after disconnect.", bug: "no token", code: `public async Task<IActionResult> Long() {\n    await Task.Delay(TimeSpan.FromMinutes(5));\n    return Ok();\n}`, solution: `public async Task<IActionResult> Long(CancellationToken ct) {\n    await Task.Delay(TimeSpan.FromMinutes(5), ct);\n    return Ok();\n}`, checkKey: "CancellationToken ct", hints: ["Accept the token", "Pass it to async calls"], expectedError: "Resource leak" },
+      ],
+    },
   },
   {
     slug: "rust", name: "Rust", icon: "rust", desc: "Fix ownership, borrowing, and lifetime issues", accent: "#ea580c", lang: "Rust", monacoLang: "rust",
-    problems: [
-      { title: "Move After Use", desc: "Value moved and used again.", bug: "Use after move", code: `let s = String::from(\"hi\");\nlet t = s;\nprintln!(\"{}\", s);`, solution: `let s = String::from(\"hi\");\nlet t = s.clone();\nprintln!(\"{}\", s);`, checkKey: "s.clone()", hints: ["Clone or borrow", "String is not Copy"], expectedError: "borrow of moved value" },
-      { title: "Mutable Borrow Conflict", desc: "Two mutable borrows.", bug: "Two &mut", code: `let mut v = vec![1];\nlet a = &mut v;\nlet b = &mut v;`, solution: `let mut v = vec![1];\nlet a = &mut v;\na.push(2);\nlet b = &mut v;`, checkKey: "a.push(2);\\nlet b", hints: ["Only one &mut at a time", "Or use RefCell"], expectedError: "cannot borrow as mutable more than once" },
-      { title: "Lifetime Missing", desc: "Compiler needs lifetime.", bug: "No 'a", code: `fn f(x: &str, y: &str) -> &str { x }`, solution: `fn f<'a>(x: &'a str, y: &str) -> &'a str { x }`, checkKey: "<'a>", hints: ["Add lifetime parameter", "Tie return to input"], expectedError: "missing lifetime specifier" },
-      { title: "Unwrap on None", desc: "Panic on Option::None.", bug: ".unwrap()", code: `let x: Option<i32> = None;\nlet v = x.unwrap();`, solution: `let x: Option<i32> = None;\nlet v = x.unwrap_or(0);`, checkKey: ".unwrap_or(0)", hints: ["Use unwrap_or", "Or match on Some/None"], expectedError: "thread panicked: called Option::unwrap on None" },
-      { title: "String vs &str", desc: "Wrong type in function.", bug: "String param", code: `fn greet(name: String) { }\ngreet(&s);`, solution: `fn greet(name: &str) { }\ngreet(&s);`, checkKey: "name: &str", hints: ["Accept &str", "More flexible"], expectedError: "expected String, found &str" },
-      { title: "Vec Reallocation", desc: "Push invalidates references.", bug: "Ref then push", code: `let mut v = vec![1,2];\nlet r = &v[0];\nv.push(3);\nprintln!(\"{}\", r);`, solution: `let mut v = vec![1,2];\nv.push(3);\nlet r = &v[0];\nprintln!(\"{}\", r);`, checkKey: "v.push(3);\\nlet r", hints: ["Push before borrowing", "Or reserve capacity"], expectedError: "cannot borrow as mutable" },
-      { title: "Missing derive", desc: "Can't print struct.", bug: "No Debug derive", code: `struct P { x: i32 }\nprintln!(\"{:?}\", P{x:1});`, solution: `#[derive(Debug)]\nstruct P { x: i32 }\nprintln!(\"{:?}\", P{x:1});`, checkKey: "#[derive(Debug)]", hints: ["Add #[derive(Debug)]", "Enables {:?} format"], expectedError: "Debug not implemented" },
-      { title: "Recursive Type", desc: "Infinite size struct.", bug: "Direct recursion", code: `struct Node { next: Node }`, solution: `struct Node { next: Box<Node> }`, checkKey: "Box<Node>", hints: ["Wrap in Box", "Box has fixed size"], expectedError: "recursive type has infinite size" },
-      { title: "Shared Mutable", desc: "Mutating through shared ref.", bug: "&mut inside &", code: `let mut v = vec![1];\nfor x in &v { v.push(*x); }`, solution: `let mut v = vec![1];\nlet copy = v.clone();\nfor x in &copy { v.push(*x); }`, checkKey: "let copy = v.clone()", hints: ["Clone the iteration source", "Or use indices"], expectedError: "cannot borrow as mutable" },
-      { title: "Result Not Handled", desc: "Ignoring Result::Err.", bug: ".unwrap()", code: `let f = File::open(\"a\").unwrap();`, solution: `let f = File::open(\"a\")?;`, checkKey: "File::open(\"a\")?", hints: ["Use ? operator", "Propagates error"], expectedError: "Panic on missing file" },
-      { title: "Async Without .await", desc: "Future dropped without polling.", bug: "No .await", code: `let f = fetch();`, solution: `let f = fetch().await;`, checkKey: ".await", hints: ["Add .await", "Futures do nothing until polled"], expectedError: "Future never runs" },
-      { title: "Cargo Missing Feature", desc: "Function requires feature flag.", bug: "No feature", code: `# Cargo.toml\ntokio = \"1\"`, solution: `# Cargo.toml\ntokio = { version = \"1\", features = [\"full\"] }`, checkKey: 'features = ["full"]', hints: ["Enable features in Cargo.toml", "tokio needs 'full'"], expectedError: "Function not found" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "Move Afterwards", desc: "Using a value after moving it fails.", bug: "use after move", code: `let s = String::from("hi");\nlet t = s;\nprintln!("{}", s);`, solution: `let s = String::from("hi");\nlet t = s.clone();\nprintln!("{}", s);`, checkKey: "s.clone()", hints: ["clone() keeps the original", "Or borrow with &s"], expectedError: "borrow of moved value" },
+        { title: "Index Panic", desc: "Indexing past the end panics.", bug: "raw index", code: `let items = vec![1, 2, 3];\nprintln!("{}", items[5]);`, solution: `let items = vec![1, 2, 3];\nprintln!("{:?}", items.get(5));`, checkKey: "items.get(5)", hints: ["get() returns Option", "Handle the None case"], expectedError: "index out of bounds" },
+        { title: "Stuck Counter", desc: "The loop never advances.", bug: "missing increment", code: `let mut i = 0;\nwhile i < 10 {\n    println!("{i}");\n}`, solution: `let mut i = 0;\nwhile i < 10 {\n    println!("{i}");\n    i += 1;\n}`, checkKey: "i += 1", hints: ["Increment the counter", "Otherwise it loops forever"], expectedError: "Infinite loop" },
+      ],
+      Intermediate: [
+        { title: "Borrow Conflict", desc: "Mutating while iterating by value.", bug: "iter instead of iter_mut", code: `for x in items.iter() {\n    *x += 1;\n}`, solution: `for x in items.iter_mut() {\n    *x += 1;\n}`, checkKey: "iter_mut()", hints: ["iter_mut yields &mut", "iter yields shared refs"], expectedError: "cannot borrow as mutable" },
+        { title: "Reallocation", desc: "Growth invalidates held references.", bug: "reference into vec", code: `let mut v = vec![1, 2, 3];\nlet first = &v[0];\nv.push(4);\nprintln!("{}", first);`, solution: `let mut v = Vec::with_capacity(10);\nlet first = &v[0];\nv.push(4);\nprintln!("{}", first);`, checkKey: "Vec::with_capacity(10)", hints: ["push can reallocate", "Reserve capacity up front"], expectedError: "borrow error / dangling" },
+        { title: "Immutable Bind", desc: "Rebinding a variable needs mut.", bug: "shadowing mistake", code: `let count = 0;\ncount += 1;\nprintln!("{count}");`, solution: `let mut count = 0;\ncount += 1;\nprintln!("{count}");`, checkKey: "let mut count", hints: ["Variables are immutable by default", "Add mut to mutate"], expectedError: "cannot assign to immutable" },
+      ],
+      Advanced: [
+        { title: "Lifetime Escape", desc: "A function returns a local borrow.", bug: "dangling return", code: `fn prefix(s: &str) -> &str {\n    let local = s.trim();\n    &local[..2]\n}`, solution: `fn prefix(s: &str) -> String {\n    s.trim()[..2].to_string()\n}`, checkKey: "-> String", hints: ["Return owned data", "The local dies on return"], expectedError: "lifetime error" },
+        { title: "Rc Cycle", desc: "A reference cycle leaks memory.", bug: "Rc back-reference", code: `struct Node {\n    next: Option<Rc<Node>>,\n    prev: Option<Rc<Node>>,\n}`, solution: `struct Node {\n    next: Option<Rc<Node>>,\n    prev: Option<Weak<Node>>,\n}`, checkKey: "Weak<Node>", hints: ["Weak breaks the cycle", "Use downgrade() for back-links"], expectedError: "Memory leak" },
+        { title: "Unsafe Shortcut", desc: "Raw pointers where safe code works.", bug: "unnecessary unsafe", code: `let ptr = &mut items[0] as *mut i32;\nunsafe { *ptr = 99; }`, solution: `items[0] = 99;`, checkKey: "items[0] = 99", hints: ["Safe indexing works here", "Limit unsafe to real need"], expectedError: "UB risk" },
+      ],
+      Nightmare: [
+        { title: "Cross-Thread Rc", desc: "Rc is not Send — threads reject it.", bug: "Rc across threads", code: `let shared = Rc::new(42);\nthread::spawn(move || println!("{}", shared));`, solution: `let shared = Arc<Mutex<i32>>::new(42);\nlet c = Arc::clone(&shared);\nthread::spawn(move || println!("{}", *c.lock().unwrap()));`, checkKey: "Arc<Mutex>", hints: ["Arc is the atomic Rc", "Mutex adds interior mutability"], expectedError: "Rc cannot be sent" },
+        { title: "Release Overflow", desc: "Arithmetic wraps silently in release.", bug: "wrapping add", code: `let total: u32 = a + b;`, solution: `let total = a.saturating_add(b);`, checkKey: "saturating_add", hints: ["Overflow panics in debug only", "Use saturating or checked"], expectedError: "Silent wrap" },
+        { title: "Leaking Recursion", desc: "Deep recursion blows the stack.", bug: "recursive walk", code: `fn depth(n: u32) -> u32 {\n    if n == 0 { return 0; }\n    1 + depth(n - 1)\n}`, solution: `fn depth(n: u32) -> u32 {\n    let mut d = 0;\n    let mut cur = n;\n    while cur > 0 {\n        d += 1;\n        cur -= 1;\n    }\n    d\n}`, checkKey: "while cur > 0", hints: ["Frames are finite", "Iterate instead of recurse"], expectedError: "stack overflow" },
+      ],
+    },
   },
   {
     slug: "go", name: "Go", icon: "go", desc: "Fix goroutines, channels, and Go idioms", accent: "#22d3ee", lang: "Go", monacoLang: "go",
-    problems: [
-      { title: "Goroutine Leak", desc: "Goroutine blocks forever.", bug: "No cancel", code: `go func() { <-ch }()`, solution: `go func() { select { case <-ch: case <-ctx.Done(): } }()`, checkKey: "case <-ctx.Done()", hints: ["Use context for cancellation", "Add select with Done"], expectedError: "Goroutines pile up" },
-      { title: "Race Condition", desc: "Concurrent map access.", bug: "No sync", code: `m := map[string]int{}\ngo func(){ m[\"a\"]=1 }()\ngo func(){ m[\"b\"]=2 }()`, solution: `var mu sync.Mutex\nm := map[string]int{}\ngo func(){ mu.Lock(); m[\"a\"]=1; mu.Unlock() }()`, checkKey: "mu.Lock()", hints: ["Wrap access in Mutex", "Or use sync.Map"], expectedError: "concurrent map writes" },
-      { title: "Nil Pointer Deref", desc: "Struct pointer is nil.", bug: "No check", code: `var u *User\nfmt.Println(u.Name)`, solution: `var u *User\nif u != nil { fmt.Println(u.Name) }`, checkKey: "if u != nil", hints: ["Check for nil", "Guard the access"], expectedError: "nil pointer dereference" },
-      { title: "Error Ignored", desc: "Not handling returned error.", bug: "_ = err", code: `data, _ := os.ReadFile(f)`, solution: `data, err := os.ReadFile(f)\nif err != nil { return err }`, checkKey: "if err != nil", hints: ["Always check errors", "Return or handle"], expectedError: "Silent failure" },
-      { title: "Deferred Loop", desc: "defer inside loop stacks up.", bug: "defer in loop", code: `for _, f := range files {\n    fd, _ := os.Open(f)\n    defer fd.Close()\n}`, solution: `for _, f := range files {\n    func() {\n        fd, _ := os.Open(f)\n        defer fd.Close()\n    }()\n}`, checkKey: "func() {\\n        fd", hints: ["Wrap in closure", "defer runs at function end"], expectedError: "File handles leak" },
-      { title: "Slice Sharing", desc: "Modifying slice affects original.", bug: "Shared backing array", code: `a := []int{1,2,3}\nb := a[:2]\nb[0] = 99`, solution: `a := []int{1,2,3}\nb := append([]int{}, a[:2]...)\nb[0] = 99`, checkKey: "append([]int{}, a[:2]...)", hints: ["Copy slice explicitly", "Slices share arrays"], expectedError: "a[0] also becomes 99" },
-      { title: "Wrong Loop Var", desc: "Goroutine captures loop var.", bug: "Shared i", code: `for i := 0; i < 3; i++ {\n    go func() { fmt.Println(i) }()\n}`, solution: `for i := 0; i < 3; i++ {\n    go func(i int) { fmt.Println(i) }(i)\n}`, checkKey: "func(i int)", hints: ["Pass i as argument", "Or copy: i := i"], expectedError: "All print 3" },
-      { title: "Channel Never Closed", desc: "Range on channel blocks forever.", bug: "No close", code: `for v := range ch { }`, solution: `close(ch)\nfor v := range ch { }`, checkKey: "close(ch)", hints: ["Close channel when done", "Range exits on close"], expectedError: "Deadlock" },
-      { title: "String Concat Loop", desc: "+= is O(n^2).", bug: "String +=", code: `s := \"\"\nfor _, x := range xs { s += x }`, solution: `var b strings.Builder\nfor _, x := range xs { b.WriteString(x) }\ns := b.String()`, checkKey: "strings.Builder", hints: ["Use strings.Builder", "Avoids allocations"], expectedError: "Slow performance" },
-      { title: "Map Access Twice", desc: "Checking existence and value separately.", bug: "Two lookups", code: `if _, ok := m[k]; ok {\n    v := m[k]\n}`, solution: `if v, ok := m[k]; ok {\n    _ = v\n}`, checkKey: "if v, ok := m[k]", hints: ["Comma-ok in one line", "Avoids double lookup"], expectedError: "Slow, redundant" },
-      { title: "Interface Nil Trap", desc: "Interface holding nil pointer isn't nil.", bug: "Wrong check", code: `var e error = (*MyErr)(nil)\nif e == nil { }`, solution: `var e error\nif ptr != nil { e = ptr }\nif e == nil { }`, checkKey: "if ptr != nil", hints: ["Check pointer before assigning", "Typed nil != nil interface"], expectedError: "e is not nil despite nil ptr" },
-      { title: "Context Not Passed", desc: "Function ignores context.", bug: "No ctx", code: `func fetch(url string) { }`, solution: `func fetch(ctx context.Context, url string) { }`, checkKey: "ctx context.Context", hints: ["Pass ctx as first arg", "Enables cancellation"], expectedError: "Can't cancel operation" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "Index Out of Range", desc: "Reading past the slice panics.", bug: "off-by-one", code: `items := []int{1, 2, 3}\nfmt.Println(items[len(items)])`, solution: `items := []int{1, 2, 3}\nfmt.Println(items[len(items)-1])`, checkKey: "len(items)-1", hints: ["Valid indexes end at len-1", "Or use items[len(items)-1]"], expectedError: "index out of range" },
+        { title: "Nil Map Write", desc: "Writing to an uninitialized map panics.", bug: "no make", code: `var counts map[string]int\ncounts["a"] = 1`, solution: `counts := make(map[string]int)\ncounts["a"] = 1`, checkKey: "make(map[string]int)", hints: ["Maps need make()", "Nil maps are read-only"], expectedError: "assignment to entry in nil map" },
+        { title: "Trim Too Much", desc: "Trim cuts a set of characters, not a suffix.", bug: "Trim misuse", code: `file := "photo.jpg"\nfmt.Println(strings.Trim(file, ".jpg"))`, solution: `fmt.Println(strings.TrimSuffix(file, ".jpg"))`, checkKey: "TrimSuffix", hints: ["Trim removes a cutset, not a suffix", "TrimSuffix removes one ending"], expectedError: "Over-trimmed" },
+      ],
+      Intermediate: [
+        { title: "Racy Counter", desc: "Concurrent goroutines lose updates.", bug: "unsynchronized", code: `count := 0\nfor i := 0; i < 100; i++ {\n    go func() { count++ }()\n}`, solution: `var mu sync.Mutex\ncount := 0\nfor i := 0; i < 100; i++ {\n    go func() {\n        mu.Lock()\n        count++\n        mu.Unlock()\n    }()\n}`, checkKey: "sync.Mutex", hints: ["Protect shared writes", "Use a mutex or atomic"], expectedError: "Data race" },
+        { title: "Channel Jam", desc: "An unbuffered send blocks forever.", bug: "no receiver", code: `ch := make(chan int)\nch <- 1\nfmt.Println("sent")`, solution: `ch := make(chan int, 1)\nch <- 1\nfmt.Println("sent")`, checkKey: "make(chan int, 1)", hints: ["Buffer the channel", "Or pair it with a reader"], expectedError: "Deadlock" },
+        { title: "Shared Backing", desc: "Slices share the same array.", bug: "subslice mutation", code: `a := []int{1, 2, 3, 4}\nb := a[:2]\nb[0] = 99\nfmt.Println(a)`, solution: `a := []int{1, 2, 3, 4}\nb := make([]int, 2)\ncopy(b, a[:2])\nb[0] = 99\nfmt.Println(a)`, checkKey: "copy(b, a[:2])", hints: ["Subslices share storage", "copy() makes it independent"], expectedError: "Mutation leaks" },
+      ],
+      Advanced: [
+        { title: "Goroutine Leak", desc: "A blocked goroutine never exits.", bug: "no timeout", code: `for {\n    select {\n    case v := <-ch:\n        handle(v)\n    }\n}`, solution: `ctx, cancel := context.WithTimeout(context.Background(), time.Second)\ndefer cancel()\nfor {\n    select {\n    case v := <-ch:\n        handle(v)\n    case <-ctx.Done():\n        return\n    }\n}`, checkKey: "context.WithTimeout", hints: ["Give work a deadline", "Select on ctx.Done()"], expectedError: "Goroutine leak" },
+        { title: "Loop Variable Share", desc: "Goroutines capture the same variable.", bug: "range capture", code: `for _, v := range items {\n    go func() { fmt.Println(v) }()\n}`, solution: `for _, v := range items {\n    v := v\n    go func() { fmt.Println(v) }()\n}`, checkKey: "v := v", hints: ["The loop var is reused", "Shadow it per iteration"], expectedError: "All print the last value" },
+        { title: "Pointer Logging", desc: "%v prints an address, not the value.", bug: "%v on pointer", code: `u := &User{Name: "ada"}\nfmt.Printf("%v\\n", u)`, solution: `u := &User{Name: "ada"}\nfmt.Printf("%+v\\n", u)`, checkKey: '"%+v"', hints: ["%+v prints struct fields", "Pointers need %+v or deref"], expectedError: "&{...} only" },
+      ],
+      Nightmare: [
+        { title: "Atomic Miss", desc: "Mixed atomic and plain access is racy.", bug: "non-atomic increment", code: `var counter int64\ncounter++\nfmt.Println(atomic.LoadInt64(&counter))`, solution: `var counter int64\natomic.AddInt64(&counter, 1)\nfmt.Println(atomic.LoadInt64(&counter))`, checkKey: "atomic.AddInt64", hints: ["Increment atomically", "Mixed access is racy"], expectedError: "Data race" },
+        { title: "time.After Leak", desc: "time.After allocates until it fires.", bug: "timer in loop", code: `for {\n    select {\n    case <-time.After(time.Second):\n        poll()\n    }\n}`, solution: `ticker := time.NewTicker(time.Second)\ndefer ticker.Stop()\nfor {\n    select {\n    case <-ticker.C:\n        poll()\n    }\n}`, checkKey: "time.NewTicker", hints: ["time.After leaks until fire", "Use a ticker and Stop() it"], expectedError: "Memory growth" },
+        { title: "Panic in Goroutine", desc: "One panic takes down the whole binary.", bug: "no recover", code: `go func() {\n    panic("boom")\n}()\ntime.Sleep(time.Second)`, solution: `go func() {\n    defer func() {\n        if r := recover(); r != nil {\n            log.Println("recovered:", r)\n        }\n    }()\n    panic("boom")\n}()\ntime.Sleep(time.Second)`, checkKey: "recover()", hints: ["Recover at the goroutine top", "A panic kills the process otherwise"], expectedError: "Process crash" },
+      ],
+    },
   },
   {
     slug: "docker", name: "Docker", icon: "docker", desc: "Fix Dockerfile and container issues", accent: "#38bdf8", lang: "Docker", monacoLang: "dockerfile",
-    problems: [
-      { title: "Root User", desc: "Container runs as root.", bug: "No USER", code: `FROM node:20\nCOPY . /app`, solution: `FROM node:20\nRUN useradd -m app\nUSER app\nCOPY . /app`, checkKey: "USER app", hints: ["Add non-root USER", "Security best practice"], expectedError: "Security warning" },
-      { title: "Missing .dockerignore", desc: "node_modules copied into image.", bug: "Copies everything", code: `COPY . .`, solution: `# .dockerignore\nnode_modules\n.git\n# Dockerfile\nCOPY . .`, checkKey: "node_modules", hints: ["Create .dockerignore", "Exclude node_modules"], expectedError: "Bloated image" },
-      { title: "Not Multi-Stage", desc: "Build tools in final image.", bug: "Single stage", code: `FROM node:20\nRUN npm install && npm run build`, solution: `FROM node:20 AS build\nRUN npm install && npm run build\nFROM node:20-slim\nCOPY --from=build /app/dist /app`, checkKey: "FROM node:20 AS build", hints: ["Use multi-stage build", "Slim final image"], expectedError: "Huge image size" },
-      { title: "Latest Tag", desc: "Unpinned base image.", bug: ":latest", code: `FROM node:latest`, solution: `FROM node:20.10.0`, checkKey: "node:20.10.0", hints: ["Pin exact version", "Reproducible builds"], expectedError: "Non-reproducible" },
-      { title: "Cache Bust", desc: "npm install runs every build.", bug: "COPY . before install", code: `COPY . .\nRUN npm install`, solution: `COPY package*.json ./\nRUN npm install\nCOPY . .`, checkKey: "COPY package*.json ./\\nRUN npm install", hints: ["Copy package.json first", "Then install, then rest"], expectedError: "Slow rebuilds" },
-      { title: "EXPOSE Missing", desc: "Port not documented.", bug: "No EXPOSE", code: `CMD [\"node\", \"server.js\"]`, solution: `EXPOSE 3000\nCMD [\"node\", \"server.js\"]`, checkKey: "EXPOSE 3000", hints: ["Add EXPOSE directive", "Documents port"], expectedError: "Unclear port" },
-      { title: "Wrong CMD Syntax", desc: "Shell form doesn't handle signals.", bug: "Shell form", code: `CMD npm start`, solution: `CMD [\"npm\", \"start\"]`, checkKey: 'CMD ["npm", "start"]', hints: ["Use exec form (JSON array)", "Handles SIGTERM properly"], expectedError: "SIGTERM ignored" },
-      { title: "No Health Check", desc: "Orchestrator can't detect crashes.", bug: "No HEALTHCHECK", code: `EXPOSE 3000`, solution: `HEALTHCHECK CMD curl -f http://localhost:3000 || exit 1\nEXPOSE 3000`, checkKey: "HEALTHCHECK", hints: ["Add HEALTHCHECK", "Curl your endpoint"], expectedError: "K8s can't tell if alive" },
-      { title: "Volume Wrong Path", desc: "Data lost on container remove.", bug: "No volume", code: `docker run mydb`, solution: `docker run -v db-data:/var/lib/db mydb`, checkKey: "-v db-data:/var/lib/db", hints: ["Mount named volume", "Persists across containers"], expectedError: "Data loss" },
-      { title: "Missing --restart", desc: "Container doesn't restart on crash.", bug: "No policy", code: `docker run myapp`, solution: `docker run --restart unless-stopped myapp`, checkKey: "--restart unless-stopped", hints: ["Add --restart flag", "unless-stopped is common"], expectedError: "Downtime on crash" },
-      { title: "Layers Too Many", desc: "Each RUN is a new layer.", bug: "Multiple RUN", code: `RUN apt update\nRUN apt install curl\nRUN apt clean`, solution: `RUN apt update && apt install -y curl && apt clean`, checkKey: "&& apt install", hints: ["Combine RUN commands", "Fewer layers"], expectedError: "Bloated image" },
-      { title: "Secret in Image", desc: "API key baked into image.", bug: "ENV SECRET=", code: `ENV API_KEY=abc123`, solution: `# Pass at runtime\ndocker run -e API_KEY=abc123 myapp`, checkKey: "-e API_KEY=abc123", hints: ["Use runtime env vars", "Or Docker secrets"], expectedError: "Secret leaked in image" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "No Start Command", desc: "The container exits instantly.", bug: "missing CMD", code: `FROM python:3.12-slim\nWORKDIR /app\nCOPY . .\nRUN pip install -r requirements.txt`, solution: `FROM python:3.12-slim\nWORKDIR /app\nCOPY . .\nRUN pip install -r requirements.txt\nCMD ["python", "app.py"]`, checkKey: 'CMD ["python", "app.py"]', hints: ["Every image needs CMD", "Use exec form"], expectedError: "Exited(0) immediately" },
+        { title: "node_modules Copied", desc: "Local dependencies bloat the image.", bug: "no dockerignore", code: `COPY . .\nRUN npm install`, solution: `# .dockerignore\nnode_modules\n\nCOPY . .\nRUN npm install`, checkKey: ".dockerignore", hints: ["Exclude local node_modules", "Install inside the build"], expectedError: "Huge image" },
+        { title: "Full Base Image", desc: "A heavy base wastes space.", bug: "python:latest", code: `FROM python:latest`, solution: `FROM python:3.12-slim`, checkKey: "3.12-slim", hints: ["Slim images cut size", "Pin the version too"], expectedError: "1GB+ image" },
+      ],
+      Intermediate: [
+        { title: "Cache Ordering", desc: "Source changes invalidate the npm cache.", bug: "copy all first", code: `COPY . .\nRUN npm install`, solution: `COPY package.json package-lock.json ./\nRUN npm install\nCOPY . .`, checkKey: "COPY package.json", hints: ["Copy manifests first", "npm install is cached then"], expectedError: "Slow rebuilds" },
+        { title: "Running as Root", desc: "The container runs with full privileges.", bug: "no USER", code: `FROM node:20-alpine\nWORKDIR /app\nCOPY . .\nCMD ["node", "server.js"]`, solution: `FROM node:20-alpine\nWORKDIR /app\nCOPY . .\nUSER node\nCMD ["node", "server.js"]`, checkKey: "USER node", hints: ["Drop privileges", "The node image ships a user"], expectedError: "Security risk" },
+        { title: "Unpinned Packages", desc: "apt installs drift across builds.", bug: "no version pins", code: `RUN apt-get update && apt-get install -y curl`, solution: `RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*`, checkKey: "--no-install-recommends", hints: ["Skip recommended packages", "Clean apt lists"], expectedError: "Reproducibility issues" },
+      ],
+      Advanced: [
+        { title: "Fat Single Stage", desc: "Build tools ship to production.", bug: "one stage", code: `FROM golang:1.22\nWORKDIR /app\nCOPY . .\nRUN go build -o server .\nCMD ["./server"]`, solution: `FROM golang:1.22 AS builder\nWORKDIR /app\nCOPY . .\nRUN go build -o server .\n\nFROM alpine:3.20\nCOPY --from=builder /app/server /server\nCMD ["/server"]`, checkKey: "AS builder", hints: ["Build in one stage", "Copy only the binary out"], expectedError: "Huge production image" },
+        { title: "Secret in ENV", desc: "Keys are baked into the image.", bug: "ENV secret", code: `ENV API_KEY=sk-123`, solution: `# inject at runtime instead\nENV API_KEY=""`, checkKey: 'ENV API_KEY=""', hints: ["Never bake secrets", "Inject at runtime"], expectedError: "Leaked credentials" },
+        { title: "Nginx Not Foreground", desc: "nginx exits without a daemon flag.", bug: "daemon on", code: `FROM nginx:alpine\nCOPY site /usr/share/nginx/html\nCMD ["nginx"]`, solution: `FROM nginx:alpine\nCOPY site /usr/share/nginx/html\nCMD ["nginx", "-g", "daemon off;"]`, checkKey: "daemon off", hints: ["Containers need foreground", "daemon off keeps nginx alive"], expectedError: "Exited immediately" },
+      ],
+      Nightmare: [
+        { title: "No Healthcheck", desc: "Orchestrators cannot see failures.", bug: "missing HEALTHCHECK", code: `FROM node:20-alpine\nCMD ["node", "server.js"]`, solution: `FROM node:20-alpine\nHEALTHCHECK CMD wget -qO- http://localhost:3000/health || exit 1\nCMD ["node", "server.js"]`, checkKey: "HEALTHCHECK", hints: ["Add a probe", "Orchestrators restart on failure"], expectedError: "Serving 500s silently" },
+        { title: "Layer Bloat", desc: "Package caches survive into layers.", bug: "unmounted cache", code: `RUN apt-get update && apt-get install -y curl`, solution: `RUN --mount=type=cache,target=/var/cache/apt apt-get update && apt-get install -y curl`, checkKey: "--mount=type=cache", hints: ["BuildKit cache mounts", "Cache stays out of layers"], expectedError: "Fat layers" },
+        { title: "All Capabilities", desc: "The container can do anything.", bug: "no cap drop", code: `docker run --name app image`, solution: `docker run --cap-drop=ALL --cap-add=NET_BIND_SERVICE --name app image`, checkKey: "--cap-drop=ALL", hints: ["Drop every capability", "Add back only what is needed"], expectedError: "Escape risk" },
+      ],
+    },
   },
+
   {
     slug: "kubernetes", name: "Kubernetes", icon: "kubernetes", desc: "Fix pods, services, and deployment issues", accent: "#3b82f6", lang: "Kubernetes", monacoLang: "yaml",
-    problems: [
-      { title: "Missing Resource Limits", desc: "Pod eats all node memory.", bug: "No limits", code: `spec:\n  containers:\n  - name: app`, solution: `spec:\n  containers:\n  - name: app\n    resources:\n      limits:\n        memory: 512Mi\n        cpu: 500m`, checkKey: "limits:\\n        memory: 512Mi", hints: ["Set resource limits", "Prevents noisy neighbors"], expectedError: "Node OOM" },
-      { title: "No Liveness Probe", desc: "K8s can't detect hung pod.", bug: "No probe", code: `containers:\n- name: app`, solution: `containers:\n- name: app\n  livenessProbe:\n    httpGet:\n      path: /health\n      port: 8080`, checkKey: "livenessProbe:", hints: ["Add livenessProbe", "K8s restarts hung pods"], expectedError: "Hung pod stays running" },
-      { title: "Wrong Service Type", desc: "Cluster-internal service exposed to public.", bug: "LoadBalancer everywhere", code: `type: LoadBalancer`, solution: `type: ClusterIP`, checkKey: "type: ClusterIP", hints: ["Use ClusterIP internally", "LoadBalancer costs money"], expectedError: "Extra cost, security risk" },
-      { title: "ConfigMap Not Mounted", desc: "App can't read config.", bug: "Not referenced", code: `# ConfigMap exists but not used`, solution: `volumeMounts:\n- name: config\n  mountPath: /etc/app\nvolumes:\n- name: config\n  configMap:\n    name: app-config`, checkKey: "configMap:\\n    name: app-config", hints: ["Mount as volume", "Or reference as env"], expectedError: "Config file missing" },
-      { title: "Secret in ConfigMap", desc: "Password stored as plaintext.", bug: "ConfigMap for secrets", code: `data:\n  password: \"hunter2\"`, solution: `# Use Secret instead\nkind: Secret\ntype: Opaque\ndata:\n  password: aHVudGVyMg==`, checkKey: "kind: Secret", hints: ["Use Secret, not ConfigMap", "Base64 encode value"], expectedError: "Password in plaintext" },
-      { title: "No Rolling Update", desc: "Downtime during deploy.", bug: "Recreate strategy", code: `strategy:\n  type: Recreate`, solution: `strategy:\n  type: RollingUpdate\n  rollingUpdate:\n    maxSurge: 1\n    maxUnavailable: 0`, checkKey: "type: RollingUpdate", hints: ["Use RollingUpdate", "maxUnavailable: 0 for zero downtime"], expectedError: "Downtime on deploy" },
-      { title: "Latest Image Tag", desc: "Can't roll back.", bug: ":latest", code: `image: myapp:latest`, solution: `image: myapp:v1.2.3`, checkKey: "myapp:v1.2.3", hints: ["Pin image version", "Enables rollback"], expectedError: "Can't roll back reliably" },
-      { title: "Missing HPA", desc: "Traffic spikes crash app.", bug: "No autoscaler", code: `# just Deployment`, solution: `kind: HorizontalPodAutoscaler\nspec:\n  minReplicas: 2\n  maxReplicas: 10\n  targetCPUUtilizationPercentage: 70`, checkKey: "HorizontalPodAutoscaler", hints: ["Add HPA", "Auto-scales on CPU"], expectedError: "Overload on spikes" },
-      { title: "No PodDisruptionBudget", desc: "Node drain kills all replicas.", bug: "No PDB", code: `# Deployment only`, solution: `kind: PodDisruptionBudget\nspec:\n  minAvailable: 2\n  selector:\n    matchLabels:\n      app: myapp`, checkKey: "PodDisruptionBudget", hints: ["Add PDB", "Prevents mass eviction"], expectedError: "All pods evicted at once" },
-      { title: "Wrong Namespace", desc: "Resources in default namespace.", bug: "No namespace", code: `metadata:\n  name: myapp`, solution: `metadata:\n  name: myapp\n  namespace: production`, checkKey: "namespace: production", hints: ["Specify namespace", "Isolate environments"], expectedError: "Clashes in default ns" },
-      { title: "Ingress Missing TLS", desc: "HTTP-only ingress.", bug: "No TLS", code: `spec:\n  rules:\n  - host: myapp.com`, solution: `spec:\n  tls:\n  - hosts: [myapp.com]\n    secretName: myapp-tls\n  rules:\n  - host: myapp.com`, checkKey: "tls:\\n  - hosts:", hints: ["Add TLS section", "Reference cert Secret"], expectedError: "Insecure HTTP" },
-      { title: "Missing readinessProbe", desc: "Traffic sent before app ready.", bug: "Only liveness", code: `livenessProbe:\n  httpGet:\n    path: /`, solution: `readinessProbe:\n  httpGet:\n    path: /ready\nlivenessProbe:\n  httpGet:\n    path: /`, checkKey: "readinessProbe:", hints: ["Add readinessProbe", "Blocks traffic until ready"], expectedError: "500 errors on rollout" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "Always Pull Policy", desc: "The image is not pulled as expected.", bug: "wrong policy", code: `containers:\n  - name: app\n    image: myapp:1.2.3`, solution: `containers:\n  - name: app\n    image: myapp:1.2.3\n    imagePullPolicy: IfNotPresent`, checkKey: "imagePullPolicy", hints: ["Pin a policy", "IfNotPresent saves pulls"], expectedError: "ImageNotFound" },
+        { title: "No Liveness Probe", desc: "A hung pod is never restarted.", bug: "missing probe", code: `containers:\n  - name: app\n    image: myapp`, solution: `containers:\n  - name: app\n    image: myapp\n    livenessProbe:\n      httpGet:\n        path: /health\n        port: 8080`, checkKey: "livenessProbe", hints: ["Probe for liveness", "Kubelet restarts on failure"], expectedError: "Zombie pod" },
+        { title: "Secret Not Wired", desc: "The pod cannot read the secret.", bug: "no envFrom", code: `env:\n  - name: API_KEY\n    value: "hardcoded"`, solution: `env:\n  - name: API_KEY\n    valueFrom:\n      secretKeyRef:\n        name: app-secrets\n        key: api-key`, checkKey: "secretKeyRef", hints: ["Reference the secret", "Never hardcode values"], expectedError: "Missing secret" },
+      ],
+      Intermediate: [
+        { title: "Unlimited Pods", desc: "One pod can starve the node.", bug: "no resources", code: `containers:\n  - name: app\n    image: myapp`, solution: `containers:\n  - name: app\n    image: myapp\n    resources:\n      requests:\n        cpu: 100m\n        memory: 128Mi\n      limits:\n        memory: 256Mi`, checkKey: "resources:", hints: ["Set requests and limits", "Scheduler uses requests"], expectedError: "Node starvation" },
+        { title: "Readiness Missing", desc: "Traffic hits a pod that is not ready.", bug: "no readiness", code: `containers:\n  - name: app\n    image: myapp\n    livenessProbe:\n      httpGet: { path: /health, port: 8080 }`, solution: `containers:\n  - name: app\n    image: myapp\n    livenessProbe:\n      httpGet: { path: /health, port: 8080 }\n    readinessProbe:\n      httpGet: { path: /ready, port: 8080 }`, checkKey: "readinessProbe", hints: ["Readiness gates traffic", "Liveness gates restarts"], expectedError: "Request failures" },
+        { title: "Config Not Mounted", desc: "The configmap value is missing.", bug: "no configMapKeyRef", code: `env:\n  - name: MODE\n    value: "prod"`, solution: `env:\n  - name: MODE\n    valueFrom:\n      configMapKeyRef:\n        name: app-config\n        key: mode`, checkKey: "configMapKeyRef", hints: ["Source from the ConfigMap", "Keep config out of the pod"], expectedError: "Wrong config" },
+      ],
+      Advanced: [
+        { title: "Downtime Rollout", desc: "All pods restart at once.", bug: "default maxUnavailable", code: `spec:\n  replicas: 3`, solution: `spec:\n  replicas: 3\n  strategy:\n    rollingUpdate:\n      maxUnavailable: 0\n      maxSurge: 1`, checkKey: "maxUnavailable: 0", hints: ["Keep capacity during rollout", "maxSurge adds first"], expectedError: "Rollout downtime" },
+        { title: "Wrong Service Port", desc: "The service targets a dead port.", bug: "mismatched port", code: `spec:\n  ports:\n    - port: 80\n      targetPort: 8080`, solution: `spec:\n  ports:\n    - port: 80\n      targetPort: 3000`, checkKey: "targetPort: 3000", hints: ["targetPort matches the container", "Check the app's listen port"], expectedError: "Connection refused" },
+        { title: "Stateless Needs State", desc: "Stateful data on a Deployment.", bug: "Deployment for DB", code: `kind: Deployment\nmetadata:\n  name: postgres`, solution: `kind: StatefulSet\nmetadata:\n  name: postgres`, checkKey: "kind: StatefulSet", hints: ["StatefulSet gives stable IDs", "Deployments are for stateless"], expectedError: "Data loss" },
+      ],
+      Nightmare: [
+        { title: "Root Container", desc: "Pods run as root by default.", bug: "no securityContext", code: `containers:\n  - name: app\n    image: myapp`, solution: `containers:\n  - name: app\n    image: myapp\n    securityContext:\n      runAsNonRoot: true\n      seccompProfile:\n        type: RuntimeDefault`, checkKey: "seccompProfile", hints: ["Run as non-root", "Use a default seccomp profile"], expectedError: "Escalation risk" },
+        { title: "Reclaimed PVC", desc: "Delete deletes the data too.", bug: "default reclaim", code: `kind: PersistentVolumeClaim\nmetadata:\n  name: data`, solution: `kind: PersistentVolume\nmetadata:\n  name: data-pv\nspec:\n  persistentVolumeReclaimPolicy: Retain`, checkKey: "persistentVolumeReclaimPolicy: Retain", hints: ["Retain keeps the volume", "Delete wipes it"], expectedError: "Data loss" },
+        { title: "No PDB", desc: "A node drain kills everything.", bug: "missing budget", code: `kind: Deployment\nmetadata:\n  name: api`, solution: `kind: PodDisruptionBudget\nmetadata:\n  name: api-pdb\nspec:\n  minAvailable: 1\n  selector:\n    matchLabels:\n      app: api`, checkKey: "minAvailable: 1", hints: ["PDB caps voluntary disruption", "Drains respect the budget"], expectedError: "Full outage" },
+      ],
+    },
   },
   {
     slug: "linux", name: "Linux", icon: "linux", desc: "Fix Linux commands and shell scripting", accent: "#facc15", lang: "Linux", monacoLang: "shell",
-    problems: [
-      { title: "Missing Quotes", desc: "Filename with spaces breaks.", bug: "Unquoted $var", code: `cp $file /tmp/`, solution: `cp \"$file\" /tmp/`, checkKey: '"$file"', hints: ["Quote variables", "Handles spaces safely"], expectedError: "cp: too many arguments" },
-      { title: "rm -rf Danger", desc: "One space away from disaster.", bug: "Unsafe rm", code: "rm -rf $DIR/*", solution: 'rm -rf "${DIR:?}"/*', checkKey: '"${DIR:?}"', hints: ["Use :? to fail if unset", "Quote variable"], expectedError: "rm -rf / if $DIR is empty" },
-      { title: "Missing Shebang", desc: "Script runs with wrong shell.", bug: "No #!", code: `echo hi`, solution: `#!/usr/bin/env bash\necho hi`, checkKey: "#!/usr/bin/env bash", hints: ["Add shebang line", "Use env for portability"], expectedError: "Runs in sh not bash" },
-      { title: "chmod Too Open", desc: "777 exposes sensitive files.", bug: "chmod 777", code: `chmod 777 secret.key`, solution: `chmod 600 secret.key`, checkKey: "chmod 600", hints: ["Use 600 for secrets", "Owner read/write only"], expectedError: "World-readable secrets" },
-      { title: "Cron Path", desc: "Cron job can't find binary.", bug: "No PATH", code: `* * * * * mybin`, solution: `* * * * * /usr/local/bin/mybin`, checkKey: "/usr/local/bin/mybin", hints: ["Use full path in cron", "Cron has minimal PATH"], expectedError: "command not found" },
-      { title: "Not Trapping Signals", desc: "Script leaves temp files on Ctrl+C.", bug: "No trap", code: `mktemp > /tmp/a`, solution: `trap 'rm -f /tmp/a' EXIT\nmktemp > /tmp/a`, checkKey: "trap 'rm -f", hints: ["Add trap for cleanup", "EXIT catches all exits"], expectedError: "Temp files leak" },
-      { title: "grep in Log Loop", desc: "Grepping same file 1000 times.", bug: "grep in loop", code: `for line in $(cat file); do echo $line; done`, solution: `while read line; do echo \"$line\"; done < file`, checkKey: "while read line", hints: ["Use while read", "Faster and safer"], expectedError: "Slow and word-splitting" },
-      { title: "Path Traversal", desc: "User input in file path.", bug: "No sanitize", code: `cat /var/data/$user`, solution: `case \"$user\" in *..*|*/*) exit 1;; esac\ncat \"/var/data/$user\"`, checkKey: "case \"$user\" in *..*", hints: ["Validate input", "Reject .. and /"], expectedError: "Directory traversal" },
-      { title: "sudo Without Reason", desc: "Whole script runs as root.", bug: "sudo everywhere", code: `sudo cp a b\nsudo chmod +x b`, solution: `sudo sh -c 'cp a b && chmod +x b'`, checkKey: "sudo sh -c", hints: ["Batch sudo calls", "Fewer password prompts"], expectedError: "Too many prompts" },
-      { title: "&& vs ;", desc: "Second command runs on failure.", bug: "Using ;", code: `cd /tmp; rm -rf *`, solution: `cd /tmp && rm -rf *`, checkKey: "cd /tmp &&", hints: ["Use && for dependency", "; runs always"], expectedError: "Runs rm even if cd failed" },
-      { title: "Missing set -e", desc: "Script continues on error.", bug: "No set -e", code: `#!/bin/bash\ncp a b\nrm a`, solution: `#!/bin/bash\nset -euo pipefail\ncp a b\nrm a`, checkKey: "set -euo pipefail", hints: ["Add set -e for strict mode", "u for unset vars, pipefail for pipes"], expectedError: "Errors ignored" },
-      { title: "df in Cron", desc: "Cron mail floods on disk full.", bug: "No filter", code: `df -h`, solution: `df -h | awk '$5+0 > 90 {print}'`, checkKey: "awk '$5+0 > 90'", hints: ["Filter output", "Only alert when threshold exceeded"], expectedError: "Cron spam" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "World-Readable Key", desc: "Permissions leak a private key.", bug: "chmod 644", code: `chmod 644 ~/.ssh/id_rsa`, solution: `chmod 600 ~/.ssh/id_rsa`, checkKey: "chmod 600", hints: ["Private keys need 600", "ssh rejects loose keys"], expectedError: "UNPROTECTED PRIVATE KEY" },
+        { title: "Grep Exit Code", desc: "grep prints but does not branch.", bug: "no -q", code: `if grep "error" app.log; then\n    echo "found"\nfi`, solution: `if grep -q "error" app.log; then\n    echo "found"\nfi`, checkKey: "grep -q", hints: ["-q silences output", "Exit status still works"], expectedError: "Spammy logs" },
+        { title: "Globbed Pattern", desc: "The shell expanded the wildcard.", bug: "unquoted pattern", code: `find /var/log -name *.log`, solution: `find /var/log -name "*.log"`, checkKey: '-name "*.log"', hints: ["Quote the pattern", "Prevent shell globbing"], expectedError: "Wrong files" },
+      ],
+      Intermediate: [
+        { title: "SIGKILL First", desc: "kill -9 skips graceful shutdown.", bug: "immediate -9", code: `kill -9 $(pgrep mysqld)`, solution: `kill $(pgrep mysqld)\n# wait, then escalate\nsleep 10\nkill -9 $(pgrep mysqld) 2>/dev/null`, checkKey: "kill -9 $(pgrep mysqld) 2>/dev/null", hints: ["SIGTERM first", "Escalate to -9 only after a grace period"], expectedError: "Corrupted data" },
+        { title: "Extract Elsewhere", desc: "tar unpacks into the current dir.", bug: "no -C", code: `tar -xzf app.tar.gz`, solution: `tar -xzf app.tar.gz -C /opt/app`, checkKey: "-C /opt/app", hints: ["Target a directory", "Avoid dumping in place"], expectedError: "File clutter" },
+        { title: "Stale Mirror", desc: "rsync never removes deleted files.", bug: "no --delete", code: `rsync -avz ./dist/ user@host:/var/www/`, solution: `rsync -avz --delete ./dist/ user@host:/var/www/`, checkKey: "--delete", hints: ["--delete mirrors exactly", "Removed files vanish remotely"], expectedError: "Old files linger" },
+      ],
+      Advanced: [
+        { title: "FD Exhaustion", desc: "The process runs out of file descriptors.", bug: "low ulimit", code: `# server keeps failing with EMFILE`, solution: `ulimit -n 65535\n# persist in /etc/security/limits.conf`, checkKey: "ulimit -n 65535", hints: ["Raise the soft limit", "Persist in limits.conf"], expectedError: "Too many open files" },
+        { title: "Cron Without PATH", desc: "cron cannot find the binaries.", bug: "minimal env", code: `*/5 * * * * backup.sh`, solution: `*/5 * * * * PATH=/usr/local/bin:$PATH backup.sh`, checkKey: "PATH=/usr/local/bin:$PATH", hints: ["cron env is minimal", "Set PATH in the job"], expectedError: "command not found" },
+        { title: "Lost Variable", desc: "A subshell never sees the export.", bug: "no export", code: `VAR=hello\nbash -c 'echo $VAR'`, solution: `export VAR=hello\nbash -c 'echo $VAR'`, checkKey: "export VAR", hints: ["export passes to children", "Plain assignment is local"], expectedError: "Empty output" },
+      ],
+      Nightmare: [
+        { title: "No Process Cap", desc: "Users can fork-bomb the box.", bug: "unlimited nproc", code: `# /etc/security/limits.conf\n# no nproc limit set`, solution: `# /etc/security/limits.conf\n* hard nproc 512`, checkKey: "hard nproc", hints: ["Cap process count", "Prevents fork bombs"], expectedError: "System hang" },
+        { title: "Overlapping Cron", desc: "A slow job starts again mid-run.", bug: "no lock", code: `*/5 * * * * /usr/local/bin/sync.sh`, solution: `*/5 * * * * /usr/bin/flock -n /tmp/sync.lock /usr/local/bin/sync.sh`, checkKey: "flock", hints: ["Lock the job", "-n fails fast on contention"], expectedError: "Double execution" },
+        { title: "Runaway Logs", desc: "journald fills the disk.", bug: "unbounded journal", code: `# /etc/systemd/journald.conf\n# no size cap`, solution: `# /etc/systemd/journald.conf\nSystemMaxUse=1G`, checkKey: "SystemMaxUse", hints: ["Cap journal size", "SystemMaxUse=1G"], expectedError: "Disk full" },
+      ],
+    },
   },
   {
     slug: "aws", name: "AWS", icon: "aws", desc: "Fix AWS services and infrastructure issues", accent: "#f59e0b", lang: "AWS", monacoLang: "yaml",
-    problems: [
-      { title: "S3 Public Bucket", desc: "Bucket exposed to internet.", bug: "Public ACL", code: `aws s3api put-bucket-acl --acl public-read`, solution: `aws s3api put-bucket-acl --acl private\naws s3api put-public-access-block --public-access-block-configuration BlockPublicAcls=true`, checkKey: "BlockPublicAcls=true", hints: ["Block public access", "Use signed URLs instead"], expectedError: "Data leak via public bucket" },
-      { title: "IAM Wildcards", desc: "Policy allows *:* on all resources.", bug: "Action: '*'", code: `{ \"Action\": \"*\", \"Resource\": \"*\" }`, solution: `{ \"Action\": [\"s3:GetObject\"], \"Resource\": \"arn:aws:s3:::my-bucket/*\" }`, checkKey: '"Action": ["s3:GetObject"]', hints: ["Least privilege", "Scope actions and resources"], expectedError: "Over-permissioned" },
-      { title: "Lambda Timeout", desc: "Function times out at 3s default.", bug: "Default timeout", code: `# Timeout: 3`, solution: `Timeout: 30\nMemorySize: 512`, checkKey: "Timeout: 30", hints: ["Increase timeout", "Match your workload"], expectedError: "Task timed out after 3s" },
-      { title: "RDS Public Access", desc: "Database open to internet.", bug: "PubliclyAccessible: true", code: `PubliclyAccessible: true`, solution: `PubliclyAccessible: false\nVpcSecurityGroups: [sg-private]`, checkKey: "PubliclyAccessible: false", hints: ["Set false", "Use VPC + private SG"], expectedError: "DB reachable from internet" },
-      { title: "EC2 SG Wide Open", desc: "Port 22 open to 0.0.0.0/0.", bug: "0.0.0.0/0 for SSH", code: `SSH from 0.0.0.0/0`, solution: `SSH from 10.0.0.0/8 or your.office.ip/32`, checkKey: "your.office.ip/32", hints: ["Restrict SSH", "Use bastion or SSM"], expectedError: "Anyone can SSH" },
-      { title: "No CloudWatch Alarms", desc: "No alerts on errors.", bug: "No alarm", code: `# Just Lambda`, solution: `AWS::CloudWatch::Alarm\n  MetricName: Errors\n  Threshold: 5`, checkKey: "MetricName: Errors", hints: ["Add CloudWatch alarm", "Alert on error spikes"], expectedError: "Silent failures" },
-      { title: "S3 No Versioning", desc: "Accidental delete = data loss.", bug: "No versioning", code: `# bucket without versioning`, solution: `aws s3api put-bucket-versioning --versioning-configuration Status=Enabled`, checkKey: "Status=Enabled", hints: ["Enable versioning", "Recover deleted files"], expectedError: "No recovery from delete" },
-      { title: "Hardcoded Credentials", desc: "Access keys in code.", bug: "Keys in code", code: `const AWS = require('aws-sdk');\nnew AWS.S3({ accessKeyId: 'AKIA...' })`, solution: `// Use IAM role or env vars\nnew AWS.S3()`, checkKey: "new AWS.S3()", hints: ["Use IAM roles", "Or environment variables"], expectedError: "Credentials leaked" },
-      { title: "No Multi-AZ RDS", desc: "Single AZ = downtime on failure.", bug: "MultiAZ: false", code: `MultiAZ: false`, solution: `MultiAZ: true`, checkKey: "MultiAZ: true", hints: ["Enable Multi-AZ", "Auto failover"], expectedError: "Downtime on AZ failure" },
-      { title: "Lambda Cold Start", desc: "First request is slow.", bug: "No provisioned concurrency", code: `# nothing`, solution: `ProvisionedConcurrency: 5`, checkKey: "ProvisionedConcurrency", hints: ["Use provisioned concurrency", "Or keep warm"], expectedError: "1-3s cold start" },
-      { title: "No S3 Encryption", desc: "Data at rest unencrypted.", bug: "No SSE", code: `s3.putObject({ Body: data })`, solution: `s3.putObject({ Body: data, ServerSideEncryption: 'AES256' })`, checkKey: "ServerSideEncryption: 'AES256'", hints: ["Enable SSE", "AES256 or KMS"], expectedError: "Unencrypted at rest" },
-      { title: "CloudFront No HTTPS", desc: "Distribution serves HTTP.", bug: "AllowAllProtocols", code: `ViewerProtocolPolicy: allow-all`, solution: `ViewerProtocolPolicy: redirect-to-https`, checkKey: "redirect-to-https", hints: ["Redirect HTTP to HTTPS", "Enforce TLS"], expectedError: "Insecure HTTP served" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "Private Bucket", desc: "Objects 403 for anonymous users.", bug: "no public policy", code: `# bucket with no bucket policy`, solution: `# bucket policy\n{\n  "Statement": [{\n    "Effect": "Allow",\n    "Principal": "*",\n    "Action": "s3:GetObject",\n    "Resource": "arn:aws:s3:::my-bucket/*"\n  }]\n}`, checkKey: '"Principal": "*"', hints: ["Add a public-read policy", "Or use CloudFront OAC"], expectedError: "403 AccessDenied" },
+        { title: "Open Security Group", desc: "SSH is open to the whole internet.", bug: "0.0.0.0/0", code: `"CidrIp": "0.0.0.0/0"`, solution: `"CidrIp": "10.0.0.0/8"`, checkKey: '"CidrIp": "10.0.0.0/8"', hints: ["Restrict the source", "Allow only trusted CIDRs"], expectedError: "Exposed port" },
+        { title: "Lambda Timeout", desc: "Cold starts kill the function.", bug: "3s timeout", code: `"Timeout": 3`, solution: `"Timeout": 300`, checkKey: '"Timeout": 300', hints: ["Give enough headroom", "Cold starts need seconds"], expectedError: "Task timed out" },
+      ],
+      Intermediate: [
+        { title: "No Versioning", desc: "Overwrites are unrecoverable.", bug: "versioning off", code: `# bucket created without versioning`, solution: `aws s3api put-bucket-versioning \\\n  --bucket my-bucket --versioning-configuration Status=Enabled`, checkKey: "Status=Enabled", hints: ["Enable versioning", "Recover overwrites"], expectedError: "Lost object versions" },
+        { title: "Single-AZ DB", desc: "The DB dies with the AZ.", bug: "no Multi-AZ", code: `"Multi-AZ": false`, solution: `"Multi-AZ": true`, checkKey: '"Multi-AZ": true', hints: ["Multi-AZ gives failover", "Standby in another AZ"], expectedError: "Outage" },
+        { title: "Wrong Health Path", desc: "Healthy backends get deregistered.", bug: "health path 404", code: `"HealthCheck": {\n  "Target": "HTTP:80/"\n}`, solution: `"HealthCheck": {\n  "Target": "HTTP:80/health"\n}`, checkKey: 'HTTP:80/health', hints: ["Point at a real endpoint", "404 means unhealthy"], expectedError: "All targets unhealthy" },
+      ],
+      Advanced: [
+        { title: "Cold Start Parade", desc: "Every invoke spins a new sandbox.", bug: "no provisioned concurrency", code: `# no ProvisionedConcurrencyConfig`, solution: `aws lambda put-provisioned-concurrency-config \\\n  --function-name api \\\n  --qualifier prod \\\n  --provisioned-concurrent-executions 10`, checkKey: "provisioned-concurrent-executions", hints: ["Pre-warm instances", "For steady traffic"], expectedError: "Latency spikes" },
+        { title: "Redelivered Work", desc: "Consumers get the same message twice.", bug: "short visibility", code: `"VisibilityTimeout": 0`, solution: `"VisibilityTimeout": 300`, checkKey: '"VisibilityTimeout": 300', hints: ["Hide in-flight messages", "Long enough to process"], expectedError: "Duplicate processing" },
+        { title: "Stale CDN", desc: "Users keep the old JS bundle.", bug: "no invalidation", code: `# deploy happened, cache not cleared`, solution: `aws cloudfront create-invalidation \\\n  --distribution-id ABC123 \\\n  --paths "/*"`, checkKey: "create-invalidation", hints: ["Purge cached paths", "Or versioned filenames"], expectedError: "Old assets served" },
+      ],
+      Nightmare: [
+        { title: "Wildcard Principal", desc: "Anyone with a key can read the bucket.", bug: "* principal", code: `"Principal": "*"`, solution: `"Principal": { "AWS": "arn:aws:iam::123456789012:root" }`, checkKey: "arn:aws:iam", hints: ["Scope to your account", "Never use * for data"], expectedError: "Data exposure" },
+        { title: "Stale Keys", desc: "KMS keys never rotate.", bug: "rotation off", code: `# key created without rotation`, solution: `aws kms enable-key-rotation --key-id alias/my-key`, checkKey: "enable-key-rotation", hints: ["Rotate annually", "Automate it"], expectedError: "Long-lived keys" },
+        { title: "Blind VPC", desc: "No one sees the network traffic.", bug: "no flow logs", code: `# VPC without Flow Logs`, solution: `aws ec2 create-flow-logs \\\n  --resource-type VPC \\\n  --resource-ids vpc-123 \\\n  --traffic-type ALL \\\n  --log-group-name /aws/vpc/flow`, checkKey: "create-flow-logs", hints: ["Log all traffic", "ALL captures both directions"], expectedError: "Invisible incidents" },
+      ],
+    },
   },
   {
     slug: "reactnative", name: "React Native", icon: "reactnative", desc: "Debug mobile app crashes and RN quirks", accent: "#22d3ee", lang: "React Native", monacoLang: "javascript",
-    problems: [
-      { title: "FlatList Key Missing", desc: "React warns about keys.", bug: "No keyExtractor", code: `<FlatList data={items} renderItem={...} />`, solution: `<FlatList data={items} keyExtractor={i => i.id} renderItem={...} />`, checkKey: "keyExtractor={i => i.id}", hints: ["Add keyExtractor", "Or key prop on items"], expectedError: "Each child needs unique key" },
-      { title: "State Update Loop", desc: "setState in render infinite loop.", bug: "setState in render", code: `render() { this.setState({x: 1}); }`, solution: `componentDidMount() { this.setState({x: 1}); }`, checkKey: "componentDidMount", hints: ["Move to useEffect or lifecycle", "Never setState in render"], expectedError: "Too many re-renders" },
-      { title: "Image No Dimensions", desc: "Network image has 0 size.", bug: "No width/height", code: `<Image source={{uri}} />`, solution: `<Image source={{uri}} style={{width: 100, height: 100}} />`, checkKey: "width: 100, height: 100", hints: ["Set width and height", "Network images need dims"], expectedError: "Image not visible" },
-      { title: "AsyncStorage Sync", desc: "Reading AsyncStorage synchronously.", bug: "Not awaited", code: `const v = AsyncStorage.getItem('k');`, solution: `const v = await AsyncStorage.getItem('k');`, checkKey: "await AsyncStorage.getItem", hints: ["It's async", "Add await"], expectedError: "v is a Promise" },
-      { title: "Touch Missing", desc: "onPress not firing on Image.", bug: "No touchable", code: `<Image onPress={handle} />`, solution: `<TouchableOpacity onPress={handle}><Image /></TouchableOpacity>`, checkKey: "<TouchableOpacity onPress={handle}>", hints: ["Wrap in TouchableOpacity", "Image has no onPress"], expectedError: "onPress ignored" },
-      { title: "iOS Safe Area", desc: "Content behind notch.", bug: "No safe area", code: `<View><Text>Hi</Text></View>`, solution: `import { SafeAreaView } from 'react-native-safe-area-context';\n<SafeAreaView><Text>Hi</Text></SafeAreaView>`, checkKey: "SafeAreaView", hints: ["Use SafeAreaView", "Respects notch"], expectedError: "Content hidden by notch" },
-      { title: "Keyboard Covers Input", desc: "TextInput hidden by keyboard.", bug: "No avoiding view", code: `<TextInput />`, solution: `<KeyboardAvoidingView behavior='padding'>\n  <TextInput />\n</KeyboardAvoidingView>`, checkKey: "KeyboardAvoidingView", hints: ["Wrap in KeyboardAvoidingView", "Pushes content up"], expectedError: "Input hidden" },
-      { title: "Missing Permissions", desc: "Camera crash on iOS.", bug: "No plist entry", code: `# Info.plist missing`, solution: `<key>NSCameraUsageDescription</key>\n<string>We need camera for photos</string>`, checkKey: "NSCameraUsageDescription", hints: ["Add usage description", "Required for camera"], expectedError: "App crashes on camera" },
-      { title: "Fetch No Timeout", desc: "Hanging network request.", bug: "No timeout", code: `fetch(url)`, solution: `const c = new AbortController();\nsetTimeout(() => c.abort(), 5000);\nfetch(url, { signal: c.signal });`, checkKey: "AbortController", hints: ["Use AbortController", "Set timeout"], expectedError: "Hangs on slow network" },
-      { title: "Style Not Applied", desc: "Style prop is object not StyleSheet.", bug: "Inline style", code: `<View style={{f: 1}}>`, solution: `<View style={styles.container}>\nconst styles = StyleSheet.create({ container: { flex: 1 } });`, checkKey: "StyleSheet.create", hints: ["Use StyleSheet.create", "Better performance"], expectedError: "Slow re-renders" },
-      { title: "Missing Alt for A11y", desc: "Screen reader can't read image.", bug: "No accessibilityLabel", code: `<Image source={logo} />`, solution: `<Image source={logo} accessibilityLabel='Company logo' />`, checkKey: "accessibilityLabel", hints: ["Add accessibilityLabel", "For screen readers"], expectedError: "Inaccessible" },
-      { title: "Text Outside Text Component", desc: "String rendered directly in View.", bug: "String in View", code: `<View>Hello</View>`, solution: `<View><Text>Hello</Text></View>`, checkKey: "<Text>Hello</Text>", hints: ["Wrap text in <Text>", "RN requires Text component"], expectedError: "Text strings must be rendered within Text" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "Missing Key", desc: "FlatList warns and misrenders.", bug: "no keyExtractor", code: `<FlatList\n  data={items}\n  renderItem={({ item }) => <Text>{item.title}</Text>}\n/>`, solution: `<FlatList\n  data={items}\n  keyExtractor={(item) => item.id}\n  renderItem={({ item }) => <Text>{item.title}</Text>}\n/>`, checkKey: "keyExtractor", hints: ["Give rows stable keys", "Use item.id"], expectedError: "Warning + broken rows" },
+        { title: "Inline Styles", desc: "Styles re-create every render.", bug: "inline style objects", code: `<Text style={{ color: 'red', fontSize: 16 }}>Hi</Text>`, solution: `const styles = StyleSheet.create({\n  text: { color: 'red', fontSize: 16 },\n});\n// <Text style={styles.text}>Hi</Text>`, checkKey: "StyleSheet.create", hints: ["Create styles once", "Improves performance"], expectedError: "Jank on re-render" },
+        { title: "State Outside", desc: "setState is called outside the component.", bug: "module-level state", code: `let count = 0;\n// incremented in an event handler`, solution: `const [count, setCount] = useState(0);`, checkKey: "useState(0)", hints: ["useState lives in components", "UI should not read globals"], expectedError: "Stale UI" },
+      ],
+      Intermediate: [
+        { title: "List Re-Renders", desc: "Every row updates on each render.", bug: "no memo", code: `<FlatList data={items} renderItem={({ item }) => <ItemRow item={item} />} />`, solution: `const ItemRow = React.memo(({ item }) => (\n  <View>{item.title}</View>\n));`, checkKey: "React.memo", hints: ["Memoize rows", "Skip unchanged props"], expectedError: "Slow scrolling" },
+        { title: "Missing Deps", desc: "The effect uses stale values.", bug: "empty deps", code: `useEffect(() => {\n  loadUser(userId);\n}, []);`, solution: `useEffect(() => {\n  loadUser(userId);\n}, [userId]);`, checkKey: "[userId]", hints: ["List every dependency", "userId drives the fetch"], expectedError: "Stale data" },
+        { title: "Keyboard Hides Input", desc: "The form vanishes behind the keyboard.", bug: "no avoidance", code: `<View>{/* inputs */}</View>`, solution: `<KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>\n  {/* inputs */}\n</KeyboardAvoidingView>`, checkKey: "KeyboardAvoidingView", hints: ["Wrap the form", "Padding shifts it up"], expectedError: "Hidden fields" },
+      ],
+      Advanced: [
+        { title: "Focus Listener Leak", desc: "Listeners stack across focuses.", bug: "addListener in effect", code: `useEffect(() => {\n  navigation.addListener('focus', onFocus);\n}, []);`, solution: `useFocusEffect(React.useCallback(() => {\n  onFocus();\n}, [onFocus]));`, checkKey: "useFocusEffect", hints: ["useFocusEffect cleans up", "It re-runs per focus"], expectedError: "Duplicate calls" },
+        { title: "Unmounted SetState", desc: "Updates after unmount leak.", bug: "no cancellation", code: `useEffect(() => {\n  api.fetch(userId).then(setData);\n}, [userId]);`, solution: `useEffect(() => {\n  const controller = new AbortController();\n  api.fetch(userId, { signal: controller.signal }).then(setData);\n  return () => controller.abort();\n}, [userId]);`, checkKey: "AbortController", hints: ["Abort on cleanup", "Guard the update"], expectedError: "State on unmounted" },
+        { title: "Inline Callback", desc: "Handlers recreate every render.", bug: "new function each time", code: `onPress={() => handlePress(item.id)}`, solution: `const onPress = useCallback((id) => handlePress(id), [handlePress]);`, checkKey: "useCallback", hints: ["Stable callbacks", "Matters inside memoized lists"], expectedError: "Re-renders" },
+      ],
+      Nightmare: [
+        { title: "Timer Zombies", desc: "Intervals keep firing off-screen.", bug: "no clearInterval", code: `useEffect(() => {\n  const t = setInterval(tick, 1000);\n}, []);`, solution: `useEffect(() => {\n  const t = setInterval(tick, 1000);\n  return () => clearInterval(t);\n}, []);`, checkKey: "clearInterval(t)", hints: ["Clean up timers", "Return the teardown"], expectedError: "Battery drain" },
+        { title: "Native Driver Off", desc: "Animated runs on the JS thread.", bug: "no native driver", code: `Animated.timing(anim, {\n  toValue: 1,\n  duration: 300,\n}).start();`, solution: `Animated.timing(anim, {\n  toValue: 1,\n  duration: 300,\n  useNativeDriver: true,\n}).start();`, checkKey: "useNativeDriver", hints: ["Run on the UI thread", "useNativeDriver: true"], expectedError: "Janky animations" },
+        { title: "Token in Storage", desc: "Tokens sit in plain AsyncStorage.", bug: "insecure storage", code: `await AsyncStorage.setItem('token', token);`, solution: `await Keychain.setGenericPassword('session', token);`, checkKey: "Keychain", hints: ["Use the Keychain", "Tokens need secure storage"], expectedError: "Credential theft" },
+      ],
+    },
   },
   {
     slug: "flutter", name: "Flutter", icon: "flutter", desc: "Fix Flutter/Dart widget and state issues", accent: "#38bdf8", lang: "Flutter", monacoLang: "dart",
-    problems: [
-      { title: "setState After Dispose", desc: "Widget disposed but setState called.", bug: "No mounted check", code: `setState(() { x = 1; });`, solution: `if (mounted) setState(() { x = 1; });`, checkKey: "if (mounted)", hints: ["Check mounted first", "Avoids errors after dispose"], expectedError: "setState() called after dispose()" },
-      { title: "ListView Not Scrollable", desc: "Column with ListView crashes.", bug: "Nested unbounded", code: `Column(children: [ListView(...)])`, solution: `Column(children: [Expanded(child: ListView(...))])`, checkKey: "Expanded(child: ListView", hints: ["Wrap in Expanded", "Or use Flexible"], expectedError: "RenderFlex overflowed" },
-      { title: "Missing const", desc: "Widget rebuilds unnecessarily.", bug: "No const", code: `Text('hi')`, solution: `const Text('hi')`, checkKey: "const Text('hi')", hints: ["Add const constructor", "Prevents rebuilds"], expectedError: "Extra rebuilds" },
-      { title: "Async in initState", desc: "await in initState fails.", bug: "async initState", code: `void initState() async { await load(); }`, solution: `void initState() { super.initState(); load().then((_) => setState(() {})); }`, checkKey: "load().then", hints: ["Don't make initState async", "Use .then() or Future"], expectedError: "initState is void" },
-      { title: "Missing Key in ListView", desc: "State lost on reorder.", bug: "No key", code: `ListView(children: items.map((i) => Card()).toList())`, solution: `ListView(children: items.map((i) => Card(key: ValueKey(i.id))).toList())`, checkKey: "key: ValueKey", hints: ["Add ValueKey", "Preserves state"], expectedError: "State scrambled on reorder" },
-      { title: "Padding Wrong Widget", desc: "Trying to add padding on Container.", bug: "Extra Container", code: `Container(padding: EdgeInsets.all(8), child: Text('a'))`, solution: `Padding(padding: EdgeInsets.all(8), child: Text('a'))`, checkKey: "Padding(padding: EdgeInsets.all(8)", hints: ["Use Padding widget", "Lighter than Container"], expectedError: "Unnecessary wrapper" },
-      { title: "MediaQuery in build", desc: "Rebuilds on every keyboard change.", bug: "Full MediaQuery.of", code: `final size = MediaQuery.of(context).size;`, solution: `final size = MediaQuery.sizeOf(context);`, checkKey: "MediaQuery.sizeOf", hints: ["Use .sizeOf() etc.", "Scoped to only that property"], expectedError: "Excessive rebuilds" },
-      { title: "Future Not Awaited", desc: "Loading indicator never dismisses.", bug: "No await", code: `void save() { api.save(); setState(...); }`, solution: `Future<void> save() async { await api.save(); setState(...); }`, checkKey: "await api.save()", hints: ["Add await", "Then update state"], expectedError: "State updates before save done" },
-      { title: "Global Key Reuse", desc: "Same GlobalKey used twice.", bug: "Duplicate key", code: `final key = GlobalKey();\nWidget a = Foo(key: key);\nWidget b = Bar(key: key);`, solution: `final key1 = GlobalKey();\nfinal key2 = GlobalKey();`, checkKey: "final key1 = GlobalKey()", hints: ["GlobalKey must be unique", "One per widget"], expectedError: "Duplicate GlobalKey" },
-      { title: "Setter for Immutable", desc: "Trying to modify final field.", bug: "Modify final", code: `class W { final int x = 0; }\nw.x = 1;`, solution: `class W { int x = 0; }\nw.x = 1;`, checkKey: "int x = 0;", hints: ["Remove 'final'", "Or use copyWith pattern"], expectedError: "'x' can't be used as setter" },
-      { title: "Provider Not Above", desc: "Provider.of throws no context.", bug: "Provider below widget", code: `MyWidget()  // uses Provider\nMultiProvider(providers: [...])`, solution: `MultiProvider(providers: [...], child: MyWidget())`, checkKey: "MultiProvider(providers: [...], child: MyWidget())", hints: ["Provider must be ancestor", "Move above widget tree"], expectedError: "Could not find Provider" },
-      { title: "Image No Error Handler", desc: "Broken URL crashes UI.", bug: "No errorBuilder", code: `Image.network(url)`, solution: `Image.network(url, errorBuilder: (_, __, ___) => Icon(Icons.error))`, checkKey: "errorBuilder:", hints: ["Add errorBuilder", "Fallback on load fail"], expectedError: "Ugly error widget" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "SetState After Die", desc: "Updating a disposed widget throws.", bug: "no mounted guard", code: `setState(() { _value = result; });`, solution: `if (!mounted) return;\nsetState(() { _value = result; });`, checkKey: "!mounted", hints: ["Check mounted first", "After await, the widget may be gone"], expectedError: "setState() called after dispose" },
+        { title: "List Builds All", desc: "ListView constructs every item.", bug: "children list", code: `ListView(children: items.map((i) => Item(i)).toList())`, solution: `ListView.builder(itemCount: items.length, itemBuilder: (c, i) => Item(items[i]))`, checkKey: "ListView.builder", hints: ["Builder builds lazily", "Only visible rows"], expectedError: "Jank / memory" },
+        { title: "Text Overflows", desc: "Long text breaks the layout.", bug: "no ellipsis", code: `Text(post.title)`, solution: `Text(post.title, maxLines: 2, overflow: TextOverflow.ellipsis)`, checkKey: "TextOverflow.ellipsis", hints: ["Cap the lines", "Ellipsize the rest"], expectedError: "Render overflow" },
+      ],
+      Intermediate: [
+        { title: "FutureBuilder Spin", desc: "No waiting state means a flash.", bug: "missing ConnectionState", code: `FutureBuilder(\n  future: future,\n  builder: (c, snap) => Text(snap.data ?? ''),\n)`, solution: `FutureBuilder(\n  future: future,\n  builder: (c, snap) {\n    if (snap.connectionState == ConnectionState.waiting) {\n      return const CircularProgressIndicator();\n    }\n    return Text(snap.data ?? '');\n  },\n)`, checkKey: "ConnectionState", hints: ["Handle the waiting state", "Return a spinner"], expectedError: "Empty flash" },
+        { title: "No Keys", desc: "Reorder crashes state tracking.", bug: "missing keys", code: `ListView.builder(itemCount: items.length, itemBuilder: (c, i) => Item(items[i]))`, solution: `ListView.builder(itemCount: items.length, itemBuilder: (c, i) => Item(key: ValueKey(items[i].id), items[i]))`, checkKey: "ValueKey", hints: ["Stable identity per row", "ValueKey(items[i].id)"], expectedError: "Wrong state reuse" },
+        { title: "Controller Leak", desc: "Controllers are never disposed.", bug: "no dispose", code: `final _controller = TextEditingController();`, solution: `final _controller = TextEditingController();\n\n@override\nvoid dispose() {\n  _controller.dispose();\n  super.dispose();\n}`, checkKey: "_controller.dispose()", hints: ["Dispose controllers", "Avoid leaks"], expectedError: "Leak" },
+      ],
+      Advanced: [
+        { title: "Work in Build", desc: "Side effects run every rebuild.", bug: "fetch in build", code: `@override\nWidget build(context) {\n  api.fetch();\n  return Text('hi');\n}`, solution: `@override\nvoid initState() {\n  super.initState();\n  api.fetch();\n}\n\n@override\nWidget build(context) {\n  return Text('hi');\n}`, checkKey: "initState", hints: ["initState runs once", "Keep build pure"], expectedError: "Repeated fetches" },
+        { title: "Missing Const", desc: "The widget rebuilds needlessly.", bug: "no const", code: `return Padding(\n  padding: EdgeInsets.all(8),\n  child: Text('hi'),\n);`, solution: `return const Padding(\n  padding: EdgeInsets.all(8),\n  child: Text('hi'),\n);`, checkKey: "const Padding", hints: ["Const widgets are canonical", "Flutter skips rebuilding them"], expectedError: "Extra rebuilds" },
+        { title: "Heavy Parse", desc: "JSON parsing blocks the UI thread.", bug: "sync parse", code: `final list = jsonDecode(raw) as List;`, solution: `final list = await compute(parseJson, raw);`, checkKey: "compute(", hints: ["Run it on an isolate", "compute() returns a Future"], expectedError: "UI freeze" },
+      ],
+      Nightmare: [
+        { title: "EventChannel Leak", desc: "Native streams are never cancelled.", bug: "no cancel", code: `_channel.receiveBroadcastStream().listen(onEvent);`, solution: `_sub ??= _channel.receiveBroadcastStream().listen(onEvent);\n// later\n_sub?.cancel();`, checkKey: ".cancel()", hints: ["Cancel the subscription", "On dispose or teardown"], expectedError: "Native leak" },
+        { title: "Image Pop-In", desc: "Images flash in after load.", bug: "no precache", code: `Image.network(url)`, solution: `precacheImage(NetworkImage(url), context);`, checkKey: "precacheImage", hints: ["Preload ahead of time", "Smooth transitions"], expectedError: "Flicker" },
+        { title: "Pagination Race", desc: "Double-scroll loads the same page.", bug: "no in-flight guard", code: `scrollController.addListener(() {\n  if (position.pixels > maxScrollExtent - 200) {\n    loadMore();\n  }\n});`, solution: `if (_isLoading) return;\n_isLoading = true;\n// load page, then _isLoading = false`, checkKey: "_isLoading", hints: ["Guard re-entrancy", "Reset after the fetch"], expectedError: "Duplicate pages" },
+      ],
+    },
   },
   {
     slug: "angular", name: "Angular", icon: "angular", desc: "Fix Angular components, RxJS, and DI", accent: "#ef4444", lang: "Angular", monacoLang: "typescript",
-    problems: [
-      { title: "Subscription Leak", desc: "Component destroyed but observable still running.", bug: "No unsubscribe", code: `ngOnInit() { this.sub = obs$.subscribe(...); }`, solution: `ngOnDestroy() { this.sub.unsubscribe(); }`, checkKey: "this.sub.unsubscribe()", hints: ["Unsubscribe in ngOnDestroy", "Or use takeUntil"], expectedError: "Memory leak" },
-      { title: "ChangeDetection Slow", desc: "Component re-renders on every event.", bug: "Default strategy", code: `@Component({ ... })`, solution: `@Component({ changeDetection: ChangeDetectionStrategy.OnPush })`, checkKey: "ChangeDetectionStrategy.OnPush", hints: ["Use OnPush", "Detects only on input changes"], expectedError: "Slow performance" },
-      { title: "Async Pipe Missing", desc: "Manual subscribe in template.", bug: "Manual", code: `this.data = obs$.subscribe(d => this.data = d);`, solution: `<!-- template -->\n{{ data$ | async }}`, checkKey: "| async", hints: ["Use async pipe", "Auto-unsubscribes"], expectedError: "Memory leak, manual code" },
-      { title: "Provider Missing", desc: "Service can't be injected.", bug: "No providedIn", code: `@Injectable() class MyService { }`, solution: `@Injectable({ providedIn: 'root' }) class MyService { }`, checkKey: "providedIn: 'root'", hints: ["Add providedIn", "Or add to module providers"], expectedError: "NullInjectorError" },
-      { title: "trackBy Missing", desc: "*ngFor rebuilds all items.", bug: "No trackBy", code: `<div *ngFor='let item of items'>`, solution: `<div *ngFor='let item of items; trackBy: trackById'>`, checkKey: "trackBy: trackById", hints: ["Add trackBy function", "Prevents full rebuild"], expectedError: "Slow list updates" },
-      { title: "Two-way Binding Wrong", desc: "[(ngModel)] not working.", bug: "Missing FormsModule", code: `<input [(ngModel)]='name' />`, solution: `// module.ts\nimport { FormsModule } from '@angular/forms';\n@NgModule({ imports: [FormsModule] })`, checkKey: "imports: [FormsModule]", hints: ["Import FormsModule", "Required for ngModel"], expectedError: "Can't bind to ngModel" },
-      { title: "HttpClient Wrong", desc: "http.get returns Observable, not data.", bug: "Not subscribed", code: `const data = this.http.get(url);`, solution: `this.http.get(url).subscribe(d => this.data = d);`, checkKey: ".subscribe(d", hints: ["Subscribe to observable", "Or use async pipe"], expectedError: "data is Observable, not object" },
-      { title: "Zone.js Leak", desc: "setInterval keeps zone alive.", bug: "Inside zone", code: `setInterval(poll, 1000);`, solution: `this.ngZone.runOutsideAngular(() => setInterval(poll, 1000));`, checkKey: "runOutsideAngular", hints: ["Use ngZone.runOutsideAngular", "Prevents change detection thrash"], expectedError: "Constant change detection" },
-      { title: "ViewChild Undefined", desc: "Accessing @ViewChild in ngOnInit.", bug: "Too early", code: `ngOnInit() { this.child.method(); }`, solution: `ngAfterViewInit() { this.child.method(); }`, checkKey: "ngAfterViewInit()", hints: ["Use ngAfterViewInit", "ViewChild not ready in ngOnInit"], expectedError: "Cannot read property of undefined" },
-      { title: "Router Link Wrong", desc: "Absolute path required.", bug: "String href", code: `<a href='/users'>Users</a>`, solution: `<a routerLink='/users'>Users</a>`, checkKey: "routerLink='/users'", hints: ["Use routerLink", "SPA navigation"], expectedError: "Full page reload" },
-      { title: "Standalone Missing", desc: "Angular 15+ requires standalone or module.", bug: "No decorator config", code: `@Component({ selector: 'x' })`, solution: `@Component({ selector: 'x', standalone: true, imports: [CommonModule] })`, checkKey: "standalone: true", hints: ["Mark as standalone", "Import needed modules"], expectedError: "Component not part of any module" },
-      { title: "OnInit Not Implemented", desc: "ngOnInit doesn't fire.", bug: "Missing implements", code: `export class MyComp { ngOnInit() { } }`, solution: `export class MyComp implements OnInit { ngOnInit() { } }`, checkKey: "implements OnInit", hints: ["Add implements OnInit", "Import from @angular/core"], expectedError: "Lifecycle not enforced" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "Observable Not Async", desc: "The template shows the object, not data.", bug: "no async pipe", code: `users$ = service.getUsers();\n// template: {{ users$ }}`, solution: `// template:\n<li *ngFor="let u of users$ | async">{{ u.name }}</li>`, checkKey: "| async", hints: ["Unwrap with | async", "It also unsubscribes"], expectedError: "[object Object]" },
+        { title: "Broken Two-Way", desc: "The input never updates the model.", bug: "one-way binding", code: `<input [value]="name">`, solution: `<input [(ngModel)]="name">`, checkKey: "[(ngModel)]", hints: ["Two-way needs the banana box", "[(ngModel)]"], expectedError: "Stale value" },
+        { title: "All Rows Rebuild", desc: "ngFor recreates every row.", bug: "no trackBy", code: `<li *ngFor="let u of users">{{ u.name }}</li>`, solution: `<li *ngFor="let u of users; trackBy: trackById">{{ u.name }}</li>`, checkKey: "trackBy: trackById", hints: ["Give rows identity", "trackBy reduces rebuilds"], expectedError: "DOM churn" },
+      ],
+      Intermediate: [
+        { title: "Eager Changes", desc: "Every event triggers a full check.", bug: "default strategy", code: `@Component({\n  selector: 'app-card',\n  template: '...'\n})`, solution: `@Component({\n  selector: 'app-card',\n  changeDetection: ChangeDetectionStrategy.OnPush,\n  template: '...'\n})`, checkKey: "OnPush", hints: ["OnPush checks only on input change", "Helps big trees"], expectedError: "Perf hits" },
+        { title: "Subscription Leak", desc: "Observables never unsubscribe.", bug: "raw subscribe", code: `ngOnInit() {\n  service.getData().subscribe(d => this.data = d);\n}`, solution: `ngOnInit() {\n  service.getData().pipe(takeUntil(this.destroy$)).subscribe(d => this.data = d);\n}\n\nngOnDestroy() {\n  this.destroy$.next();\n  this.destroy$.complete();\n}`, checkKey: "takeUntil", hints: ["takeUntil the destroy subject", "Complete it on destroy"], expectedError: "Memory leak" },
+        { title: "Stale Params", desc: "The route change is ignored.", bug: "read params once", code: `ngOnInit() {\n  const id = this.route.snapshot.paramMap.get('id');\n  this.load(id);\n}`, solution: `ngOnInit() {\n  this.route.paramMap.pipe(\n    switchMap(params => this.load(params.get('id')))\n  ).subscribe();\n}`, checkKey: "switchMap", hints: ["React to param changes", "switchMap cancels stale calls"], expectedError: "Wrong data" },
+      ],
+      Advanced: [
+        { title: "Per-Module Service", desc: "Each lazy module gets its own copy.", bug: "providedIn in module", code: `@Injectable()\nexport class ApiService { }\n// provided in a lazy module`, solution: `@Injectable({ providedIn: 'root' })\nexport class ApiService { }`, checkKey: "providedIn: 'root'", hints: ["providedIn root = singleton", "Lazy modules re-provide otherwise"], expectedError: "Multiple instances" },
+        { title: "Eager Routes", desc: "Everything loads on startup.", bug: "no lazy loading", code: `{ path: 'admin', component: AdminComponent }`, solution: `{ path: 'admin', loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule) }`, checkKey: "loadChildren", hints: ["Code-split routes", "import() lazily"], expectedError: "Big initial bundle" },
+        { title: "Impure Timing", desc: "The pipe never recomputes.", bug: "pure default", code: `@Pipe({ name: 'sort' })\nexport class SortPipe { }`, solution: `@Pipe({ name: 'sort', pure: false })\nexport class SortPipe { }`, checkKey: "pure: false", hints: ["Pure pipes cache", "impure re-runs on each check"], expectedError: "Stale output" },
+      ],
+      Nightmare: [
+        { title: "Wrong Flattening", desc: "mergeMap stacks requests without limit.", bug: "mergeMap flood", code: `search$.pipe(mergeMap(q => api.search(q))).subscribe(...)`, solution: `search$.pipe(\n  debounceTime(300),\n  switchMap(q => api.search(q))\n).subscribe(...)`, checkKey: "debounceTime(300)", hints: ["Debounce keystrokes", "switchMap cancels the old call"], expectedError: "Request flood" },
+        { title: "Detector Overwork", desc: "Off-screen components keep checking.", bug: "never detached", code: `@Component({ selector: 'app-offscreen', template: '...' })`, solution: `// after the data is ready:\nthis.cd.detach();`, checkKey: "cd.detach()", hints: ["Detach from change detection", "Re-attach when needed"], expectedError: "Perf drain" },
+        { title: "Interceptor Order", desc: "Auth never runs before requests.", bug: "wrong provider order", code: `providers: [{ provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }]`, solution: `providers: [\n  { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },\n  { provide: HTTP_INTERCEPTORS, useClass: LoggingInterceptor, multi: true }\n]`, checkKey: "LoggingInterceptor", hints: ["multi allows stacking", "Order defines the chain"], expectedError: "Interceptors skipped" },
+      ],
+    },
   },
   {
     slug: "vue", name: "Vue", icon: "vue", desc: "Fix Vue 3 reactivity and component issues", accent: "#10b981", lang: "Vue", monacoLang: "html",
-    problems: [
-      { title: "Reactivity Lost", desc: "Object property not reactive.", bug: "Destructure ref", code: `const { name } = state;`, solution: `const { name } = toRefs(state);`, checkKey: "toRefs(state)", hints: ["Use toRefs()", "Preserves reactivity on destructure"], expectedError: "name doesn't update UI" },
-      { title: "Ref Access Wrong", desc: "Accessing ref value directly.", bug: "No .value", code: `count + 1  // in script`, solution: `count.value + 1  // in script`, checkKey: "count.value + 1", hints: ["Use .value in script", "Template auto-unwraps"], expectedError: "NaN in script" },
-      { title: "v-for Missing key", desc: "Vue warns about missing key.", bug: "No :key", code: `<li v-for='item in items'>`, solution: `<li v-for='item in items' :key='item.id'>`, checkKey: ":key='item.id'", hints: ["Add :key", "Vue needs unique id"], expectedError: "v-for requires key" },
-      { title: "Emit Not Typed", desc: "Emit works but no type safety.", bug: "No defineEmits", code: `emit('save', data);`, solution: `const emit = defineEmits<{ save: [data: Data] }>();\nemit('save', data);`, checkKey: "defineEmits<{", hints: ["Use defineEmits", "Add TS types"], expectedError: "No type safety" },
-      { title: "Composition API Missing", desc: "Using this in <script setup>.", bug: "Options syntax in setup", code: `<script setup>\nexport default { data() { return {} } }`, solution: `<script setup>\nconst count = ref(0);`, checkKey: "const count = ref(0)", hints: ["Use Composition API", "No 'this' in setup"], expectedError: "this is undefined" },
-      { title: "Watch No Immediate", desc: "watch doesn't run on init.", bug: "No immediate", code: `watch(source, cb);`, solution: `watch(source, cb, { immediate: true });`, checkKey: "immediate: true", hints: ["Add immediate: true", "Runs cb on init"], expectedError: "cb not run initially" },
-      { title: "Router Push Wrong", desc: "Programmatic nav fails.", bug: "String path", code: `router.push('/user/' + id);`, solution: `router.push({ name: 'user', params: { id } });`, checkKey: "name: 'user', params:", hints: ["Use named routes", "Safer than string paths"], expectedError: "Route not found" },
-      { title: "Prop Mutation", desc: "Modifying prop directly.", bug: "Mutating prop", code: `props.count++;`, solution: `const emit = defineEmits(['update:count']);\nemit('update:count', props.count + 1);`, checkKey: "emit('update:count'", hints: ["Emit event to parent", "Or use v-model"], expectedError: "Prop mutation warning" },
-      { title: "Async Setup Wrong", desc: "Component doesn't render.", bug: "async setup no Suspense", code: `<script setup>\nconst data = await fetch();`, solution: `<!-- parent -->\n<Suspense><MyComp /></Suspense>`, checkKey: "<Suspense>", hints: ["Wrap in Suspense", "Or use onMounted"], expectedError: "Component invisible" },
-      { title: "Slot Fallback Missing", desc: "Empty slot shows nothing.", bug: "No fallback", code: `<slot />`, solution: `<slot>Default content</slot>`, checkKey: "<slot>Default content</slot>", hints: ["Add fallback content", "Between slot tags"], expectedError: "Blank on missing slot" },
-      { title: "Computed Not Cached", desc: "Method used instead of computed.", bug: "Method in template", code: `<div>{{ fullName() }}</div>`, solution: `const fullName = computed(() => first + ' ' + last);\n<div>{{ fullName }}</div>`, checkKey: "const fullName = computed", hints: ["Use computed()", "Caches result"], expectedError: "Re-runs on every render" },
-      { title: "v-model on Custom", desc: "Custom component doesn't sync.", bug: "No modelValue", code: `props: ['value'], emits: ['input']`, solution: `defineProps<{ modelValue: string }>();\ndefineEmits<{ 'update:modelValue': [v: string] }>();`, checkKey: "update:modelValue", hints: ["Use modelValue + update:modelValue", "Vue 3 convention"], expectedError: "v-model doesn't work" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "Prop Mutated", desc: "Changing a prop breaks the flow.", bug: "v-model on prop", code: `props: ['modelValue']\n// <input v-model="modelValue">`, solution: `props: ['modelValue']\n// <input :value="modelValue" @input="$emit('update:modelValue', $event.target.value)">`, checkKey: "update:modelValue", hints: ["Emit updates", "Props are read-only"], expectedError: "Vue warning" },
+        { title: "Keyless Loop", desc: "Rows get reused wrongly.", bug: "no :key", code: `<li v-for="item in items">{{ item.name }}</li>`, solution: `<li v-for="item in items" :key="item.id">{{ item.name }}</li>`, checkKey: ':key="item.id"', hints: ["Give rows keys", "Stable identity"], expectedError: "Wrong state reuse" },
+        { title: "Undefined Access", desc: "The object may be null.", bug: "no v-if guard", code: `<p>{{ user.name }}</p>`, solution: `<p v-if="user">{{ user.name }}</p>`, checkKey: 'v-if="user"', hints: ["Guard before access", "Or use optional chaining"], expectedError: "Cannot read properties of null" },
+      ],
+      Intermediate: [
+        { title: "Shallow Watch", desc: "Nested changes are missed.", bug: "no deep watch", code: `watch(obj, handler);`, solution: `watch(obj, handler, { deep: true });`, checkKey: "deep: true", hints: ["deep watches nested fields", "Add { deep: true }"], expectedError: "Missed updates" },
+        { title: "Dom Not Ready", desc: "Measuring happens too early.", bug: "no nextTick", code: `show() {\n  this.visible = true;\n  const h = this.$refs.box.offsetHeight;\n}`, solution: `async show() {\n  this.visible = true;\n  await this.$nextTick();\n  const h = this.$refs.box.offsetHeight;\n}`, checkKey: "$nextTick()", hints: ["Wait for the DOM flush", "await this.$nextTick()"], expectedError: "0 height" },
+        { title: "Listener Ghost", desc: "Window listeners never die.", bug: "no cleanup", code: `mounted() {\n  window.addEventListener('resize', this.onResize);\n}`, solution: `mounted() {\n  window.addEventListener('resize', this.onResize);\n}\n\nunmounted() {\n  window.removeEventListener('resize', this.onResize);\n}`, checkKey: "unmounted()", hints: ["Remove on unmount", "Match the exact handler"], expectedError: "Listener leak" },
+      ],
+      Advanced: [
+        { title: "v-model Passthrough", desc: "The wrapper breaks the contract.", bug: "manual bridging", code: `props: ['modelValue']\n// manually forwarding value/events`, solution: `props: ['modelValue']\n// <Child v-model="modelValue" /> works via defineModel`, checkKey: "defineModel", hints: ["defineModel simplifies", "Clean two-way wrappers"], expectedError: "Broken v-model" },
+        { title: "Sync Lazy Load", desc: "The heavy component ships always.", bug: "static import", code: `import Chart from './Chart.vue'`, solution: `const Chart = defineAsyncComponent(() => import('./Chart.vue'));`, checkKey: "defineAsyncComponent", hints: ["Lazy-load heavy parts", "Code-split routes"], expectedError: "Big bundle" },
+        { title: "Missing Default", desc: "inject() throws without a provider.", bug: "no fallback", code: `const api = inject('api');\napi.fetch();`, solution: `const api = inject('api', defaultApi);\napi.fetch();`, checkKey: "inject('api', defaultApi)", hints: ["Provide a fallback", "Or guard for undefined"], expectedError: "inject() warning" },
+      ],
+      Nightmare: [
+        { title: "Lost Reactivity", desc: "Destructuring severs the proxy.", bug: "destructured reactive", code: `const { user } = reactive({ user: 'ada' });`, solution: `const state = reactive({ user: 'ada' });\nconst { user } = toRefs(state);`, checkKey: "toRefs", hints: ["toRefs keeps refs live", "Destructuring plain proxies is one-way"], expectedError: "Stale value" },
+        { title: "Watcher Zombie", desc: "Watchers run after unmount.", bug: "no manual stop", code: `setup() {\n  watch(source, handler);\n}`, solution: `setup() {\n  const stop = watch(source, handler);\n  onUnmounted(stop);\n}`, checkKey: "onUnmounted(stop)", hints: ["watch returns a stopper", "Stop it on unmount"], expectedError: "Leak" },
+        { title: "Teleport Target", desc: "The modal renders inside the app.", bug: "no Teleport", code: `<div class="modal">...</div>`, solution: `<Teleport to="body">\n  <div class="modal">...</div>\n</Teleport>`, checkKey: 'to="body"', hints: ["Teleport to body", "Escapes overflow contexts"], expectedError: "Clipped modal" },
+      ],
+    },
   },
   {
     slug: "react", name: "React + TSX", icon: "react", desc: "Fix React hooks, TypeScript, and rendering bugs", accent: "#22d3ee", lang: "React + TSX", monacoLang: "typescript",
-    problems: [
-      { title: "useState Stale Closure", desc: "Handler sees old state.", bug: "Missing dep", code: `useEffect(() => { const t = setInterval(() => setCount(count+1), 1000); }, []);`, solution: `useEffect(() => { const t = setInterval(() => setCount(c => c+1), 1000); }, []);`, checkKey: "setCount(c => c+1)", hints: ["Use functional setState", "Avoids stale closure"], expectedError: "count stuck at 1" },
-      { title: "Missing Dep in Effect", desc: "Effect uses stale value.", bug: "Empty deps", code: `useEffect(() => { fetch(url); }, []);`, solution: `useEffect(() => { fetch(url); }, [url]);`, checkKey: "[url]", hints: ["Add all deps used inside", "Or ESLint plugin catches this"], expectedError: "Doesn't refetch on url change" },
-      { title: "Key on Wrong Element", desc: "Key inside instead of on top.", bug: "Wrong key placement", code: `items.map(i => <div><li key={i.id}>{i}</li></div>)`, solution: `items.map(i => <div key={i.id}><li>{i}</li></div>)`, checkKey: "<div key={i.id}>", hints: ["Key on top-level element", "In the map callback"], expectedError: "Each child needs key" },
-      { title: "TS any Type", desc: "Using 'any' defeats TypeScript.", bug: "any type", code: `function fetch(data: any) { }`, solution: `function fetch<T>(data: T) { }`, checkKey: "<T>(data: T)", hints: ["Use generics", "Or specific type"], expectedError: "No type safety" },
-      { title: "useEffect Cleanup", desc: "Subscription not cleaned up.", bug: "No cleanup", code: `useEffect(() => { const s = subscribe(); }, []);`, solution: `useEffect(() => { const s = subscribe(); return () => s.unsubscribe(); }, []);`, checkKey: "return () => s.unsubscribe()", hints: ["Return cleanup function", "Runs on unmount"], expectedError: "Memory leak" },
-      { title: "useCallback Missing", desc: "Child re-renders on every render.", bug: "New function each time", code: `<Child onClick={() => handle(id)} />`, solution: `const cb = useCallback(() => handle(id), [id]);\n<Child onClick={cb} />`, checkKey: "useCallback", hints: ["Wrap in useCallback", "Stable reference"], expectedError: "Unnecessary re-renders" },
-      { title: "Props Any", desc: "Props not typed.", bug: "No interface", code: `function Card(props) { }`, solution: `interface Props { title: string }\nfunction Card(props: Props) { }`, checkKey: "interface Props", hints: ["Define Props interface", "Type the component"], expectedError: "No autocomplete" },
-      { title: "Direct DOM Mutation", desc: "Modifying DOM outside React.", bug: "document.getElementById", code: `document.getElementById('x').innerText = 'hi';`, solution: `<div ref={ref}>{text}</div>`, checkKey: "ref={ref}", hints: ["Use refs and state", "Never touch DOM directly"], expectedError: "React overwrites changes" },
-      { title: "Conditional Hook", desc: "useState inside if.", bug: "Conditional call", code: `if (x) { const [s] = useState(); }`, solution: `const [s] = useState();\nif (x) { /* use s */ }`, checkKey: "const [s] = useState();\\nif (x)", hints: ["Hooks at top level", "No conditions/loops"], expectedError: "React Hook rules violated" },
-      { title: "Missing return in JSX map", desc: "map body has statement not expression.", bug: "No return", code: `items.map(i => { <div>{i}</div> })`, solution: `items.map(i => <div>{i}</div>)`, checkKey: "items.map(i => <div>{i}</div>)", hints: ["Remove braces or return", "Arrow body vs expression"], expectedError: "Nothing rendered" },
-      { title: "TS Event Type", desc: "Event handler typed as any.", bug: "any event", code: `const onChange = (e: any) => { }`, solution: `const onChange = (e: React.ChangeEvent<HTMLInputElement>) => { }`, checkKey: "React.ChangeEvent<HTMLInputElement>", hints: ["Type the event", "React provides types"], expectedError: "No type safety on e" },
-      { title: "State Batching Missed", desc: "Two setState calls in async.", bug: "Non-batched", code: `setTimeout(() => { setA(1); setB(2); }, 0);`, solution: `import { unstable_batchedUpdates } from 'react-dom';\nsetTimeout(() => unstable_batchedUpdates(() => { setA(1); setB(2); }), 0);`, checkKey: "unstable_batchedUpdates", hints: ["React 18 auto-batches", "Or use batchedUpdates"], expectedError: "Two re-renders" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "Missing Keys", desc: "React warns and misorders rows.", bug: "no key", code: `{items.map((item) => <li>{item.name}</li>)}`, solution: `{items.map((item) => <li key={item.id}>{item.name}</li>)}`, checkKey: "key={item.id}", hints: ["Give rows identity", "Avoid index keys when possible"], expectedError: "Warning + wrong reuse" },
+        { title: "DOM Directly", desc: "Mutating the DOM outside React.", bug: "document.getElementById", code: `function Toast({ msg }) {\n  document.getElementById('toast').textContent = msg;\n  return null;\n}`, solution: `function Toast({ msg }) {\n  return <div>{msg}</div>;\n}`, checkKey: "return <div>{msg}</div>", hints: ["Render, do not mutate", "State drives the DOM"], expectedError: "Stale UI" },
+        { title: "Props Mutated", desc: "Modifying props breaks purity.", bug: "props.push", code: `function List({ items }) {\n  items.push({ id: 99, name: 'x' });\n  return <ul>{items.map(i => <li key={i.id}>{i.name}</li>)}</ul>;\n}`, solution: `function List({ items }) {\n  const next = [...items, { id: 99, name: 'x' }];\n  return <ul>{next.map(i => <li key={i.id}>{i.name}</li>)}</ul>;\n}`, checkKey: "[...items]", hints: ["Copy before changing", "Never mutate props"], expectedError: "Side effects" },
+      ],
+      Intermediate: [
+        { title: "Stale Closure", desc: "The interval sees an old count.", bug: "missing dep", code: `useEffect(() => {\n  const t = setInterval(() => setCount(count + 1), 1000);\n  return () => clearInterval(t);\n}, []);`, solution: `useEffect(() => {\n  const t = setInterval(() => setCount(c => c + 1), 1000);\n  return () => clearInterval(t);\n}, []);`, checkKey: "c => c + 1", hints: ["Use the functional update", "setCount(c => c + 1)"], expectedError: "Stuck at 1" },
+        { title: "Listener Leak", desc: "Window listeners outlive the component.", bug: "no cleanup", code: `useEffect(() => {\n  window.addEventListener('resize', onResize);\n}, []);`, solution: `useEffect(() => {\n  window.addEventListener('resize', onResize);\n  return () => window.removeEventListener('resize', onResize);\n}, []);`, checkKey: "removeEventListener('resize', onResize)", hints: ["Return the cleanup", "Mirror add/remove"], expectedError: "Listener leak" },
+        { title: "Unmemoized Row", desc: "Every parent render redraws rows.", bug: "no React.memo", code: `function Row({ item }) { return <li>{item.name}</li>; }`, solution: `const Row = React.memo(function Row({ item }) {\n  return <li>{item.name}</li>;\n});`, checkKey: "React.memo", hints: ["Memoize stable rows", "Skip unchanged props"], expectedError: "Re-render storm" },
+      ],
+      Advanced: [
+        { title: "Async SetState", desc: "A stale fetch overwrites newer data.", bug: "race between calls", code: `useEffect(() => {\n  fetchData(userId).then(setData);\n}, [userId]);`, solution: `useEffect(() => {\n  let cancelled = false;\n  fetchData(userId).then(d => { if (!cancelled) setData(d); });\n  return () => { cancelled = true; };\n}, [userId]);`, checkKey: "cancelled", hints: ["Guard the late response", "Cleanup flips the flag"], expectedError: "Wrong data shown" },
+        { title: "New Callback Each Time", desc: "Handlers change identity every render.", bug: "inline arrow", code: `onClick={() => save(id)}`, solution: `const handleSave = useCallback(() => save(id), [id, save]);`, checkKey: "useCallback", hints: ["Stabilize callbacks", "Helps memoized children"], expectedError: "Re-renders" },
+        { title: "Controlled Drift", desc: "The input becomes read-only.", bug: "value without onChange", code: `<input value={text} />`, solution: `<input value={text} onChange={(e) => setText(e.target.value)} />`, checkKey: "onChange={(e) => setText(e.target.value)}", hints: ["Controlled needs onChange", "Or use defaultValue"], expectedError: "Type nothing" },
+      ],
+      Nightmare: [
+        { title: "Context Storm", desc: "Every consumer re-renders.", bug: "single context", code: `const AppContext = createContext(state);\n// the whole tree consumes it`, solution: `const settings = useMemo(() => ({ theme, lang }), [theme, lang]);\n// narrow contexts per concern`, checkKey: "useMemo", hints: ["Split contexts", "Memoize the value"], expectedError: "Render storm" },
+        { title: "Lazy Never Loads", desc: "The big page ships up front.", bug: "static import", code: `import AdminPage from './AdminPage';`, solution: `const AdminPage = React.lazy(() => import('./AdminPage'));\n// <Suspense fallback={<Spinner />}>`, checkKey: "React.lazy", hints: ["Code-split the route", "Wrap in Suspense"], expectedError: "Big bundle" },
+        { title: "StrictMode Double", desc: "Effects run twice and leak.", bug: "unclean setup", code: `useEffect(() => {\n  socket.connect();\n}, []);`, solution: `useEffect(() => {\n  socket.connect();\n  return () => socket.disconnect();\n}, []);`, checkKey: "socket.disconnect()", hints: ["StrictMode replays effects", "Return a symmetric cleanup"], expectedError: "Double connections" },
+      ],
+    },
   },
   {
     slug: "html", name: "HTML", icon: "html", desc: "Fix semantic HTML and accessibility issues", accent: "#f97316", lang: "HTML", monacoLang: "html",
-    problems: [
-      { title: "Missing alt", desc: "Image has no alt attribute.", bug: "No alt", code: `<img src='logo.png'>`, solution: `<img src='logo.png' alt='Company logo'>`, checkKey: "alt='Company logo'", hints: ["Add alt attribute", "Screen readers need it"], expectedError: "Fails a11y audit" },
-      { title: "Wrong Doctype", desc: "Old doctype triggers quirks mode.", bug: "HTML 4 doctype", code: `<!DOCTYPE html PUBLIC ...>`, solution: `<!DOCTYPE html>`, checkKey: "<!DOCTYPE html>", hints: ["Use HTML5 doctype", "Simple and modern"], expectedError: "Quirks mode CSS bugs" },
-      { title: "Div for Button", desc: "Using div with onclick.", bug: "Non-semantic", code: `<div onclick='save()'>Save</div>`, solution: `<button type='button' onclick='save()'>Save</button>`, checkKey: "<button type='button'", hints: ["Use <button>", "Focusable, accessible"], expectedError: "Not keyboard accessible" },
-      { title: "Missing lang", desc: "No lang attribute on html.", bug: "No lang", code: `<html>`, solution: `<html lang='en'>`, checkKey: "lang='en'", hints: ["Add lang attribute", "Helps screen readers"], expectedError: "a11y warning" },
-      { title: "Inline Style", desc: "Style attribute for everything.", bug: "style=", code: `<p style='color:red'>`, solution: `<p class='error'>\n// CSS: .error { color: red; }`, checkKey: "class='error'", hints: ["Use CSS class", "Separation of concerns"], expectedError: "Hard to maintain" },
-      { title: "Missing viewport", desc: "No mobile viewport meta.", bug: "No meta", code: `<head></head>`, solution: `<head>\n<meta name='viewport' content='width=device-width, initial-scale=1'>\n</head>`, checkKey: 'name="viewport"', hints: ["Add viewport meta", "Required for mobile"], expectedError: "Zoomed out on mobile" },
-      { title: "Form No Labels", desc: "Input without label.", bug: "No label", code: `<input type='text' name='email'>`, solution: `<label for='email'>Email</label>\n<input id='email' type='text' name='email'>`, checkKey: "<label for='email'>", hints: ["Associate label", "Improves a11y"], expectedError: "Screen readers confused" },
-      { title: "Table for Layout", desc: "Using table for page layout.", bug: "Layout table", code: `<table><tr><td>Header</td></tr></table>`, solution: `<header>Header</header>`, checkKey: "<header>", hints: ["Use semantic elements", "Table is for tabular data"], expectedError: "Bad semantics" },
-      { title: "Nested Interactive", desc: "Button inside link.", bug: "a > button", code: `<a href='/x'><button>Click</button></a>`, solution: `<a href='/x' class='btn-link'>Click</a>`, checkKey: "class='btn-link'", hints: ["Don't nest interactive", "Style link like button"], expectedError: "Invalid HTML" },
-      { title: "SVG No title", desc: "SVG icon has no title.", bug: "No title", code: `<svg>...</svg>`, solution: `<svg role='img' aria-labelledby='icon-title'><title id='icon-title'>Save icon</title>...</svg>`, checkKey: "<title id='icon-title'>", hints: ["Add <title> inside SVG", "Or aria-label"], expectedError: "Icon invisible to a11y" },
-      { title: "Missing Charset", desc: "Special characters garbled.", bug: "No meta charset", code: `<head></head>`, solution: `<head><meta charset='utf-8'></head>`, checkKey: "charset='utf-8'", hints: ["Add charset meta", "First in head"], expectedError: "Garbled characters" },
-      { title: "iframe No title", desc: "Iframe has no accessible name.", bug: "No title attr", code: `<iframe src='...'>`, solution: `<iframe src='...' title='Video player'>`, checkKey: "title='Video player'", hints: ["Add title attribute", "Names the iframe"], expectedError: "a11y audit fails" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "Missing Alt", desc: "Screen readers get nothing.", bug: "no alt attribute", code: `<img src="logo.png">`, solution: `<img src="logo.png" alt="Climbug logo">`, checkKey: 'alt="Climbug logo"', hints: ["Describe the image", "Decorative ones can be alt=''"], expectedError: "Inaccessible" },
+        { title: "Unclosed Section", desc: "The layout bleeds into siblings.", bug: "missing </div>", code: `<main>\n  <div class="content">\n    <p>Hi</p>\n</main>`, solution: `<main>\n  <div class="content">\n    <p>Hi</p>\n  </div>\n</main>`, checkKey: "</div>", hints: ["Close every div", "Match the nesting"], expectedError: "Broken layout" },
+        { title: "Illegal Nesting", desc: "A p inside a p is invalid.", bug: "p in p", code: `<p>Outer <p>Inner</p> text</p>`, solution: `<p>Outer <span>Inner</span> text</p>`, checkKey: "<span>Inner</span>", hints: ["Use span for inline", "p cannot nest p"], expectedError: "Split paragraphs" },
+      ],
+      Intermediate: [
+        { title: "Duplicate Id", desc: "Two elements share an id.", bug: "id twice", code: `<h1 id="title">A</h1>\n<h2 id="title">B</h2>`, solution: `<h1 id="main-title">A</h1>\n<h2 id="sub-title">B</h2>`, checkKey: 'id="main-title"', hints: ["Ids must be unique", "Use classes for groups"], expectedError: "Broken anchors" },
+        { title: "Form Submits", desc: "A button reloads the page.", bug: "default type=submit", code: `<button>Save draft</button>`, solution: `<button type="button">Save draft</button>`, checkKey: 'type="button"', hints: ["Outside forms or without type", "type=button prevents submit"], expectedError: "Unexpected reload" },
+        { title: "Table Unclear", desc: "Headers do not map to columns.", bug: "no scope", code: `<th>Name</th><th>Score</th>`, solution: `<th scope="col">Name</th><th scope="col">Score</th>`, checkKey: 'scope="col"', hints: ["scope labels the axis", "Helps screen readers"], expectedError: "Confusing tables" },
+      ],
+      Advanced: [
+        { title: "Unlabeled Input", desc: "The field has no accessible name.", bug: "no label", code: `<input id="email" type="email">`, solution: `<label for="email">Email</label>\n<input id="email" type="email">`, checkKey: 'for="email"', hints: ["Pair label and input", "for matches the id"], expectedError: "No field name" },
+        { title: "Skipped Heading", desc: "The outline jumps from h1 to h4.", bug: "missing levels", code: `<h1>Site</h1>\n<h4>News</h4>`, solution: `<h1>Site</h1>\n<h2>News</h2>`, checkKey: "<h2>News</h2>", hints: ["Keep the order", "h1 > h2 > h3..."], expectedError: "Broken outline" },
+        { title: "Nameless Select", desc: "The value never submits.", bug: "no name", code: `<select><option value="a">A</option></select>`, solution: `<select name="choice"><option value="a">A</option></select>`, checkKey: 'name="choice"', hints: ["Controls need names", "The name goes in the query"], expectedError: "Missing field" },
+      ],
+      Nightmare: [
+        { title: "Silent Updates", desc: "Dynamic content hides from AT.", bug: "no aria-live", code: `<div id="status">Saved</div>`, solution: `<div id="status" aria-live="polite">Saved</div>`, checkKey: 'aria-live="polite"', hints: ["Announce updates", "polite for non-urgent"], expectedError: "Invisible changes" },
+        { title: "Zoom Locked", desc: "Mobile users cannot zoom.", bug: "no viewport", code: `<head>\n  <title>App</title>\n</head>`, solution: `<head>\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>App</title>\n</head>`, checkKey: "width=device-width", hints: ["Add the viewport meta", "Fixes mobile scaling"], expectedError: "Tiny page" },
+        { title: "Language Unknown", desc: "Assistive tech guesses the voice.", bug: "no lang attr", code: `<html>`, solution: `<html lang="en">`, checkKey: 'lang="en"', hints: ["Declare the language", "Affects pronunciation"], expectedError: "Wrong voice" },
+      ],
+    },
   },
   {
     slug: "css", name: "CSS", icon: "css", desc: "Fix CSS layout, specificity, and responsive bugs", accent: "#60a5fa", lang: "CSS", monacoLang: "css",
-    problems: [
-      { title: "Flex Not Wrapping", desc: "Items overflow container.", bug: "No wrap", code: `.container { display: flex; }`, solution: `.container { display: flex; flex-wrap: wrap; }`, checkKey: "flex-wrap: wrap", hints: ["Add flex-wrap: wrap", "Items wrap to new line"], expectedError: "Overflow" },
-      { title: "Center Not Working", desc: "text-align not centering div.", bug: "text-align on block", code: `.parent { text-align: center; }\n.child { }`, solution: `.parent { display: flex; justify-content: center; }`, checkKey: "justify-content: center", hints: ["Use flexbox", "text-align only for text"], expectedError: "Div still left-aligned" },
-      { title: "Z-Index No Effect", desc: "z-index doesn't work.", bug: "No positioning", code: `.el { z-index: 10; }`, solution: `.el { position: relative; z-index: 10; }`, checkKey: "position: relative;", hints: ["Set position (not static)", "Then z-index works"], expectedError: "Element still behind" },
-      { title: "Margin Collapse", desc: "Vertical margins merge.", bug: "Adjacent margins", code: `<div style='margin: 20px'>a</div>\n<div style='margin: 20px'>b</div>`, solution: `.container { display: flex; flex-direction: column; gap: 20px; }`, checkKey: "gap: 20px", hints: ["Use gap in flex/grid", "Avoids margin collapse"], expectedError: "20px instead of 40px" },
-      { title: "Not Mobile First", desc: "Desktop styles override mobile.", bug: "Desktop first", code: `@media (max-width: 768px) { ... }`, solution: `/* mobile default */\n@media (min-width: 768px) { /* desktop */ }`, checkKey: "@media (min-width: 768px)", hints: ["Mobile first", "Use min-width media queries"], expectedError: "Complex overrides" },
-      { title: "px Not rem", desc: "Font sizes in px ignore user prefs.", bug: "px units", code: `body { font-size: 16px; }`, solution: `html { font-size: 100%; }\nbody { font-size: 1rem; }`, checkKey: "1rem", hints: ["Use rem for accessibility", "Respects user zoom"], expectedError: "Ignores user font size" },
-      { title: "!important Chain", desc: "Overriding !important with !important.", bug: "Escalating !important", code: `.a { color: red !important; }\n.b { color: blue !important; }`, solution: `/* Increase specificity */\n.parent .b { color: blue; }`, checkKey: ".parent .b", hints: ["Increase specificity", "Avoid !important"], expectedError: "Specificity war" },
-      { title: "Overflow Hidden Everywhere", desc: "Cutting off tooltips.", bug: "overflow: hidden", code: `.parent { overflow: hidden; }`, solution: `.parent { overflow: visible; }`, checkKey: "overflow: visible", hints: ["Only clip when needed", "Tooltips need overflow visible"], expectedError: "Tooltip clipped" },
-      { title: "100vh Mobile Issue", desc: "100vh includes URL bar on mobile.", bug: "100vh", code: `.hero { height: 100vh; }`, solution: `.hero { height: 100dvh; }`, checkKey: "100dvh", hints: ["Use dvh (dynamic vh)", "Excludes URL bar"], expectedError: "Height jumps on scroll" },
-      { title: "Missing box-sizing", desc: "Padding adds to width.", bug: "content-box default", code: `.card { width: 100%; padding: 20px; }`, solution: `* { box-sizing: border-box; }\n.card { width: 100%; padding: 20px; }`, checkKey: "box-sizing: border-box", hints: ["Set border-box globally", "Padding included in width"], expectedError: "Overflow horizontal" },
-      { title: "Grid Not Responsive", desc: "Fixed columns overflow mobile.", bug: "Fixed cols", code: `.grid { grid-template-columns: 200px 200px 200px; }`, solution: `.grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }`, checkKey: "repeat(auto-fit", hints: ["Use auto-fit + minmax", "Responsive by default"], expectedError: "Overflow on small screens" },
-      { title: "Missing focus style", desc: "Removed outline with no replacement.", bug: "outline: none", code: `button:focus { outline: none; }`, solution: `button:focus-visible { outline: 2px solid blue; outline-offset: 2px; }`, checkKey: ":focus-visible", hints: ["Provide focus style", "Use focus-visible"], expectedError: "Keyboard users lost" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "Flex Never Applied", desc: "The child layout is missing.", bug: "no display", code: `.row {\n  gap: 12px;\n}`, solution: `.row {\n  display: flex;\n  gap: 12px;\n}`, checkKey: "display: flex", hints: ["gap needs a flex/grid parent", "Add display: flex"], expectedError: "No spacing" },
+        { title: "Centering Fail", desc: "margin auto needs a block.", bug: "auto margins on inline", code: `img {\n  margin: 0 auto;\n}`, solution: `img {\n  display: block;\n  margin: 0 auto;\n}`, checkKey: "display: block", hints: ["auto margins need block", "Or use flex centering"], expectedError: "Left-aligned" },
+        { title: "Z-Index Ignored", desc: "The overlay hides behind cards.", bug: "no position", code: `.overlay {\n  z-index: 100;\n}`, solution: `.overlay {\n  position: fixed;\n  z-index: 100;\n}`, checkKey: "position: fixed", hints: ["z-index needs positioning", "Add position: fixed"], expectedError: "Hidden overlay" },
+      ],
+      Intermediate: [
+        { title: "Specificity War", desc: "!important loses to nothing cleanly.", bug: "!important", code: `.btn {\n  color: blue !important;\n}\n.header .btn {\n  color: red;\n}`, solution: `button.btn {\n  color: red;\n}\n// remove the !important`, checkKey: "button.btn", hints: ["Raise specificity properly", "Avoid !important"], expectedError: "Wrong color" },
+        { title: "Shrinking Sidebar", desc: "flex squashes the column.", bug: "no flex-shrink", code: `.sidebar {\n  width: 260px;\n}`, solution: `.sidebar {\n  width: 260px;\n  flex-shrink: 0;\n}`, checkKey: "flex-shrink: 0", hints: ["Flex shrinks by default", "flex-shrink: 0 locks it"], expectedError: "Narrow sidebar" },
+        { title: "Transition All", desc: "Everything animates, even layout.", bug: "transition: all", code: `.card {\n  transition: all 0.3s;\n}`, solution: `.card {\n  transition: transform 0.3s;\n}`, checkKey: "transition: transform", hints: ["Animate specific properties", "Layout props cause jank"], expectedError: "Janky hover" },
+      ],
+      Advanced: [
+        { title: "Fluid Type", desc: "Text scales poorly across devices.", bug: "fixed px", code: `h1 {\n  font-size: 48px;\n}`, solution: `h1 {\n  font-size: clamp(1.75rem, 4vw, 3rem);\n}`, checkKey: "clamp(", hints: ["clamp scales fluidly", "min, preferred, max"], expectedError: "Too big/small" },
+        { title: "Physical Sides", desc: "RTL layouts break margins.", bug: "left/right", code: `.label {\n  margin-left: 8px;\n}`, solution: `.label {\n  margin-inline-start: 8px;\n}`, checkKey: "margin-inline-start", hints: ["Logical properties flip with RTL", "Use inline-start"], expectedError: "Broken RTL" },
+        { title: "Layout Animation", desc: "Animating position causes reflows.", bug: "animating top/left", code: `.chip {\n  transition: top 0.3s;\n}`, solution: `.chip {\n  transition: transform 0.3s;\n  transform: translateX(var(--offset));\n}`, checkKey: "translateX", hints: ["Animate transforms", "They run on the compositor"], expectedError: "Jank" },
+      ],
+      Nightmare: [
+        { title: "Query Too Late", desc: "Media queries miss component widths.", bug: "viewport media", code: `@media (max-width: 600px) {\n  .card { flex-direction: column; }\n}`, solution: `@container (max-width: 600px) {\n  .card { flex-direction: column; }\n}\n// .card { container-type: inline-size }`, checkKey: "@container", hints: ["Container queries respond to parents", "container-type enables them"], expectedError: "Wrong breakpoints" },
+        { title: "Light Theme Flash", desc: "Dark UI renders white first.", bug: "no color-scheme", code: `html {\n  background: #0b0b13;\n}`, solution: `html {\n  color-scheme: dark;\n  background: #0b0b13;\n}`, checkKey: "color-scheme: dark", hints: ["color-scheme drives UA widgets", "Prevents flash"], expectedError: "White flash" },
+        { title: "Grid Rows Manually", desc: "Subgrid would keep alignment.", bug: "hardcoded row", code: `.fields {\n  grid-template-rows: 40px 40px;\n}`, solution: `.fields {\n  grid-template-rows: subgrid;\n  grid-row: span 2;\n}`, checkKey: "subgrid", hints: ["subgrid inherits tracks", "Keeps rows aligned"], expectedError: "Misaligned rows" },
+      ],
+    },
   },
   {
     slug: "springboot", name: "Spring Boot", icon: "springboot", desc: "Fix Spring Boot config, DI, and JPA issues", accent: "#22c55e", lang: "Spring Boot", monacoLang: "java",
-    problems: [
-      { title: "N+1 with JPA", desc: "Loading list triggers per-row queries.", bug: "Lazy load in loop", code: `@OneToMany(fetch = FetchType.LAZY) private List<Item> items;`, solution: `@EntityGraph(attributePaths = \"items\")\nList<Order> findAll();`, checkKey: "@EntityGraph(attributePaths = \"items\")", hints: ["Use @EntityGraph", "Or JOIN FETCH in JPQL"], expectedError: "N+1 queries" },
-      { title: "Missing @Transactional", desc: "Update commits partially.", bug: "No @Transactional", code: `public void transfer() { }`, solution: `@Transactional\npublic void transfer() { }`, checkKey: "@Transactional", hints: ["Add @Transactional", "Wraps in transaction"], expectedError: "Partial updates" },
-      { title: "Autowired Field", desc: "Field injection is hard to test.", bug: "@Autowired field", code: `@Autowired private UserRepo repo;`, solution: `private final UserRepo repo;\npublic MyService(UserRepo repo) { this.repo = repo; }`, checkKey: "public MyService(UserRepo repo)", hints: ["Use constructor injection", "Easier to test"], expectedError: "Hard to unit test" },
-      { title: "Component Scan Wrong", desc: "Beans not discovered.", bug: "Wrong package", code: `@SpringBootApplication\npublic class MyApp { }`, solution: `@SpringBootApplication(scanBasePackages = \"com.myapp\")`, checkKey: 'scanBasePackages = "com.myapp"', hints: ["Set scanBasePackages", "Or move App to root pkg"], expectedError: "Bean not found" },
-      { title: "Config Not Loaded", desc: "@Value doesn't inject.", bug: "Wrong syntax", code: '@Value("my.key") private String key;', solution: '@Value("${my.key}") private String key;', checkKey: '${my.key}', hints: ["Use ${} for property", "Not just key name"], expectedError: "Literal string 'my.key'" },
-      { title: "Missing @RestController", desc: "Method returns view name.", bug: "@Controller only", code: `@Controller\npublic class ApiCtrl { }`, solution: `@RestController\npublic class ApiCtrl { }`, checkKey: "@RestController", hints: ["Use @RestController for APIs", "Auto @ResponseBody"], expectedError: "Returns view name, not JSON" },
-      { title: "PathVariable Missing", desc: "Method arg not bound.", bug: "No @PathVariable", code: `@GetMapping(\"/users/{id}\")\npublic User get(Long id) { }`, solution: `@GetMapping(\"/users/{id}\")\npublic User get(@PathVariable Long id) { }`, checkKey: "@PathVariable Long id", hints: ["Add @PathVariable", "Binds URL segment"], expectedError: "id is null" },
-      { title: "H2 in Prod", desc: "In-memory DB in production.", bug: "H2 default", code: `spring.datasource.url=jdbc:h2:mem:testdb`, solution: `spring.datasource.url=jdbc:postgresql://prod:5432/app`, checkKey: "jdbc:postgresql", hints: ["Use real DB", "Config per env"], expectedError: "Data lost on restart" },
-      { title: "No Actuator", desc: "No health endpoint.", bug: "No actuator", code: `# pom.xml missing`, solution: `spring-boot-starter-actuator\n# application.properties\nmanagement.endpoints.web.exposure.include=health`, checkKey: "spring-boot-starter-actuator", hints: ["Add actuator dependency", "Expose health endpoint"], expectedError: "K8s can't check health" },
-      { title: "Missing @Valid", desc: "Request body not validated.", bug: "No @Valid", code: `public User create(@RequestBody User u) { }`, solution: `public User create(@Valid @RequestBody User u) { }`, checkKey: "@Valid @RequestBody", hints: ["Add @Valid", "Triggers Bean Validation"], expectedError: "Invalid data accepted" },
-      { title: "Circular Dependency", desc: "Two beans need each other.", bug: "Cycle", code: `class A { @Autowired B b; }\nclass B { @Autowired A a; }`, solution: `class A { @Autowired @Lazy B b; }\nclass B { @Autowired A a; }`, checkKey: "@Lazy B b", hints: ["Add @Lazy to break cycle", "Or refactor"], expectedError: "BeanCurrentlyInCreationException" },
-      { title: "Missing Exception Handler", desc: "Unhandled exception returns 500 HTML.", bug: "No handler", code: `throw new RuntimeException(\"bad\");`, solution: `@ControllerAdvice\npublic class GlobalHandler {\n  @ExceptionHandler(RuntimeException.class)\n  public ResponseEntity<?> h(RuntimeException e) { return ResponseEntity.badRequest().body(e.getMessage()); }\n}`, checkKey: "@ControllerAdvice", hints: ["Add @ControllerAdvice", "Handle exceptions globally"], expectedError: "HTML error page" },
-    ],
+    problems: {
+      Beginner: [
+        { title: "View Instead of JSON", desc: "The API returns a view name.", bug: "@Controller", code: `@Controller\npublic class ApiController { }`, solution: `@RestController\npublic class ApiController { }`, checkKey: "@RestController", hints: ["@RestController auto-serializes", "Adds @ResponseBody everywhere"], expectedError: "Whitelabel error" },
+        { title: "Literal @Value", desc: "The placeholder never resolves.", bug: "missing ${}", code: `@Value("my.key")\nprivate String key;`, solution: `@Value("\${my.key}")\nprivate String key;`, checkKey: "${my.key}", hints: ["Placeholders need ${}", "Otherwise it is a literal"], expectedError: "Literal string" },
+        { title: "Null Path Var", desc: "The URL segment is not bound.", bug: "no @PathVariable", code: `@GetMapping("/users/{id}")\npublic User get(Long id) { }`, solution: `@GetMapping("/users/{id}")\npublic User get(@PathVariable Long id) { }`, checkKey: "@PathVariable Long id", hints: ["Bind the segment", "@PathVariable Long id"], expectedError: "id is null" },
+      ],
+      Intermediate: [
+        { title: "Shared Singleton", desc: "One bean carries state across users.", bug: "default scope", code: `@Component\npublic class CounterService {\n    private int count;\n}`, solution: `@Component\n@Scope("prototype")\npublic class CounterService {\n    private int count;\n}`, checkKey: '"prototype"', hints: ["Singletons share state", "prototype per injection"], expectedError: "Cross-user state" },
+        { title: "Scan Miss", desc: "Beans are never discovered.", bug: "wrong base package", code: `@SpringBootApplication\npublic class MyApp { }`, solution: `@SpringBootApplication(scanBasePackages = "com.myapp")\npublic class MyApp { }`, checkKey: 'scanBasePackages = "com.myapp"', hints: ["Point the scan at the beans", "Or align the package"], expectedError: "Bean not found" },
+        { title: "Partial Writes", desc: "A failure leaves half the update.", bug: "no @Transactional", code: `public void transfer() {\n    from.debit();\n    to.credit();\n}`, solution: `@Transactional\npublic void transfer() {\n    from.debit();\n    to.credit();\n}`, checkKey: "@Transactional", hints: ["Wrap multi-step writes", "Rolls back together"], expectedError: "Partial updates" },
+      ],
+      Advanced: [
+        { title: "N+1 Through JPA", desc: "Each relation fires a query.", bug: "lazy fetch in loop", code: `for (Order o : orders) {\n    o.getCustomer().getName();\n}`, solution: `@EntityGraph(attributePaths = "customer")\nList<Order> findAllWithCustomer();`, checkKey: "@EntityGraph", hints: ["Fetch join the graph", "EntityGraph avoids N+1"], expectedError: "N+1 queries" },
+        { title: "Entity Leak", desc: "Internal fields cross the wire.", bug: "returns entity", code: `@GetMapping("/users/{id}")\npublic User get(@PathVariable Long id) {\n    return repo.findById(id).orElseThrow();\n}`, solution: `@GetMapping("/users/{id}")\npublic UserDto get(@PathVariable Long id) {\n    return toDto(repo.findById(id).orElseThrow());\n}`, checkKey: "toDto(", hints: ["Return DTOs", "Hide internal fields"], expectedError: "Overexposed data" },
+        { title: "In-Memory in Prod", desc: "Data evaporates on restart.", bug: "H2 default", code: `spring.datasource.url=jdbc:h2:mem:testdb`, solution: `spring.datasource.url=jdbc:postgresql://prod:5432/app`, checkKey: "jdbc:postgresql", hints: ["Use a real database", "Config per environment"], expectedError: "Data loss" },
+      ],
+      Nightmare: [
+        { title: "No Actuator", desc: "Orchestration cannot probe health.", bug: "missing starter", code: `<!-- pom.xml has no actuator -->`, solution: `<dependency>\n  <groupId>org.springframework.boot</groupId>\n  <artifactId>spring-boot-starter-actuator</artifactId>\n</dependency>\n# management.endpoints.web.exposure.include=health`, checkKey: "spring-boot-starter-actuator", hints: ["Add the starter", "Expose the health endpoint"], expectedError: "No /actuator/health" },
+        { title: "Bean Cycle", desc: "Two beans need each other.", bug: "constructor cycle", code: `class A { A(B b) { } }\nclass B { B(A a) { } }`, solution: `class A { A(@Lazy B b) { } }\nclass B { B(A a) { } }`, checkKey: "@Lazy B b", hints: ["@Lazy breaks the cycle", "Or refactor the dependency"], expectedError: "BeanCurrentlyInCreationException" },
+        { title: "Unvalidated Body", desc: "Bad payloads reach the service.", bug: "no @Valid", code: `@PostMapping\ndef create(@RequestBody UserDto dto) { }`, solution: `@PostMapping\ndef create(@Valid @RequestBody UserDto dto) { }`, checkKey: "@Valid @RequestBody", hints: ["Add @Valid", "Triggers Bean Validation"], expectedError: "Invalid data accepted" },
+      ],
+    },
   },
 ];
-
 /* ========= ASSEMBLE TRACKS ========= */
 const pythonTrack: Track = {
   slug: "python",
@@ -2017,12 +2558,6 @@ export const dailyChallenges = [
   { icon: "javascript" as IconName, title: "Closure Confusion", xp: 220, progress: "0/1" },
   { icon: "node" as IconName, title: "Infinite Recursion", xp: 200, progress: "0/1" },
   { icon: "sql" as IconName, title: "N+1 Apocalypse", xp: 160, progress: "0/1" },
-];
-
-export const skills = [
-  { icon: "python" as IconName, name: "Python", pct: 0 },
-  { icon: "javascript" as IconName, name: "JavaScript", pct: 0 },
-  { icon: "sql" as IconName, name: "SQL", pct: 0 },
 ];
 
 export const difficultyStyles: Record<Difficulty, { text: string; border: string; bg: string }> = {

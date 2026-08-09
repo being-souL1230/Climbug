@@ -8,7 +8,6 @@ import { useAnimeDetails } from "../hooks/useAnimeDetails";
 import { cn } from "../utils/cn";
 import { apiFetch } from "../api";
 import Editor from "@monaco-editor/react";
-import Confetti from "react-confetti";
 
 // No need for LANG_MAP if we use monacoLang directly from the challenge object
 
@@ -33,24 +32,40 @@ function useTimer(startSeconds: number) {
 
 /* ---------- Success Overlay ---------- */
 function SuccessOverlay({ xp, onClose }: { xp: number; onClose: () => void }) {
-  const [w, setW] = useState(window.innerWidth);
-  const [h, setH] = useState(window.innerHeight);
   useEffect(() => {
-    const r = () => { setW(window.innerWidth); setH(window.innerHeight); };
-    window.addEventListener("resize", r);
-    return () => window.removeEventListener("resize", r);
-  }, []);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
-      <Confetti width={w} height={h} numberOfPieces={250} recycle={false} colors={["#a78bfa", "#e879f9", "#fbbf24", "#34d399", "#60a5fa"]} />
-      <div className="relative z-10 rounded-2xl border border-violet-400/30 bg-[#15102a] p-8 text-center shadow-[0_0_80px_rgba(139,92,246,0.4)]" onClick={(e) => e.stopPropagation()}>
-        <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-3xl shadow-[0_0_24px_rgba(16,185,129,0.5)]">
-          ✓
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#06060b]/60 p-4 backdrop-blur-sm"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Challenge solved"
+    >
+      <div
+        className="anime-pop w-full max-w-sm rounded-2xl border border-white/10 bg-[#0f0f18] p-8 text-center shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-full border border-emerald-500/25 bg-emerald-500/10">
+          <svg viewBox="0 0 24 24" className="h-7 w-7 text-emerald-400" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
         </div>
-        <h2 className="text-2xl font-black text-white">Bug Squashed!</h2>
-        <p className="mt-2 text-lg font-bold text-emerald-400">+{xp} XP earned</p>
-        <p className="mt-1 text-sm text-zinc-400">You fixed the bug. Keep climbing!</p>
-        <button onClick={onClose} className="mt-6 rounded-xl bg-violet-600 px-8 py-3 text-sm font-bold text-white shadow-[0_0_20px_rgba(124,58,237,0.4)] transition-all hover:bg-violet-500">
+        <h2 className="text-xl font-extrabold tracking-tight text-white">Bug Squashed!</h2>
+        <p className="mt-1.5 text-sm leading-relaxed text-zinc-400">Your fix is correct. Keep climbing!</p>
+        <div className="mx-auto mt-5 inline-flex items-center gap-1.5 rounded-lg border border-amber-500/25 bg-amber-500/10 px-4 py-2 font-mono text-sm font-bold text-amber-300">
+          +{xp} XP
+        </div>
+        <button
+          onClick={onClose}
+          className="mt-6 w-full rounded-xl bg-violet-600 py-3 text-sm font-bold text-white transition-colors hover:bg-violet-500"
+        >
           Continue
         </button>
       </div>
@@ -60,17 +75,58 @@ function SuccessOverlay({ xp, onClose }: { xp: number; onClose: () => void }) {
 
 /* ---------- Fail Overlay ---------- */
 function FailOverlay({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="relative z-10 rounded-2xl border border-rose-400/30 bg-[#1a0d10] p-8 text-center shadow-[0_0_60px_rgba(244,63,94,0.3)]" onClick={(e) => e.stopPropagation()}>
-        <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-rose-400 to-rose-600 text-3xl shadow-[0_0_24px_rgba(244,63,94,0.5)]">
-          ✗
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#06060b]/60 p-4 backdrop-blur-sm"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Incorrect solution"
+    >
+      <div
+        className="anime-pop w-full max-w-sm rounded-2xl border border-white/10 bg-[#0f0f18] p-8 text-center shadow-[0_24px_80px_rgba(0,0,0,0.65)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-full border border-rose-500/25 bg-rose-500/10">
+          <svg viewBox="0 0 24 24" className="h-7 w-7 text-rose-400" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
         </div>
-        <h2 className="text-2xl font-black text-white">Not Quite Right</h2>
-        <p className="mt-2 text-sm text-zinc-400">Your fix doesn't match the expected solution.<br/>Check the hints and try again!</p>
-        <button onClick={onClose} className="mt-6 rounded-xl border border-rose-500/50 px-8 py-3 text-sm font-bold text-rose-400 transition-all hover:bg-rose-900/30">
+        <h2 className="text-xl font-extrabold tracking-tight text-white">Not Quite Right</h2>
+        <p className="mt-1.5 text-sm leading-relaxed text-zinc-400">
+          Your fix doesn't match the expected solution.
+          <br />
+          Check the hints and try again.
+        </p>
+        <button
+          onClick={onClose}
+          className="mt-6 w-full rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-bold text-zinc-200 transition-colors hover:bg-white/10"
+        >
           Keep Trying
         </button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Editor Loading Placeholder ---------- */
+function EditorLoading() {
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center bg-[#0e0e15] font-mono text-xs text-zinc-500">
+      <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#141420] px-5 py-3 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+        <svg className="h-5 w-5 animate-spin text-violet-400" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.2" />
+          <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        </svg>
+        <span className="font-bold text-zinc-300">Loading IDE Workspace...</span>
       </div>
     </div>
   );
@@ -277,6 +333,7 @@ export default function Challenge() {
               value={code}
               onChange={(v) => setCode(v || "")}
               theme="vs-dark"
+              loading={<EditorLoading />}
               options={{
                 fontSize: 14,
                 fontFamily: "'JetBrains Mono', monospace",

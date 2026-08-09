@@ -1,7 +1,11 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { loader } from "@monaco-editor/react";
 import "./index.css";
 import App from "./App";
+
+// Preload Monaco Editor scripts in background so challenge loads instantly
+loader.init().catch(() => undefined);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

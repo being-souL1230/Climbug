@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import os
+import random
 import sqlite3
 from datetime import datetime, timezone
 from functools import wraps
@@ -11,7 +13,7 @@ import requests
 from flask import Flask, jsonify, redirect, request, session
 from flask_cors import CORS
 
-from registry import ChallengeRegistry, normalize_code
+from registry import ChallengeRegistry, DIFFICULTIES, normalize_code
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -548,6 +550,48 @@ def progress() -> Any:
     assert uid is not None
     with db() as conn:
         return jsonify(get_progress(conn, uid))
+
+
+@app.get("/api/daily")
+@require_auth
+def daily_challenges() -> Any:
+    """One deterministic challenge per difficulty, seeded by the calendar date.
+
+    The same user sees the same set all day; it rotates every day. The frontend
+    resolves titles/icons locally via findChallenge(id) — this endpoint only
+    decides WHICH ids are today's picks and whether the user already solved them.
+    """
+    uid = current_user_id()
+    assert uid is not None
+    today = datetime.now(timezone.utc).date().isoformat()
+
+    by_diff: dict[str, list[int]] = {d: [] for d in DIFFICULTIES}
+    for cid, meta in registry.all().items():
+        by_diff.setdefault(meta.difficulty, []).append(cid)
+
+    seed = int(hashlib.md5(today.encode("utf-8")).hexdigest()[:8], 16)
+    rng = random.Random(seed)
+    picked: list[int] = []
+    for diff in DIFFICULTIES:
+        pool = by_diff.get(diff, [])
+        if pool:
+            picked.append(rng.choice(pool))
+    picked = list(dict.fromkeys(picked))
+
+    with db() as conn:
+        completed = set(get_progress(conn, uid)["completed"])
+
+    result = []
+    for cid in picked:
+        meta = registry.get(cid)
+        result.append({
+            "id": cid,
+            "xp": meta.xp if meta else 0,
+            "difficulty": meta.difficulty if meta else "Beginner",
+            "trackSlug": meta.track_slug if meta else "",
+            "solved": cid in completed,
+        })
+    return jsonify({"date": today, "challenges": result})
 
 
 @app.post("/api/challenges/<int:challenge_id>/submit")
