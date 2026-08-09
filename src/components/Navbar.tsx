@@ -144,6 +144,14 @@ export default function Navbar({ variant = "app" }: { variant?: "app" | "guest" 
                           <GameIcon name="user" className="h-4 w-4" />
                           Edit Profile
                         </Link>
+                        <Link
+                          to="/settings"
+                          onClick={() => setMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-white/5 hover:text-white"
+                        >
+                          <GameIcon name="gear" className="h-4 w-4" />
+                          Settings
+                        </Link>
                         <a
                           href={user.html_url}
                           target="_blank"

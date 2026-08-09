@@ -99,6 +99,16 @@ export async function signOut() {
   notify();
 }
 
+export async function deleteAccount(): Promise<void> {
+  // Permanently wipes the account + every related row on the backend.
+  await apiFetch("/api/auth/account", { method: "DELETE" });
+  currentUser = null;
+  sessionChecked = true;
+  resetProgress();
+  resetBadges();
+  notify();
+}
+
 export async function refreshSession(): Promise<GitHubUser | null> {
   try {
     const data = await apiFetch<{ user: Record<string, unknown> | null; progress?: PlayerProgress | null }>("/api/me");

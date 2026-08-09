@@ -256,9 +256,13 @@ export default function Dashboard() {
             </Link>
           ))}
         </nav>
-        <button className="grid h-11 w-11 place-items-center rounded-xl text-lg opacity-60 transition-all hover:rotate-90 hover:opacity-100">
+        <Link
+          to="/settings"
+          title="Settings"
+          className="anime-pop grid h-11 w-11 place-items-center rounded-xl text-lg opacity-60 transition-all hover:rotate-90 hover:bg-white/10 hover:opacity-100"
+        >
           <GameIcon name="gear" className="h-6 w-6" />
-        </button>
+        </Link>
       </aside>
 
       {/* ---------- Main ---------- */}

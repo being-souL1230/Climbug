@@ -48,7 +48,10 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("CLIMBUG_SECRET") or os.environ.get("SESSION_SECRET", "dev-only-change-this-secret")
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE="Lax",
+    # Cross-site deploys (frontend on Vercel + backend on Render) need
+    # SameSite=None + Secure. Defaults stay Lax for same-origin dev.
+    SESSION_COOKIE_SAMESITE=os.environ.get("SESSION_COOKIE_SAMESITE", "Lax"),
+    SESSION_COOKIE_SECURE=os.environ.get("SESSION_COOKIE_SECURE", "false").lower() == "true",
     SEND_FILE_MAX_AGE_DEFAULT=31536000,  # 1 year cache for static assets
 )
 CORS(
@@ -634,6 +637,32 @@ def google_auth() -> Any:
 
 @app.post("/api/auth/logout")
 def logout() -> Any:
+    session.clear()
+    return jsonify({"ok": True})
+
+
+@app.delete("/api/auth/account")
+@require_auth
+def delete_account() -> Any:
+    """Permanently delete the signed-in user and ALL of their data.
+
+    Removes every row referencing the user across all tables (progress,
+    completions, attempts, profiles, friendships, guild membership and boss
+    raid history) so no orphaned or sensitive data survives.
+    """
+    uid = current_user_id()
+    assert uid is not None
+    with db() as conn:
+        conn.execute("DELETE FROM guild_members WHERE user_id = ?", (uid,))
+        # Tidy up: a guild with no members left is dead weight.
+        conn.execute("DELETE FROM guilds WHERE id NOT IN (SELECT DISTINCT guild_id FROM guild_members)")
+        conn.execute("DELETE FROM friendships WHERE user_id = ? OR friend_id = ?", (uid, uid))
+        conn.execute("DELETE FROM boss_attempts WHERE user_id = ?", (uid,))
+        conn.execute("DELETE FROM attempts WHERE user_id = ?", (uid,))
+        conn.execute("DELETE FROM completions WHERE user_id = ?", (uid,))
+        conn.execute("DELETE FROM profiles WHERE user_id = ?", (uid,))
+        conn.execute("DELETE FROM progress WHERE user_id = ?", (uid,))
+        conn.execute("DELETE FROM users WHERE id = ?", (uid,))
     session.clear()
     return jsonify({"ok": True})
 

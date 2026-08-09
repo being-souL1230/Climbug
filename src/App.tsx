@@ -12,6 +12,7 @@ import BossArena from "./pages/BossArena";
 import Skills from "./pages/Skills";
 import Profile from "./pages/Profile";
 import UserProfile from "./pages/UserProfile";
+import Settings from "./pages/Settings";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function ScrollToTop() {
@@ -52,6 +53,7 @@ const router = createHashRouter([
       { path: "/skills", element: <ProtectedRoute><Skills /></ProtectedRoute> },
       { path: "/profile", element: <ProtectedRoute><Profile /></ProtectedRoute> },
       { path: "/user/:login", element: <ProtectedRoute><UserProfile /></ProtectedRoute> },
+      { path: "/settings", element: <ProtectedRoute><Settings /></ProtectedRoute> },
 
       /* Fallback */
       { path: "*", element: <Home /> },
