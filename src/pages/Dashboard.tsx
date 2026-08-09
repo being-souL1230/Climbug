@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import GameIcon, { type IconName } from "../components/GameIcon";
 import Logo from "../components/Logo";
 import Reveal from "../components/Reveal";
@@ -23,7 +23,7 @@ interface DailyItem {
 
 const sideIcons = [
   { icon: "home" as IconName, label: "Home", to: "/" },
-  { icon: "bug" as IconName, label: "Boss Battles", to: "/dashboard" },
+  { icon: "bug" as IconName, label: "Boss Battles", to: "/boss" },
   { icon: "sword" as IconName, label: "Challenges", to: "/tracks" },
   { icon: "brain" as IconName, label: "Skills", to: "/skills" },
   { icon: "monitor" as IconName, label: "Dashboard", to: "/dashboard", active: true },
@@ -120,6 +120,7 @@ function CardHeader({
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<"Global" | "Friends" | "Guilds">("Global");
   const { progress } = useProgress();
   const { user } = useAuth();
@@ -127,6 +128,28 @@ export default function Dashboard() {
   const [daily, setDaily] = useState<DailyItem[]>([]);
   const [dailyDate, setDailyDate] = useState("");
   const [dailyLoading, setDailyLoading] = useState(true);
+
+  // Realtime boss card — real weekly boss + fight state from the backend.
+  const [bossInfo, setBossInfo] = useState<{
+    name: string;
+    weekNumber: number;
+    xpReward: number;
+    defeatedCount: number;
+    raiderCount: number;
+    status: string;
+  } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    apiFetch<{ boss: { name: string; weekNumber: number; xpReward: number }; state: { status: string }; stats: { defeatedCount: number; raiderCount: number } }>("/api/boss")
+      .then((d) => {
+        if (cancelled) return;
+        setBossInfo({ name: d.boss.name, weekNumber: d.boss.weekNumber, xpReward: d.boss.xpReward, defeatedCount: d.stats.defeatedCount, raiderCount: d.stats.raiderCount, status: d.state.status });
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Realtime daily challenges — the backend picks a deterministic set per date.
   useEffect(() => {
@@ -440,23 +463,29 @@ export default function Dashboard() {
                 </span>
               </div>
               <div className="mt-3 flex items-end justify-between">
-                <div>
+                <div className="min-w-0">
                   <p className="text-[10px] font-bold tracking-[0.15em] text-zinc-500">CURRENT BOSS</p>
-                  <p className="text-[15px] font-extrabold text-white">NullPointerius Maximus</p>
+                  <p className="truncate text-[15px] font-extrabold text-white">{bossInfo?.name ?? "Summoning…"}</p>
                 </div>
-                <span className="rounded-md border border-rose-500/50 bg-rose-950/60 px-2 py-1 text-[11px] font-bold text-rose-300">
-                  Level 6
+                <span className="shrink-0 rounded-md border border-rose-500/50 bg-rose-950/60 px-2 py-1 text-[11px] font-bold text-rose-300">
+                  Week {bossInfo?.weekNumber ?? "—"}
                 </span>
               </div>
               <div className="relative mt-2.5 h-2 overflow-hidden rounded-full bg-white/8 ring-1 ring-inset ring-white/5">
-                <div className="relative h-full w-full overflow-hidden rounded-full bg-gradient-to-r from-rose-600 via-orange-500 to-amber-400">
+                <div
+                  className="relative h-full overflow-hidden rounded-full bg-gradient-to-r from-rose-600 via-orange-500 to-amber-400 transition-all duration-700"
+                  style={{ width: `${Math.min(100, ((bossInfo?.defeatedCount ?? 0) / Math.max(1, bossInfo?.raiderCount ?? 0)) * 100)}%` }}
+                >
                   <span className="boss-hp-shine" />
                 </div>
               </div>
               <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-zinc-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-rose-500" /> 0 / 125,000 HP
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-500" /> {bossInfo?.defeatedCount ?? 0} / {bossInfo?.raiderCount ?? 0} slain
               </p>
-              <button className="group/btn relative mt-3 overflow-hidden rounded-lg border-2 border-amber-700/70 bg-gradient-to-b from-[#4a0d0d] to-[#260606] py-2.5 font-serif text-sm font-bold italic text-amber-100 shadow-[inset_0_0_20px_rgba(220,38,38,0.35),0_8px_20px_rgba(0,0,0,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-500 hover:text-white hover:shadow-[inset_0_0_30px_rgba(220,38,38,0.6),0_10px_30px_rgba(153,27,27,0.5)] active:translate-y-0">
+              <button
+                onClick={() => navigate("/boss")}
+                className="group/btn relative mt-3 w-full overflow-hidden rounded-lg border-2 border-amber-700/70 bg-gradient-to-b from-[#4a0d0d] to-[#260606] py-2.5 font-serif text-sm font-bold italic text-amber-100 shadow-[inset_0_0_20px_rgba(220,38,38,0.35),0_8px_20px_rgba(0,0,0,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-500 hover:text-white hover:shadow-[inset_0_0_30px_rgba(220,38,38,0.6),0_10px_30px_rgba(153,27,27,0.5)] active:translate-y-0"
+              >
                 <span
                   className="pointer-events-none absolute inset-0 opacity-30"
                   style={{
@@ -465,7 +494,7 @@ export default function Dashboard() {
                   }}
                 />
                 <span className="relative inline-flex items-center gap-2">
-                  Enter Boss Arena
+                  {bossInfo?.status === "defeated" ? "Claim Your Glory" : bossInfo?.status === "forfeited" || bossInfo?.status === "failed" ? "Arena Locked" : "Enter Boss Arena"}
                   <GameIcon name="sword" className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
                 </span>
               </button>

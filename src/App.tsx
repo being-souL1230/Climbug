@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
+import { createHashRouter, RouterProvider, Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -8,6 +8,7 @@ import Tracks from "./pages/Tracks";
 import TrackDetail from "./pages/TrackDetail";
 import Challenge from "./pages/Challenge";
 import Rewards from "./pages/Rewards";
+import BossArena from "./pages/BossArena";
 import Skills from "./pages/Skills";
 import Profile from "./pages/Profile";
 import UserProfile from "./pages/UserProfile";
@@ -21,29 +22,43 @@ function ScrollToTop() {
   return null;
 }
 
-export default function App() {
+function Layout() {
   return (
-    <HashRouter>
+    <>
       <ScrollToTop />
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-
-        {/* Protected routes — redirect to /login if not signed in */}
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
-        <Route path="/tracks" element={<ProtectedRoute><Tracks /></ProtectedRoute>} />
-        <Route path="/tracks/:slug" element={<ProtectedRoute><TrackDetail /></ProtectedRoute>} />
-        <Route path="/challenge/:id" element={<ProtectedRoute><Challenge /></ProtectedRoute>} />
-        <Route path="/rewards" element={<ProtectedRoute><Rewards /></ProtectedRoute>} />
-        <Route path="/skills" element={<ProtectedRoute><Skills /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/user/:login" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
-
-        {/* Fallback */}
-        <Route path="*" element={<Home />} />
-      </Routes>
-    </HashRouter>
+      <Outlet />
+    </>
   );
+}
+
+// Data router (createHashRouter) — required by useBlocker, which the
+// Boss Arena uses to trap players inside an active raid.
+const router = createHashRouter([
+  {
+    element: <Layout />,
+    children: [
+      /* Public routes */
+      { path: "/", element: <Home /> },
+      { path: "/login", element: <Login /> },
+
+      /* Protected routes — redirect to /login if not signed in */
+      { path: "/dashboard", element: <ProtectedRoute><Dashboard /></ProtectedRoute> },
+      { path: "/leaderboard", element: <ProtectedRoute><Leaderboard /></ProtectedRoute> },
+      { path: "/tracks", element: <ProtectedRoute><Tracks /></ProtectedRoute> },
+      { path: "/tracks/:slug", element: <ProtectedRoute><TrackDetail /></ProtectedRoute> },
+      { path: "/challenge/:id", element: <ProtectedRoute><Challenge /></ProtectedRoute> },
+      { path: "/rewards", element: <ProtectedRoute><Rewards /></ProtectedRoute> },
+      { path: "/boss", element: <ProtectedRoute><BossArena /></ProtectedRoute> },
+      { path: "/skills", element: <ProtectedRoute><Skills /></ProtectedRoute> },
+      { path: "/profile", element: <ProtectedRoute><Profile /></ProtectedRoute> },
+      { path: "/user/:login", element: <ProtectedRoute><UserProfile /></ProtectedRoute> },
+
+      /* Fallback */
+      { path: "*", element: <Home /> },
+    ],
+  },
+]);
+
+export default function App() {
+  return <RouterProvider router={router} />;
 }

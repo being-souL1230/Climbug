@@ -53,6 +53,9 @@ export default function Navbar({ variant = "app" }: { variant?: "app" | "guest" 
               <NavLink to="/leaderboard" className={link}>
                 Leaderboard
               </NavLink>
+              <NavLink to="/boss" className={cn(link, "text-rose-400 hover:text-rose-300")}>
+                Boss Raid
+              </NavLink>
 
               {user ? (
                 <div className="relative" ref={menuRef}>
@@ -182,6 +185,9 @@ export default function Navbar({ variant = "app" }: { variant?: "app" | "guest" 
             <>
               <NavLink to="/leaderboard" className={link}>
                 Leaderboard
+              </NavLink>
+              <NavLink to="/boss" className={cn(link, "text-rose-400 hover:text-rose-300")}>
+                Boss Raid
               </NavLink>
               <NavLink to="/login" className={link}>
                 Login

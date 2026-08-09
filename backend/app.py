@@ -15,6 +15,7 @@ from flask_cors import CORS
 
 from badges import BADGE_COUNT, BadgeContext, compute_badges
 from registry import ChallengeRegistry, DIFFICULTIES, normalize_code
+from boss import check_solution, ensure_week_boss, public_boss
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -168,6 +169,38 @@ def init_db() -> None:
               PRIMARY KEY(guild_id, user_id),
               FOREIGN KEY(guild_id) REFERENCES guilds(id),
               FOREIGN KEY(user_id) REFERENCES users(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS bosses (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              week TEXT NOT NULL UNIQUE,
+              week_number INTEGER NOT NULL,
+              name TEXT NOT NULL,
+              title TEXT NOT NULL,
+              lang TEXT NOT NULL,
+              monaco TEXT NOT NULL,
+              desc TEXT NOT NULL,
+              bug TEXT NOT NULL,
+              expected_error TEXT NOT NULL,
+              check_key TEXT NOT NULL,
+              starter_code TEXT NOT NULL,
+              xp_reward INTEGER NOT NULL,
+              time_limit_sec INTEGER NOT NULL,
+              max_lives INTEGER NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS boss_attempts (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              user_id INTEGER NOT NULL,
+              boss_id INTEGER NOT NULL,
+              status TEXT NOT NULL DEFAULT 'active',
+              lives_left INTEGER NOT NULL DEFAULT 5,
+              wrong_attempts INTEGER NOT NULL DEFAULT 0,
+              xp_awarded INTEGER NOT NULL DEFAULT 0,
+              started_at TEXT NOT NULL,
+              ended_at TEXT,
+              FOREIGN KEY(user_id) REFERENCES users(id),
+              FOREIGN KEY(boss_id) REFERENCES bosses(id)
             );
             """
         )
@@ -752,6 +785,196 @@ def submit_challenge(challenge_id: int) -> Any:
                 (new_xp, new_level, streak, today, uid),
             )
         return jsonify({"ok": True, "solved": True, "xpAwarded": awarded, "progress": get_progress(conn, uid)})
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Boss Arena — weekly raid (DB-backed, realtime fight state)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _current_boss_row(conn: sqlite3.Connection) -> dict[str, Any]:
+    return ensure_week_boss(conn)
+
+
+def _user_attempt(conn: sqlite3.Connection, user_id: int, boss_id: int) -> dict[str, Any] | None:
+    row = conn.execute(
+        "SELECT * FROM boss_attempts WHERE user_id = ? AND boss_id = ? ORDER BY id DESC LIMIT 1",
+        (user_id, boss_id),
+    ).fetchone()
+    return dict(row) if row else None
+
+
+def _state_of(att: dict[str, Any], boss: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "status": att["status"],
+        "lives": att["lives_left"],
+        "attempts": att["wrong_attempts"],
+        "startedAt": att["started_at"],
+        "endedAt": att["ended_at"],
+        "xpAwarded": att["xp_awarded"],
+    }
+
+
+@app.get("/api/boss")
+@require_auth
+def boss_info() -> Any:
+    uid = current_user_id()
+    assert uid is not None
+    with db() as conn:
+        boss = _current_boss_row(conn)
+        att = _user_attempt(conn, uid, boss["id"])
+        # Server-authoritative time limit: an active fight older than the
+        # limit (tab closed, beacon lost, etc.) counts as a failure.
+        if att is not None and att["status"] == "active":
+            try:
+                started = datetime.fromisoformat(att["started_at"])
+                if (datetime.now(timezone.utc) - started).total_seconds() > boss["time_limit_sec"]:
+                    conn.execute(
+                        "UPDATE boss_attempts SET status = 'failed', ended_at = ? WHERE id = ?",
+                        (now_iso(), att["id"]),
+                    )
+                    conn.commit()
+                    att = _user_attempt(conn, uid, boss["id"])
+            except Exception:
+                pass
+        state = _state_of(att, boss) if att else {"status": "none", "lives": boss["max_lives"], "attempts": 0}
+        defeated_count = conn.execute(
+            "SELECT COUNT(*) AS n FROM boss_attempts WHERE boss_id = ? AND status = 'defeated'",
+            (boss["id"],),
+        ).fetchone()["n"]
+        raiders = conn.execute(
+            "SELECT COUNT(*) AS n FROM boss_attempts WHERE boss_id = ?", (boss["id"],)
+        ).fetchone()["n"]
+        return jsonify({
+            "boss": public_boss(boss),
+            "state": state,
+            "stats": {
+                "defeatedCount": int(defeated_count),
+                "raiderCount": int(raiders),
+                "totalUsers": int(conn.execute("SELECT COUNT(*) AS n FROM users").fetchone()["n"]),
+            },
+        })
+
+
+@app.post("/api/boss/start")
+@require_auth
+def boss_start() -> Any:
+    uid = current_user_id()
+    assert uid is not None
+    with db() as conn:
+        boss = _current_boss_row(conn)
+        att = _user_attempt(conn, uid, boss["id"])
+        if att is not None:
+            if att["status"] in ("defeated", "forfeited", "failed"):
+                return jsonify({
+                    "error": "This week's raid is over for you.",
+                    "status": att["status"],
+                }), 403
+            # Active fight — resume it.
+            return jsonify({"boss": public_boss(boss), "state": _state_of(att, boss)})
+        conn.execute(
+            """INSERT INTO boss_attempts
+               (user_id, boss_id, status, lives_left, wrong_attempts, xp_awarded, started_at)
+               VALUES (?, ?, 'active', ?, 0, 0, ?)""",
+            (uid, boss["id"], boss["max_lives"], now_iso()),
+        )
+        conn.commit()
+        att = _user_attempt(conn, uid, boss["id"])
+        return jsonify({"boss": public_boss(boss), "state": _state_of(att, boss)})
+
+
+@app.post("/api/boss/submit")
+@require_auth
+def boss_submit() -> Any:
+    uid = current_user_id()
+    assert uid is not None
+    payload = request.get_json(silent=True) or {}
+    code = normalize_code(str(payload.get("code", "")))
+    with db() as conn:
+        boss = _current_boss_row(conn)
+        att = _user_attempt(conn, uid, boss["id"])
+        if att is None or att["status"] != "active":
+            return jsonify({"error": "No active fight.", "status": att["status"] if att else "none"}), 409
+
+        # Server-authoritative time limit: a fix submitted after the timer
+        # expired does NOT count — the boss wins.
+        try:
+            started = datetime.fromisoformat(att["started_at"])
+            if (datetime.now(timezone.utc) - started).total_seconds() > boss["time_limit_sec"]:
+                conn.execute(
+                    "UPDATE boss_attempts SET status = 'failed', ended_at = ? WHERE id = ?",
+                    (now_iso(), att["id"]),
+                )
+                conn.commit()
+                return jsonify({"ok": False, "solved": False, "status": "failed", "error": "Time expired."})
+        except Exception:
+            pass
+
+        if check_solution(boss, code):
+            xp = boss["xp_reward"]
+            timestamp = now_iso()
+            p = conn.execute("SELECT * FROM progress WHERE user_id = ?", (uid,)).fetchone()
+            new_xp = (p["xp"] if p else 0) + xp
+            new_level = (new_xp // 500) + 1
+            today = datetime.now().date().isoformat()
+            yesterday = (datetime.now().date() - timedelta(days=1)).isoformat()
+            last = p["last_active"] if p else None
+            streak = p["streak"] if p else 0
+            if last == today:
+                pass
+            elif last == yesterday:
+                streak = streak + 1 if streak else 1
+            else:
+                streak = 1
+            conn.execute(
+                "UPDATE progress SET xp = ?, level = ?, streak = ?, last_active = ? WHERE user_id = ?",
+                (new_xp, new_level, streak, today, uid),
+            )
+            conn.execute(
+                "UPDATE boss_attempts SET status = 'defeated', ended_at = ?, xp_awarded = ? WHERE id = ?",
+                (timestamp, xp, att["id"]),
+            )
+            conn.commit()
+            return jsonify({"ok": True, "solved": True, "xpAwarded": xp, "progress": get_progress(conn, uid)})
+
+        # Wrong fix — the boss strikes back.
+        wrong = att["wrong_attempts"] + 1
+        lives = att["lives_left"] - 1
+        status = "active" if lives > 0 else "failed"
+        conn.execute(
+            "UPDATE boss_attempts SET wrong_attempts = ?, lives_left = ?, status = ? WHERE id = ?",
+            (wrong, max(0, lives), status, att["id"]),
+        )
+        if status == "failed":
+            conn.execute("UPDATE boss_attempts SET ended_at = ? WHERE id = ?", (now_iso(), att["id"]))
+        conn.commit()
+        return jsonify({
+            "ok": False,
+            "solved": False,
+            "livesLeft": max(0, lives),
+            "status": status,
+            "error": "The boss rejects your fix.",
+        })
+
+
+@app.post("/api/boss/forfeit")
+@require_auth
+def boss_forfeit() -> Any:
+    uid = current_user_id()
+    assert uid is not None
+    payload = request.get_json(silent=True) or {}
+    # reason="time" (timer ran out) → failed; anything else (user left) → forfeited
+    new_status = "failed" if payload.get("reason") == "time" else "forfeited"
+    with db() as conn:
+        boss = _current_boss_row(conn)
+        att = _user_attempt(conn, uid, boss["id"])
+        if att is not None and att["status"] == "active":
+            conn.execute(
+                "UPDATE boss_attempts SET status = ?, ended_at = ? WHERE id = ?",
+                (new_status, now_iso(), att["id"]),
+            )
+            conn.commit()
+        return jsonify({"ok": True})
 
 
 @app.get("/api/skills")

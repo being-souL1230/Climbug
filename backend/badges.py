@@ -59,6 +59,13 @@ class BadgeContext:
         user_count = conn.execute("SELECT COUNT(*) AS n FROM users").fetchone()
         self.total_users: int = user_count["n"] if user_count else 0
 
+        # ---- Boss Arena defeats (Boss Slayer badge) ----
+        boss_row = conn.execute(
+            "SELECT COUNT(*) AS n FROM boss_attempts WHERE user_id = ? AND status = 'defeated'",
+            (user_id,),
+        ).fetchone()
+        self.boss_defeats: int = boss_row["n"] if boss_row else 0
+
         # ---- Aggregates over this user's solves ----
         self.total: int = len(self.solves)
         self.by_track: Counter[str] = Counter(r["track_slug"] for r in self.solves)
@@ -205,7 +212,7 @@ def _make_rules() -> dict[int, Callable[[BadgeContext], bool]]:
         26: lambda c: c.by_track.get("sql", 0) >= c.track_totals.get("sql", 40),
         27: lambda c: c.track_count >= 3,
         28: lambda c: c.by_diff.get("Nightmare", 0) >= 10,
-        29: lambda c: False,  # boss battles not implemented yet
+        29: lambda c: c.boss_defeats >= 5,
         30: lambda c: c.total >= 100,
         31: lambda c: False,  # guilds not implemented
         32: lambda c: False,  # guilds not implemented
