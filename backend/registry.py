@@ -56,10 +56,33 @@ class ChallengeRegistry:
             check_key = flattened[-1]
             # Difficulty is normally the string before the starter code template.
             difficulty = next((d for d in DIFFICULTIES if f'"{d}"' in block), "Beginner")
-            track_slug = "python" if challenge_id < 101 else "javascript" if challenge_id < 201 else "sql"
-            base = XP_BY_DIFF[difficulty]
-            result[challenge_id] = ChallengeMeta(challenge_id, check_key, base, track_slug, difficulty)
+            if challenge_id < 101:
+                track_slug = "python"
+            elif challenge_id < 201:
+                track_slug = "javascript"
+            elif challenge_id < 241:
+                track_slug = "sql"
+            elif challenge_id < 281:
+                track_slug = "c"
+            elif challenge_id < 321:
+                track_slug = "cpp"
+            else:
+                track_slug = "java"
+            xp = self._parse_xp(block)
+            if xp is None:
+                xp = XP_BY_DIFF[difficulty]
+            result[challenge_id] = ChallengeMeta(challenge_id, check_key, xp, track_slug, difficulty)
         return result
+
+    @staticmethod
+    def _parse_xp(block: str) -> int | None:
+        """Read the per-challenge XP (4th ch() argument) so the backend awards
+        exactly what the frontend displays. Falls back to None when missing.
+
+        ch(id, "title", "desc", <xp>, timeMin, lang, difficulty, ...)
+        """
+        match = re.match(r'\s*"(?:[^"\\]|\\.)*",\s*"(?:[^"\\]|\\.)*",\s*(\d+),', block)
+        return int(match.group(1)) if match else None
 
     def _parse_generated_stack_templates(self, text: str) -> dict[int, ChallengeMeta]:
         """Parse the per-difficulty `problems` pools in the stack templates.

@@ -5,9 +5,11 @@ import Logo from "../components/Logo";
 import Reveal from "../components/Reveal";
 import { dailyChallenges, findChallenge, tracks } from "../data";
 import { useAuth } from "../auth";
+import { useBadges } from "../badges";
 import { useProgress } from "../progress";
 import { useAnimeDetails } from "../hooks/useAnimeDetails";
 import { apiFetch } from "../api";
+import { badges as allBadges } from "../badges";
 import { cn } from "../utils/cn";
 
 interface DailyItem {
@@ -169,6 +171,11 @@ export default function Dashboard() {
   const xpInLevel = progress.xp % 500;
   const xpPct = Math.max(2, (xpInLevel / 500) * 100);
   const totalSolved = progress.completed.length;
+
+  // Real badge state from the backend
+  const { unlocked } = useBadges();
+  const unlockedBadges = allBadges.filter((b) => unlocked.has(b.id));
+  const nextBadge = allBadges.find((b) => !unlocked.has(b.id));
 
   const leaderboardPreview = useMemo(() => {
     const you = {
@@ -699,8 +706,10 @@ export default function Dashboard() {
                 </span>
                 <div>
                   <p className="text-[10px] font-bold tracking-[0.18em] text-amber-500">ACHIEVEMENT</p>
-                  <p className="text-[15px] font-extrabold text-white">No badges yet</p>
-                  <p className="text-xs text-zinc-500">Solve challenges to earn badges!</p>
+                  <p className="text-[15px] font-extrabold text-white">{unlockedBadges[0]?.name ?? "No badges yet"}</p>
+                  <p className="text-xs text-zinc-500">
+                    {unlockedBadges.length > 0 ? "Badges earned — keep climbing!" : "Solve challenges to earn badges!"}
+                  </p>
                 </div>
               </div>
               <div className="anime-pop group flex items-center gap-4 px-6 py-5 transition-colors duration-300 hover:bg-white/[0.03]">
@@ -709,11 +718,11 @@ export default function Dashboard() {
                 </span>
                 <div>
                   <p className="text-[10px] font-bold tracking-[0.18em] text-amber-500">NEXT REWARD</p>
-                  <p className="text-[15px] font-extrabold text-white">First Blood</p>
-                  <p className="text-xs text-zinc-500">Solve your first challenge</p>
+                  <p className="text-[15px] font-extrabold text-white">{nextBadge?.name ?? "All badges earned"}</p>
+                  <p className="text-xs text-zinc-500">{nextBadge?.desc ?? "You've collected every badge!"}</p>
                 </div>
                 <span className="ml-auto grid h-9 w-9 shrink-0 place-items-center rounded-full bg-violet-600 text-sm font-black text-white shadow-[0_0_14px_rgba(124,58,237,0.5)] transition-transform duration-300 group-hover:scale-110">
-                  1
+                  {unlockedBadges.length}
                 </span>
               </div>
               <div className="anime-pop group flex items-center gap-4 px-6 py-5 transition-colors duration-300 hover:bg-white/[0.03]">

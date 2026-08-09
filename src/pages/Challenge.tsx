@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import GameIcon from "../components/GameIcon";
 import Navbar from "../components/Navbar";
 import { findChallenge, difficultyStyles, type Challenge } from "../data";
+import { refreshBadges } from "../badges";
 import { useProgress, setProgress, fetchProgress } from "../progress";
 import { useAnimeDetails } from "../hooks/useAnimeDetails";
 import { cn } from "../utils/cn";
@@ -27,7 +28,7 @@ function useTimer(startSeconds: number) {
     }, 1000);
     return () => clearInterval(t);
   }, [done]);
-  return { time: `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`, done };
+  return { time: `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`, done, remaining: secs };
 }
 
 /* ---------- Success Overlay ---------- */
@@ -149,7 +150,7 @@ export default function Challenge() {
   const { progress } = useProgress();
   const alreadyDone = found ? progress.completed.includes(found.challenge.id) : false;
   const timeMin = found ? found.challenge.timeMin : 3;
-  const { time, done: timeDone } = useTimer(timeMin * 60);
+  const { time, done: timeDone, remaining } = useTimer(timeMin * 60);
 
   if (!found) return <Navigate to="/tracks" replace />;
   const { challenge, track } = found;
@@ -160,10 +161,11 @@ export default function Challenge() {
     try {
       const result = await apiFetch<{ solved: boolean; xpAwarded?: number; progress?: import("../data").PlayerProgress }>(`/api/challenges/${challenge.id}/submit`, {
         method: "POST",
-        body: JSON.stringify({ code, xpPenalty }),
+        body: JSON.stringify({ code, xpPenalty, timeSpent: Math.max(0, timeMin * 60 - remaining) }),
       });
       if (result.solved) {
         if (result.progress) setProgress(result.progress);
+        refreshBadges().catch(() => undefined);
         setSubmitted(true);
         setShowSuccess(true);
       } else {

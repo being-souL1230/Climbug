@@ -95,14 +95,12 @@ export default function Tracks() {
                   idx < trackStats.length - 1 ? "border-b border-white/[0.04]" : ""
                 }`}
               >
-                {/* Track name + icon + desc */}
+                {/* Track logo — plain, no box */}
                 <div className="flex items-center gap-3.5">
-                  <div
-                    className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border transition-transform duration-300 group-hover:scale-110"
-                    style={{ background: `${t.accent}18`, borderColor: `${t.accent}40` }}
-                  >
-                    <GameIcon name={t.icon} className="h-5 w-5" />
-                  </div>
+                  <GameIcon
+                    name={t.icon}
+                    className="h-8 w-8 shrink-0 transition-transform duration-300 group-hover:scale-110"
+                  />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-white">{t.name}</span>

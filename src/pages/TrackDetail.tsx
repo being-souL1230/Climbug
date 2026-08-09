@@ -47,9 +47,7 @@ export default function TrackDetail() {
 
                 <div className="mt-5 flex flex-col justify-between gap-6 md:flex-row md:items-end">
                   <div className="flex items-center gap-5">
-                    <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.4)]">
-                      <GameIcon name={track.icon} className="h-10 w-10" />
-                    </div>
+                    <GameIcon name={track.icon} className="h-14 w-14 shrink-0" />
                     <div>
                       <div className="flex items-center gap-2">
                         <h1 className="text-3xl font-black tracking-tight text-white">{track.name}</h1>

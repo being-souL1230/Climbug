@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "./api";
+import { resetBadges } from "./badges";
 import { resetProgress, setProgress } from "./progress";
 import type { PlayerProgress } from "./data";
 
@@ -94,6 +95,7 @@ export async function signOut() {
   currentUser = null;
   sessionChecked = true;
   resetProgress();
+  resetBadges();
   notify();
 }
 

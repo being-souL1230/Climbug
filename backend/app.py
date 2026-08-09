@@ -4,7 +4,7 @@ import hashlib
 import os
 import random
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from functools import wraps
 from pathlib import Path
 from typing import Any, Callable
@@ -13,6 +13,7 @@ import requests
 from flask import Flask, jsonify, redirect, request, session
 from flask_cors import CORS
 
+from badges import BADGE_COUNT, BadgeContext, compute_badges
 from registry import ChallengeRegistry, DIFFICULTIES, normalize_code
 
 
@@ -154,6 +155,10 @@ def init_db() -> None:
             cursor.execute("ALTER TABLE users ADD COLUMN auth_provider TEXT DEFAULT 'github'")
         if "google_id" not in cols:
             cursor.execute("ALTER TABLE users ADD COLUMN google_id TEXT")
+        cursor.execute("PRAGMA table_info(completions)")
+        comp_cols = [row[1] for row in cursor.fetchall()]
+        if "time_taken_sec" not in comp_cols:
+            cursor.execute("ALTER TABLE completions ADD COLUMN time_taken_sec INTEGER")
 
 
 def now_iso() -> str:
@@ -651,6 +656,8 @@ def submit_challenge(challenge_id: int) -> Any:
     payload = request.get_json(silent=True) or {}
     code = normalize_code(str(payload.get("code", "")))
     xp_penalty = max(0, int(payload.get("xpPenalty", 0) or 0))
+    time_spent = payload.get("timeSpent")
+    time_taken = int(time_spent) if isinstance(time_spent, (int, float)) and time_spent > 0 else None
     meta = registry.get(challenge_id)
     if meta is None:
         return jsonify({"ok": False, "error": "Unknown challenge"}), 404
@@ -668,17 +675,22 @@ def submit_challenge(challenge_id: int) -> Any:
         ).fetchone()
         if exists is None:
             conn.execute(
-                "INSERT INTO completions (user_id, challenge_id, track_slug, difficulty, xp_awarded, completed_at) VALUES (?, ?, ?, ?, ?, ?)",
-                (uid, challenge_id, meta.track_slug, meta.difficulty, awarded, timestamp),
+                "INSERT INTO completions (user_id, challenge_id, track_slug, difficulty, xp_awarded, completed_at, time_taken_sec) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (uid, challenge_id, meta.track_slug, meta.difficulty, awarded, timestamp, time_taken),
             )
             p = conn.execute("SELECT * FROM progress WHERE user_id = ?", (uid,)).fetchone()
             new_xp = (p["xp"] if p else 0) + awarded
             new_level = (new_xp // 500) + 1
             today = datetime.now().date().isoformat()
+            yesterday = (datetime.now().date() - timedelta(days=1)).isoformat()
             last = p["last_active"] if p else None
             streak = p["streak"] if p else 0
-            if last != today:
-                streak = streak + 1 if last else 1
+            if last == today:
+                pass  # same day — keep the current streak
+            elif last == yesterday:
+                streak = streak + 1 if streak else 1
+            else:
+                streak = 1  # a gap of more than a day resets the streak
             conn.execute(
                 "UPDATE progress SET xp = ?, level = ?, streak = ?, last_active = ? WHERE user_id = ?",
                 (new_xp, new_level, streak, today, uid),
@@ -702,18 +714,19 @@ def skills() -> Any:
 @app.get("/api/badges")
 @require_auth
 def badges() -> Any:
+    """Compute which of the 50 badges the user has really earned from DB data.
+
+    Returns a list of unlocked badge ids (matching src/pages/Rewards.tsx) and
+    the total badge count, so the UI can render real unlock state.
+    """
     uid = current_user_id()
     assert uid is not None
     with db() as conn:
-        p = get_progress(conn, uid)
-    solved_count = len(p["completed"])
+        ctx = BadgeContext(conn, uid, registry)
+        computed = compute_badges(ctx)
     return jsonify({
-        "unlocked": {
-            "first_blood": solved_count >= 1,
-            "bug_streak_i": solved_count >= 3,
-            "week_warrior": p["streak"] >= 7,
-            "century_club": solved_count >= 100,
-        }
+        "unlocked": [bid for bid, ok in computed.items() if ok],
+        "total": BADGE_COUNT,
     })
 
 

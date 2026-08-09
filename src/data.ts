@@ -1987,81 +1987,6 @@ const stackTemplates: StackTemplate[] = [
     },
   },
   {
-    slug: "c", name: "C", icon: "c", desc: "Fix segfaults, leaks, and pointer bugs in C", accent: "#3b82f6", lang: "C", monacoLang: "c",
-    problems: {
-      Beginner: [
-        { title: "Null Deref", desc: "Dereferencing NULL crashes.", bug: "no null guard", code: `int *p = NULL;\nprintf("%d", *p);`, solution: `int *p = NULL;\nif (p) printf("%d", *p);`, checkKey: "if (p)", hints: ["Check for NULL first", "Guard the deref"], expectedError: "Segmentation fault" },
-        { title: "Garbage Value", desc: "An uninitialized variable is used.", bug: "no init", code: `int x;\nprintf("%d", x);`, solution: `int x = 0;\nprintf("%d", x);`, checkKey: "int x = 0", hints: ["Initialize to 0", "Undefined behavior otherwise"], expectedError: "Garbage output" },
-        { title: "Leaked Heap", desc: "malloc is never freed.", bug: "no free", code: `int *p = malloc(sizeof(int));\n*p = 5;`, solution: `int *p = malloc(sizeof(int));\n*p = 5;\nfree(p);`, checkKey: "free(p)", hints: ["Free every malloc", "Prevent leaks"], expectedError: "Memory leak" },
-      ],
-      Intermediate: [
-        { title: "Buffer Clobber", desc: "strcpy writes past the array.", bug: "no bounds check", code: `char buf[5];\nstrcpy(buf, "hello");`, solution: `char buf[6];\nstrncpy(buf, "hello", sizeof(buf) - 1);\nbuf[sizeof(buf) - 1] = '\0';`, checkKey: "sizeof(buf) - 1", hints: ["Leave room for the NUL", "Use strncpy and size the buffer"], expectedError: "Stack smashing" },
-        { title: "Format Mismatch", desc: "The format string does not match the type.", bug: "%d for a float", code: `float x = 3.14;\nprintf("%d", x);`, solution: `float x = 3.14;\nprintf("%f", x);`, checkKey: '"%f"', hints: ["Match the specifier to the type", "%f for float, %d for int"], expectedError: "Undefined output" },
-        { title: "Overflow to Negative", desc: "int cannot hold the value.", bug: "int too small", code: `int x = 2147483647;\nx++;`, solution: `long long x = 2147483647;\nx++;`, checkKey: "long long x", hints: ["Use a wider type", "long long for big numbers"], expectedError: "Wraps to negative" },
-      ],
-      Advanced: [
-        { title: "Use After Free", desc: "The pointer is used after free.", bug: "dangling pointer", code: `char *p = malloc(16);\nstrcpy(p, "hello");\nfree(p);\nprintf("%s", p);`, solution: `char *p = malloc(16);\nstrcpy(p, "hello");\nfree(p);\np = NULL;`, checkKey: "p = NULL", hints: ["Null the pointer after free", "Never deref freed memory"], expectedError: "Use-after-free" },
-        { title: "Dangling Return", desc: "A function returns a local address.", bug: "returns local", code: `int *make(void) {\n    int x = 42;\n    return &x;\n}\nint *p = make();`, solution: `int *make(void) {\n    static int x = 42;\n    return &x;\n}\nint *p = make();`, checkKey: "static int x", hints: ["Locals die on return", "static or heap storage survives"], expectedError: "Garbage value" },
-        { title: "Unsigned Countdown", desc: "size_t never drops below zero.", bug: "unsigned comparison", code: `for (size_t i = 9; i >= 0; i--) {\n    printf("%d\\n", arr[i]);\n}`, solution: `for (int i = 9; i >= 0; i--) {\n    printf("%d\\n", arr[i]);\n}`, checkKey: "int i = 9", hints: ["size_t is unsigned — i >= 0 never fails", "Use a signed loop index"], expectedError: "Infinite loop / crash" },
-      ],
-      Nightmare: [
-        { title: "Overlapping Copy", desc: "memcpy on overlapping regions is UB.", bug: "memcpy overlap", code: `char buf[32];\nstrcpy(buf, "0123456789");\nmemcpy(buf + 2, buf, 10);`, solution: `char buf[32];\nstrcpy(buf, "0123456789");\nmemmove(buf + 2, buf, 10);`, checkKey: "memmove", hints: ["memcpy requires non-overlap", "memmove handles overlap"], expectedError: "Undefined content" },
-        { title: "Format Injection", desc: "User input becomes a format string.", bug: "printf(buf)", code: `char *name = getenv("USER");\nprintf(name);`, solution: `char *name = getenv("USER");\nprintf("%s", name);`, checkKey: '"%s", name', hints: ["Never pass data as the format", 'Use printf("%s", name)'], expectedError: "Reads the stack / crash" },
-        { title: "Signed Shift", desc: "Shifting a signed value is UB.", bug: "signed right shift", code: `int x = -8;\nprintf("%d", x >> 2);`, solution: `unsigned int x = -8;\nprintf("%u", x >> 2);`, checkKey: "unsigned int x", hints: ["Signed shifts are implementation-defined", "Cast to unsigned first"], expectedError: "Unexpected result" },
-      ],
-    },
-  },
-  {
-    slug: "cpp", name: "C++", icon: "cpp", desc: "Debug modern C++ code, STL, and templates", accent: "#60a5fa", lang: "C++", monacoLang: "cpp",
-    problems: {
-      Beginner: [
-        { title: "Invalidated Iterator", desc: "Erasing while iterating crashes.", bug: "erase in loop", code: `for (auto it = v.begin(); it != v.end(); ++it)\n    if (*it == 0) v.erase(it);`, solution: `v.erase(std::remove(v.begin(), v.end(), 0), v.end());`, checkKey: "std::remove", hints: ["Use the erase-remove idiom", "Never modify while iterating"], expectedError: "Iterator invalidation" },
-        { title: "Sliced Derived", desc: "Copying to base loses derived data.", bug: "value copy", code: `Base b = derived;`, solution: `Base& b = derived;`, checkKey: "Base& b", hints: ["Use a reference or pointer", "Value copy slices"], expectedError: "Object slicing" },
-        { title: "Bare New", desc: "Manual memory management leaks.", bug: "new without delete", code: `Widget *w = new Widget();\nw->start();`, solution: `auto w = std::make_unique<Widget>();\nw->start();`, checkKey: "make_unique", hints: ["Prefer smart pointers", "make_unique is exception-safe"], expectedError: "Memory leak" },
-      ],
-      Intermediate: [
-        { title: "Non-Virtual Dtor", desc: "Derived data is never destroyed.", bug: "no virtual", code: `class Base { public: ~Base() {} };\nBase *p = new Derived();\ndelete p;`, solution: `class Base { public: virtual ~Base() {} };`, checkKey: "virtual ~Base", hints: ["Base destructors must be virtual", "Otherwise derived is leaked"], expectedError: "Undefined behavior" },
-        { title: "Ref to Temp", desc: "A dangling reference to a local.", bug: "returns local ref", code: `int& f() { int x = 5; return x; }\nint& r = f();`, solution: `int f() { int x = 5; return x; }`, checkKey: "int f()", hints: ["Return by value", "Locals die on return"], expectedError: "Dangling reference" },
-        { title: "auto Strips Ref", desc: "auto drops the reference qualifier.", bug: "unnecessary copy", code: `auto x = getRef();  // strips the reference`, solution: `auto& x = getRef();`, checkKey: "auto& x", hints: ["auto& keeps the reference", "auto copies"], expectedError: "Copy overhead / stale value" },
-      ],
-      Advanced: [
-        { title: "Moved-From Access", desc: "Using an object after std::move.", bug: "use after move", code: `auto b = std::move(a);\nstd::cout << a.size();`, solution: `auto b = std::move(a);\n// do not touch a after the move`, checkKey: "do not touch a", hints: ["Moved-from is valid but empty", "Never use after move"], expectedError: "Undefined behavior" },
-        { title: "Number to String", desc: "Concatenating a number to a string fails.", bug: "operator+ on int", code: `int n = 5;\nstd::string s = "count: " + n;`, solution: `int n = 5;\nstd::string s = "count: " + std::to_string(n);`, checkKey: "std::to_string", hints: ["Numbers need conversion", "std::to_string(n)"], expectedError: "Compile error" },
-        { title: "Reallocation Darting", desc: "A pointer into a vector dangles on push_back.", bug: "stale element address", code: `int* p = &v[0];\nv.push_back(1);\nstd::cout << *p;`, solution: `v.reserve(100);\nint* p = &v[0];\nv.push_back(1);\nstd::cout << *p;`, checkKey: "v.reserve", hints: ["push_back can reallocate", "Reserve capacity first"], expectedError: "Dangling pointer" },
-      ],
-      Nightmare: [
-        { title: "Reinterpret Trick", desc: "Pointer-to-int casts break on 64-bit.", bug: "reinterpret_cast to int", code: `int addr = reinterpret_cast<int>(p);`, solution: `uintptr_t addr = reinterpret_cast<uintptr_t>(p);`, checkKey: "uintptr_t", hints: ["int is 32-bit, pointers are 64", "Use uintptr_t"], expectedError: "Truncation" },
-        { title: "Throwing Dtor", desc: "An exception in a destructor aborts.", bug: "noexcept violation", code: `~Resource() {\n    if (!close()) throw std::runtime_error("close failed");\n}`, solution: `~Resource() noexcept {\n    try { close(); } catch (...) { /* log */ }\n}`, checkKey: "noexcept", hints: ["Destructors must not throw", "Swallow or log inside noexcept"], expectedError: "std::terminate" },
-        { title: "Const Override", desc: "const_cast on immutable data is UB.", bug: "cast away const", code: `const char* s = "fixed";\nchar* p = const_cast<char*>(s);\np[0] = 'F';`, solution: `char buf[] = "fixed";\nchar* p = buf;\np[0] = 'F';`, checkKey: "char buf[]", hints: ["String literals may be read-only", "Copy into a mutable buffer"], expectedError: "Segmentation fault" },
-      ],
-    },
-  },
-  {
-    slug: "java", name: "Java", icon: "java", desc: "Fix Java code and enterprise patterns", accent: "#f97316", lang: "Java", monacoLang: "java",
-    problems: {
-      Beginner: [
-        { title: "Null Method Call", desc: "Calling a method on null throws.", bug: "no null check", code: `String s = null;\nint n = s.length();`, solution: `String s = null;\nint n = (s != null) ? s.length() : 0;`, checkKey: "s != null", hints: ["Check for null first", "Or use Optional"], expectedError: "NullPointerException" },
-        { title: "Reference Equality", desc: "== compares references, not values.", bug: "== on strings", code: `if (a == b) {\n    System.out.println("same");\n}`, solution: `if (a.equals(b)) {\n    System.out.println("same");\n}`, checkKey: ".equals(b)", hints: ["Use .equals() for strings", "== is reference compare"], expectedError: "Wrong comparison result" },
-        { title: "Int Division", desc: "int/int loses the fraction.", bug: "both operands int", code: `double avg = sum / count;`, solution: `double avg = (double) sum / count;`, checkKey: "(double)", hints: ["Cast one operand to double", "Prevents integer truncation"], expectedError: "Truncated result" },
-      ],
-      Intermediate: [
-        { title: "Concurrent Modify", desc: "Removing from a list while iterating throws.", bug: "list.remove in loop", code: `for (String s : list) {\n    if (s.isEmpty()) list.remove(s);\n}`, solution: `list.removeIf(String::isEmpty);`, checkKey: "removeIf", hints: ["Use removeIf()", "Or Iterator.remove()"], expectedError: "ConcurrentModificationException" },
-        { title: "Autoboxing Trap", desc: "== on Integers fails beyond the cache.", bug: "== on wrapper", code: `Integer a = 200, b = 200;\nif (a == b) {\n    System.out.println("equal");\n}`, solution: `Integer a = 200, b = 200;\nif (a.equals(b)) {\n    System.out.println("equal");\n}`, checkKey: "a.equals(b)", hints: ["Use equals() for Integer", "Cache only covers -128..127"], expectedError: "Fails for values > 127" },
-        { title: "Leaked Handle", desc: "Files stay open on exceptions.", bug: "manual close", code: `FileReader r = new FileReader(f);\nr.read();\nr.close();`, solution: `try (FileReader r = new FileReader(f)) {\n    r.read();\n}`, checkKey: "try (FileReader", hints: ["Use try-with-resources", "Auto-closes on exit"], expectedError: "Leaked file handle" },
-      ],
-      Advanced: [
-        { title: "Silent Override Miss", desc: "A typo means the method is never called.", bug: "wrong signature", code: `public void toStrng() {\n    System.out.println("hi");\n}`, solution: `@Override\npublic String toString() {\n    return "hi";\n}`, checkKey: "@Override", hints: ["@Override catches typos", "Match the exact signature"], expectedError: "Method not overriding" },
-        { title: "Shared Test State", desc: "A static field leaks between tests.", bug: "static mutable", code: `private static List<String> cache = new ArrayList<>();`, solution: `private static List<String> cache = new ArrayList<>();\n\n@BeforeEach\nvoid reset() {\n    cache.clear();\n}`, checkKey: "@BeforeEach", hints: ["Static state persists", "Reset it before each test"], expectedError: "Order-dependent tests" },
-        { title: "Loop String Growth", desc: "+= in a loop is quadratic.", bug: "string concat in loop", code: `String out = "";\nfor (String s : parts) {\n    out += s;\n}`, solution: `StringBuilder sb = new StringBuilder();\nfor (String s : parts) {\n    sb.append(s);\n}\nString out = sb.toString();`, checkKey: "StringBuilder", hints: ["Strings are immutable", "Use StringBuilder"], expectedError: "O(n^2) concatenation" },
-      ],
-      Nightmare: [
-        { title: "Broken Hash Contract", desc: "equals() without hashCode() breaks maps.", bug: "no hashCode", code: `public boolean equals(Object o) {\n    return o instanceof Key k && k.id == id;\n}`, solution: `public boolean equals(Object o) {\n    return o instanceof Key k && k.id == id;\n}\n\n@Override\npublic int hashCode() {\n    return Integer.hashCode(id);\n}`, checkKey: "public int hashCode()", hints: ["Equal objects need equal hashes", "Implement hashCode"], expectedError: "Lookups fail" },
-        { title: "Money in Doubles", desc: "Floating point corrupts currency math.", bug: "double for money", code: `double total = 0.0;\ntotal += 0.1;\ntotal += 0.2;`, solution: `BigDecimal total = BigDecimal.ZERO;\ntotal = total.add(new BigDecimal("0.1"));\ntotal = total.add(new BigDecimal("0.2"));`, checkKey: "BigDecimal", hints: ["Doubles cannot represent cents exactly", "Use BigDecimal for money"], expectedError: "0.30000000000000004" },
-        { title: "Inner Class Leak", desc: "An inner class pins the outer instance.", bug: "non-static inner", code: `class Outer {\n    class Leak {\n        void run() { }\n    }\n    Leak makeLeak() { return new Leak(); }\n}`, solution: `class Outer {\n    static class Leak {\n        void run() { }\n    }\n    Leak makeLeak() { return new Leak(); }\n}`, checkKey: "static class Leak", hints: ["Non-static inners hold outer", "Make it static"], expectedError: "Memory leak" },
-      ],
-    },
-  },
-  {
     slug: "django", name: "Django", icon: "django", desc: "Fix Django models, views, and ORM issues", accent: "#10b981", lang: "Django", monacoLang: "python",
     problems: {
       Beginner: [
@@ -2513,6 +2438,3602 @@ const stackTemplates: StackTemplate[] = [
     },
   },
 ];
+/* ========= C TRACK ========= */
+const cBeginner: Challenge[] = [
+  ch(241, "Missing Semicolons", "The compiler chokes on two missing semicolons.", 50, 3, "C", "Beginner",
+    `#include <stdio.h>
+
+int main() {
+    int x = 5
+    printf("%d", x)
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int main() {
+    int x = 5;
+    printf("%d", x);
+    return 0;
+}`,
+    "every statement must end with a semicolon",
+    "compile error: expected ';' before 'printf'",
+    ["Each C statement ends with a semicolon", "Add ; after the declaration and after printf"],
+    "int x = 5;"
+  ),
+  ch(242, "Warm Garbage", "An uninitialized variable is read before it has a value.", 50, 3, "C", "Beginner",
+    `#include <stdio.h>
+
+int main() {
+    int total;
+    total = total + 10;
+    printf("%d", total);
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int main() {
+    int total = 0;
+    total = total + 10;
+    printf("%d", total);
+    return 0;
+}`,
+    "total is read before it is ever initialized",
+    "garbage output (undefined value)",
+    ["Reading an uninitialized local is undefined behavior", "Initialize total to 0"],
+    "int total = 0;"
+  ),
+  ch(243, "Assign or Compare", "A single = inside an if makes the condition always true.", 50, 3, "C", "Beginner",
+    `#include <stdio.h>
+
+int main() {
+    int x = 5;
+    if (x = 10)
+        printf("ten");
+    else
+        printf("not ten");
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int main() {
+    int x = 5;
+    if (x == 10)
+        printf("ten");
+    else
+        printf("not ten");
+    return 0;
+}`,
+    "= assigns 10 to x instead of comparing, so the branch is always taken",
+    "Output: 'ten' even though x is 5",
+    ["= assigns, == compares", "Use == inside the condition"],
+    "if (x == 10)"
+  ),
+  ch(244, "One Step Too Far", "The loop reads one element past the array.", 50, 3, "C", "Beginner",
+    `#include <stdio.h>
+
+int main() {
+    int arr[3] = {1, 2, 3};
+    for (int i = 0; i <= 3; i++)
+        printf("%d ", arr[i]);
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int main() {
+    int arr[3] = {1, 2, 3};
+    for (int i = 0; i < 3; i++)
+        printf("%d ", arr[i]);
+    return 0;
+}`,
+    "valid indexes are 0..2, but the loop runs i=3 too",
+    "reads memory past the array (undefined behavior)",
+    ["Array indexes run 0..n-1", "Use i < 3, never i <= 3"],
+    "for (int i = 0; i < 3;"
+  ),
+  ch(245, "Specifier Swap", "printf gets a specifier that does not match the argument.", 50, 3, "C", "Beginner",
+    `#include <stdio.h>
+
+int main() {
+    double pi = 3.14;
+    printf("%d", pi);
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int main() {
+    double pi = 3.14;
+    printf("%.2f", pi);
+    return 0;
+}`,
+    "%d expects an int but pi is a double",
+    "garbage or undefined output",
+    ["Match the specifier to the type", "%d is for int, %f is for double"],
+    "printf(\"%.2f\", pi)"
+  ),
+  ch(246, "Forgot the Ampersand", "scanf writes into a garbage location.", 50, 3, "C", "Beginner",
+    `#include <stdio.h>
+
+int main() {
+    int age;
+    printf("Age: ");
+    scanf("%d", age);
+    printf("%d", age);
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int main() {
+    int age;
+    printf("Age: ");
+    scanf("%d", &age);
+    printf("%d", age);
+    return 0;
+}`,
+    "scanf needs the address of the variable, not its value",
+    "program crashes or reads garbage",
+    ["scanf writes through a pointer", "Pass &age, not age"],
+    "scanf(\"%d\", &age)"
+  ),
+  ch(247, "Boundary Buster", "A write lands past the end of the array.", 50, 3, "C", "Beginner",
+    `#include <stdio.h>
+
+int main() {
+    int nums[3] = {10, 20, 30};
+    nums[3] = 99;
+    printf("%d", nums[3]);
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int main() {
+    int nums[3] = {10, 20, 30};
+    nums[2] = 99;
+    printf("%d", nums[2]);
+    return 0;
+}`,
+    "a 3-element array has valid indexes 0, 1 and 2 only",
+    "corrupts adjacent memory / undefined behavior",
+    ["The last valid index is size - 1", "Use index 2 for a 3-element array"],
+    "nums[2] = 99;"
+  ),
+  ch(248, "Truncated Average", "Integer division drops the fraction before it is stored.", 50, 3, "C", "Beginner",
+    `#include <stdio.h>
+
+int main() {
+    int sum = 9, count = 2;
+    double avg = sum / count;
+    printf("%.1f", avg);
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int main() {
+    int sum = 9, count = 2;
+    double avg = (double) sum / count;
+    printf("%.1f", avg);
+    return 0;
+}`,
+    "int / int is integer division — it truncates before the result reaches the double",
+    "Output: 4.0 instead of 4.5",
+    ["Cast one operand to double first", "(double) sum forces floating-point division"],
+    "avg = (double) sum / count;"
+  ),
+  ch(249, "Lone Character", "A char is compared to a string literal.", 50, 3, "C", "Beginner",
+    `#include <stdio.h>
+
+int main() {
+    char grade = 'A';
+    if (grade == "A")
+        printf("passed");
+    else
+        printf("failed");
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int main() {
+    char grade = 'A';
+    if (grade == 'A')
+        printf("passed");
+    else
+        printf("failed");
+    return 0;
+}`,
+    "\"A\" is a string (a pointer), but grade is a char — the comparison is wrong",
+    "comparing a char against a pointer, wrong result",
+    ["Single quotes hold exactly one character", "Double quotes make a string (char*) — use 'A'"],
+    "grade == 'A'"
+  ),
+  ch(250, "Stuck Loop", "The loop variable never changes, so the loop never ends.", 50, 3, "C", "Beginner",
+    `#include <stdio.h>
+
+int main() {
+    int n = 3;
+    while (n > 0) {
+        printf("%d ", n);
+    }
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int main() {
+    int n = 3;
+    while (n > 0) {
+        printf("%d ", n);
+        n--;
+    }
+    return 0;
+}`,
+    "n is never decremented, so the condition never fails",
+    "program prints forever",
+    ["The loop body must change n", "Add n-- inside the loop"],
+    "n--;"
+  ),
+];
+const cIntermediate: Challenge[] = [
+  ch(251, "Buffer Blast", "A string is copied into a buffer that is too small.", 140, 5, "C", "Intermediate",
+    `#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char name[4];
+    strcpy(name, "Rusty");
+    printf("%s", name);
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char name[6];
+    strcpy(name, "Rusty");
+    printf("%s", name);
+    return 0;
+}`,
+    "\"Rusty\" needs 6 bytes including the NUL terminator, but the buffer holds only 4",
+    "stack corruption / segmentation fault",
+    ["A string always needs room for the '\\0' terminator", "Size the buffer to strlen + 1"],
+    "char name[6];"
+  ),
+  ch(252, "Leaky Malloc", "Heap memory is allocated but never released.", 140, 5, "C", "Intermediate",
+    `#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int *p = malloc(100 * sizeof(int));
+    p[0] = 42;
+    printf("%d", p[0]);
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int *p = malloc(100 * sizeof(int));
+    p[0] = 42;
+    printf("%d", p[0]);
+    free(p);
+    return 0;
+}`,
+    "the heap block is never released",
+    "memory leak",
+    ["Every malloc needs a matching free", "Free the block before the program ends"],
+    "free(p);"
+  ),
+  ch(253, "Silent NULL", "The return of malloc is used without checking.", 140, 5, "C", "Intermediate",
+    `#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int *p = malloc(100000000 * sizeof(int));
+    *p = 7;
+    printf("%d", *p);
+    free(p);
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int *p = malloc(100000000 * sizeof(int));
+    if (p == NULL) {
+        printf("out of memory");
+        return 1;
+    }
+    *p = 7;
+    printf("%d", *p);
+    free(p);
+    return 0;
+}`,
+    "malloc can return NULL when memory is exhausted, and dereferencing NULL crashes",
+    "Segmentation fault under low memory",
+    ["Always check the result of malloc", "Guard the use of p with if (p == NULL)"],
+    "if (p == NULL)"
+  ),
+  ch(254, "StrCmp Trap", "Two string arrays are compared with ==", 140, 5, "C", "Intermediate",
+    `#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char a[] = "mango";
+    char b[] = "mango";
+    if (a == b)
+        printf("same");
+    else
+        printf("different");
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char a[] = "mango";
+    char b[] = "mango";
+    if (strcmp(a, b) == 0)
+        printf("same");
+    else
+        printf("different");
+    return 0;
+}`,
+    "== compares the array addresses, not the contents",
+    "Output: 'different' even though the strings match",
+    ["Array names decay to pointers in comparisons", "Use strcmp(a, b) == 0 to compare contents"],
+    "strcmp(a, b) == 0"
+  ),
+  ch(255, "No Base Case", "A recursive function never stops calling itself.", 140, 5, "C", "Intermediate",
+    `#include <stdio.h>
+
+int fact(int n) {
+    return n * fact(n - 1);
+}
+
+int main() {
+    printf("%d", fact(5));
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int fact(int n) {
+    if (n <= 1) return 1;
+    return n * fact(n - 1);
+}
+
+int main() {
+    printf("%d", fact(5));
+    return 0;
+}`,
+    "fact() has no base case, so the recursion never unwinds",
+    "stack overflow (segmentation fault)",
+    ["Recursion needs a stopping condition", "Return 1 when n <= 1"],
+    "if (n <= 1) return 1;"
+  ),
+  ch(256, "Sized Right", "sizeof inside a function measures the pointer, not the array.", 140, 5, "C", "Intermediate",
+    `#include <stdio.h>
+
+void print_size(int arr[4]) {
+    printf("%zu", sizeof(arr) / sizeof(arr[0]));
+}
+
+int main() {
+    int nums[4] = {1, 2, 3, 4};
+    print_size(nums);
+    return 0;
+}`,
+    `#include <stdio.h>
+
+void print_size(int *arr, int n) {
+    printf("%d", n);
+}
+
+int main() {
+    int nums[4] = {1, 2, 3, 4};
+    print_size(nums, 4);
+    return 0;
+}`,
+    "an array parameter decays to a pointer, so sizeof measures the pointer",
+    "Output: 2 (pointer size / int size) instead of 4",
+    ["Array parameters are really pointers", "Pass the length as a separate argument"],
+    "int *arr, int n"
+  ),
+  ch(257, "Read-Only String", "A string literal is modified through a pointer.", 140, 5, "C", "Intermediate",
+    `#include <stdio.h>
+
+int main() {
+    char *msg = "hello";
+    msg[0] = 'H';
+    printf("%s", msg);
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int main() {
+    char msg[] = "hello";
+    msg[0] = 'H';
+    printf("%s", msg);
+    return 0;
+}`,
+    "string literals may live in read-only memory; writing through them is undefined behavior",
+    "Segmentation fault on many systems",
+    ["A char* pointing at a literal is read-only", "Use a mutable array: char msg[] = \"hello\""],
+    "char msg[] = \"hello\";"
+  ),
+  ch(258, "Negative Modulo", "The remainder of a negative number comes out negative.", 140, 5, "C", "Intermediate",
+    `#include <stdio.h>
+
+int main() {
+    int n = -7;
+    int mod = n % 3;
+    printf("%d", mod);
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int main() {
+    int n = -7;
+    int mod = ((n % 3) + 3) % 3;
+    printf("%d", mod);
+    return 0;
+}`,
+    "C's % takes the sign of the dividend, so -7 % 3 is -1",
+    "Output: -1 instead of 2",
+    ["C remainder keeps the dividend's sign", "Add the modulus, then take % again, for a non-negative result"],
+    "((n % 3) + 3) % 3"
+  ),
+  ch(259, "Unbounded Input", "gets() reads input with no size limit.", 140, 5, "C", "Intermediate",
+    `#include <stdio.h>
+
+int main() {
+    char buf[16];
+    gets(buf);
+    printf("hi %s", buf);
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int main() {
+    char buf[16];
+    fgets(buf, sizeof(buf), stdin);
+    printf("hi %s", buf);
+    return 0;
+}`,
+    "gets() has no bounds check and will overflow the buffer",
+    "buffer overflow / stack smashing",
+    ["gets() is removed from modern C", "Use fgets with a size limit"],
+    "fgets(buf, sizeof(buf), stdin)"
+  ),
+  ch(260, "Shadowed Global", "A local variable hides the global it should update.", 140, 5, "C", "Intermediate",
+    `#include <stdio.h>
+
+int total = 100;
+
+int main() {
+    int total = 1;
+    total = total + 5;
+    printf("%d", total);
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int total = 100;
+
+int main() {
+    total += 5;
+    printf("%d", total);
+    return 0;
+}`,
+    "the local declaration shadows the global, so the global is never updated",
+    "Output: 6 instead of 105",
+    ["A local variable hides the global with the same name", "Remove the local to update the global"],
+    "total += 5;"
+  ),
+];
+const cAdvanced: Challenge[] = [
+  ch(261, "Double Free", "The same heap block is freed twice.", 250, 8, "C", "Advanced",
+    `#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int *p = malloc(sizeof(int));
+    *p = 5;
+    printf("%d", *p);
+    free(p);
+    free(p);
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int *p = malloc(sizeof(int));
+    *p = 5;
+    printf("%d", *p);
+    free(p);
+    p = NULL;
+    return 0;
+}`,
+    "freeing the same block twice corrupts the allocator's bookkeeping",
+    "heap corruption / double free detected",
+    ["Each block is freed exactly once", "Null the pointer after free to catch repeats"],
+    "p = NULL;"
+  ),
+  ch(262, "Use After Free", "Freed memory is dereferenced afterwards.", 250, 8, "C", "Advanced",
+    `#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int main() {
+    char *p = malloc(16);
+    strcpy(p, "hello");
+    free(p);
+    printf("%s", p);
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int main() {
+    char *p = malloc(16);
+    strcpy(p, "hello");
+    free(p);
+    p = NULL;
+    return 0;
+}`,
+    "the pointer dangles after free, and reading through it is undefined behavior",
+    "garbage output or crash",
+    ["Never dereference freed memory", "Set the pointer to NULL after free"],
+    "p = NULL;"
+  ),
+  ch(263, "Dangling Return", "A function returns the address of a local variable.", 250, 8, "C", "Advanced",
+    `#include <stdio.h>
+
+int *make(void) {
+    int x = 42;
+    return &x;
+}
+
+int main() {
+    int *p = make();
+    printf("%d", *p);
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int *make(void) {
+    static int x = 42;
+    return &x;
+}
+
+int main() {
+    int *p = make();
+    printf("%d", *p);
+    return 0;
+}`,
+    "x dies when make() returns, so the returned pointer dangles",
+    "garbage value or crash",
+    ["Automatic locals are destroyed on return", "Use static storage (or heap) to keep the value alive"],
+    "static int x = 42;"
+  ),
+  ch(264, "Unsigned Forever", "An unsigned counter makes the loop condition never fail.", 250, 8, "C", "Advanced",
+    `#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char *s = "climb";
+    for (size_t i = strlen(s); i >= 0; i--)
+        printf("%c", s[i]);
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char *s = "climb";
+    for (int i = (int) strlen(s); i >= 0; i--)
+        printf("%c", s[i]);
+    return 0;
+}`,
+    "size_t is unsigned, so i >= 0 is always true and i underflows after 0",
+    "infinite loop / out-of-bounds access",
+    ["Unsigned values never go below zero", "Use a signed loop index"],
+    "int i = (int) strlen(s);"
+  ),
+  ch(265, "Realloc Overwrite", "A failed realloc silently loses the original pointer.", 250, 8, "C", "Advanced",
+    `#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int *p = malloc(4 * sizeof(int));
+    p[0] = 1;
+    p = realloc(p, 100000000 * sizeof(int));
+    printf("%d", p[0]);
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int *p = malloc(4 * sizeof(int));
+    p[0] = 1;
+    int *tmp = realloc(p, 100000000 * sizeof(int));
+    if (tmp != NULL)
+        p = tmp;
+    printf("%d", p[0]);
+    return 0;
+}`,
+    "realloc can fail and return NULL — overwriting p there leaks the original block",
+    "memory leak or crash when realloc fails",
+    ["Keep the old pointer until realloc succeeds", "Assign through a temporary and check it"],
+    "int *tmp = realloc(p,"
+  ),
+  ch(266, "Overlapping Copy", "memcpy is used on regions that overlap.", 250, 8, "C", "Advanced",
+    `#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char buf[32];
+    strcpy(buf, "0123456789");
+    memcpy(buf + 2, buf, 10);
+    printf("%s", buf);
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char buf[32];
+    strcpy(buf, "0123456789");
+    memmove(buf + 2, buf, 10);
+    printf("%s", buf);
+    return 0;
+}`,
+    "memcpy requires the regions not to overlap; here they do, which is undefined behavior",
+    "corrupted or unexpected content",
+    ["memcpy assumes non-overlapping regions", "Use memmove when the regions can overlap"],
+    "memmove(buf + 2, buf, 10);"
+  ),
+  ch(267, "Const Stripped", "A cast is used to write through a const-qualified pointer.", 250, 8, "C", "Advanced",
+    `#include <stdio.h>
+
+void shout(const char *s) {
+    char *p = (char *) s;
+    p[0] = 'B';
+    printf("%s", p);
+}
+
+int main() {
+    char msg[] = "boo";
+    shout(msg);
+    return 0;
+}`,
+    `#include <stdio.h>
+
+void shout(const char *s) {
+    printf("%c%s", 'B', s + 1);
+}
+
+int main() {
+    char msg[] = "boo";
+    shout(msg);
+    return 0;
+}`,
+    "casting away const to write is undefined behavior if the object was truly const",
+    "undefined behavior (crash if the object is read-only)",
+    ["const promises not to modify", "Build a new string instead of mutating through the cast"],
+    "printf(\"%c%s\", 'B', s + 1);"
+  ),
+  ch(268, "Wrong Callback", "A function pointer is assigned with a mismatched signature.", 250, 8, "C", "Advanced",
+    `#include <stdio.h>
+
+int add(int a, int b) {
+    return a + b;
+}
+
+int main() {
+    int (*fn)(int) = add;
+    printf("%d", fn(3));
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int add(int a, int b) {
+    return a + b;
+}
+
+int main() {
+    int (*fn)(int, int) = add;
+    printf("%d", fn(3, 4));
+    return 0;
+}`,
+    "add takes two ints but the pointer type says one — the call is undefined",
+    "compile warning and garbage result (undefined behavior)",
+    ["The function pointer signature must match exactly", "Declare int (*fn)(int, int) and call fn(3, 4)"],
+    "int (*fn)(int, int) = add;"
+  ),
+  ch(269, "Floating Equal", "Two floats are compared with ==", 250, 8, "C", "Advanced",
+    `#include <stdio.h>
+
+int main() {
+    double a = 0.1 + 0.2;
+    if (a == 0.3)
+        printf("equal");
+    else
+        printf("not equal");
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <math.h>
+
+int main() {
+    double a = 0.1 + 0.2;
+    if (fabs(a - 0.3) < 1e-9)
+        printf("equal");
+    else
+        printf("not equal");
+    return 0;
+}`,
+    "0.1 + 0.2 is not exactly 0.3 in binary floating point",
+    "Output: 'not equal'",
+    ["Binary floats cannot represent 0.1 or 0.2 exactly", "Compare with an epsilon: fabs(a - b) < 1e-9"],
+    "fabs(a - 0.3) < 1e-9"
+  ),
+  ch(270, "Racy Counter", "Two threads increment a shared counter without a lock.", 250, 8, "C", "Advanced",
+    `#include <stdio.h>
+#include <pthread.h>
+
+int counter = 0;
+
+void *bump(void *arg) {
+    for (int i = 0; i < 100000; i++)
+        counter++;
+    return NULL;
+}
+
+int main() {
+    pthread_t t1, t2;
+    pthread_create(&t1, NULL, bump, NULL);
+    pthread_create(&t2, NULL, bump, NULL);
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+    printf("%d", counter);
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <pthread.h>
+
+int counter = 0;
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+
+void *bump(void *arg) {
+    for (int i = 0; i < 100000; i++) {
+        pthread_mutex_lock(&lock);
+        counter++;
+        pthread_mutex_unlock(&lock);
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t t1, t2;
+    pthread_create(&t1, NULL, bump, NULL);
+    pthread_create(&t2, NULL, bump, NULL);
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+    printf("%d", counter);
+    return 0;
+}`,
+    "counter++ is not atomic — the two threads clobber each other's increments",
+    "Output: less than 200000 (lost updates)",
+    ["Read-modify-write is a race between threads", "Protect the increment with a mutex"],
+    "pthread_mutex_lock(&lock);"
+  ),
+];
+const cNightmare: Challenge[] = [
+  ch(271, "Aliasing Crime", "A float is read through an int pointer, violating strict aliasing.", 320, 10, "C", "Nightmare",
+    `#include <stdio.h>
+#include <stdint.h>
+
+int main() {
+    float f = 1.0f;
+    uint32_t bits = *(uint32_t *) &f;
+    printf("%u", bits);
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <string.h>
+
+int main() {
+    float f = 1.0f;
+    uint32_t bits;
+    memcpy(&bits, &f, sizeof(bits));
+    printf("%u", bits);
+    return 0;
+}`,
+    "reading a float through an unrelated pointer type violates the strict-aliasing rule",
+    "undefined behavior (optimizer may reorder or produce garbage)",
+    ["Only char* and the object's own type may alias", "Use memcpy to inspect raw bytes safely"],
+    "memcpy(&bits, &f, sizeof(bits));"
+  ),
+  ch(272, "Format Injection", "User-controlled input becomes the format string.", 320, 10, "C", "Nightmare",
+    `#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    char *name = getenv("USER");
+    printf(name);
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    char *name = getenv("USER");
+    printf("%s", name);
+    return 0;
+}`,
+    "if name contains %n or %x, printf reads and writes the stack",
+    "memory disclosure or crash (format string attack)",
+    ["Never pass data as the format argument", "Use printf(\"%s\", name) so it is treated as plain text"],
+    "printf(\"%s\", name);"
+  ),
+  ch(273, "Uninitialized Read", "Heap memory is read before anything is written to it.", 320, 10, "C", "Nightmare",
+    `#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int *p = malloc(4 * sizeof(int));
+    printf("%d", p[0]);
+    free(p);
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int *p = calloc(4, sizeof(int));
+    printf("%d", p[0]);
+    free(p);
+    return 0;
+}`,
+    "malloc leaves the memory uninitialized and its contents are indeterminate",
+    "garbage output (may leak stale heap data)",
+    ["malloc does not initialize memory", "Use calloc to zero-fill, or write before reading"],
+    "calloc(4, sizeof(int))"
+  ),
+  ch(274, "Longjmp Leak", "longjmp jumps out and skips the cleanup.", 320, 10, "C", "Nightmare",
+    `#include <stdio.h>
+#include <setjmp.h>
+#include <stdlib.h>
+
+jmp_buf env;
+
+void risky(void) {
+    int *p = malloc(sizeof(int));
+    *p = 7;
+    if (*p > 0)
+        longjmp(env, 1);
+    free(p);
+}
+
+int main() {
+    if (setjmp(env) == 0)
+        risky();
+    else
+        printf("recovered");
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <setjmp.h>
+#include <stdlib.h>
+
+jmp_buf env;
+
+void risky(void) {
+    int *p = malloc(sizeof(int));
+    *p = 7;
+    if (*p > 0) {
+        free(p);
+        longjmp(env, 1);
+    }
+    free(p);
+}
+
+int main() {
+    if (setjmp(env) == 0)
+        risky();
+    else
+        printf("recovered");
+    return 0;
+}`,
+    "longjmp unwinds to setjmp without running the free() below it",
+    "memory leak every time the jump is taken",
+    ["longjmp skips all code between the call and the target", "Free resources before jumping"],
+    "free(p);\n        longjmp(env, 1);"
+  ),
+  ch(275, "Signal Unsafe", "A signal handler calls printf, which is not async-signal-safe.", 320, 10, "C", "Nightmare",
+    `#include <stdio.h>
+#include <signal.h>
+#include <unistd.h>
+
+void on_sig(int sig) {
+    printf("interrupted\\n");
+}
+
+int main() {
+    signal(SIGINT, on_sig);
+    while (1) { }
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <signal.h>
+#include <unistd.h>
+
+volatile sig_atomic_t flag = 0;
+
+void on_sig(int sig) {
+    flag = 1;
+}
+
+int main() {
+    signal(SIGINT, on_sig);
+    while (!flag) { }
+    printf("interrupted\\n");
+    return 0;
+}`,
+    "printf is not async-signal-safe — calling it inside a handler is undefined behavior",
+    "deadlock or corrupted stdio state",
+    ["Handlers may only call async-signal-safe functions", "Set a volatile sig_atomic_t flag and act in main"],
+    "volatile sig_atomic_t flag = 0;"
+  ),
+  ch(276, "Endian Flip", "Byte-level bit tricks assume a specific byte order.", 320, 10, "C", "Nightmare",
+    `#include <stdio.h>
+
+unsigned long mix(unsigned long x) {
+    unsigned char *bytes = (unsigned char *) &x;
+    bytes[0] = bytes[0] + 1;
+    return x;
+}
+
+int main() {
+    printf("%lu", mix(1));
+    return 0;
+}`,
+    `#include <stdio.h>
+
+unsigned long mix(unsigned long x) {
+    unsigned char *bytes = (unsigned char *) &x;
+    size_t i = 0;
+    while (i < sizeof(x) && bytes[i] == 255) {
+        bytes[i] = 0;
+        i++;
+    }
+    if (i < sizeof(x)) bytes[i]++;
+    return x;
+}`,
+    "on little-endian machines byte 0 is the least significant, on big-endian it is the most",
+    "different results on different hardware",
+    ["Byte order varies between architectures", "Do arithmetic on the integer, not on its bytes"],
+    "while (i < sizeof(x) && bytes[i] == 255)"
+  ),
+  ch(277, "NaN Trap", "A NaN never compares equal to anything — even itself.", 320, 10, "C", "Nightmare",
+    `#include <stdio.h>
+#include <math.h>
+
+int main() {
+    double x = 0.0 / 0.0;
+    if (x == x)
+        printf("valid");
+    else
+        printf("invalid");
+    return 0;
+}`,
+    `#include <stdio.h>
+#include <math.h>
+
+int main() {
+    double x = 0.0 / 0.0;
+    if (isnan(x))
+        printf("invalid");
+    else
+        printf("valid");
+    return 0;
+}`,
+    "x is NaN, and NaN != NaN by definition",
+    "Output: 'invalid' — the equality self-check fails",
+    ["NaN never equals anything, including itself", "Test with isnan(x) instead of x == x"],
+    "isnan(x)"
+  ),
+  ch(278, "Shared Scratch", "A static buffer is reused, so the second call overwrites the first.", 320, 10, "C", "Nightmare",
+    `#include <stdio.h>
+
+char *month(int m) {
+    static char buf[16];
+    switch (m) {
+        case 1: snprintf(buf, sizeof buf, "jan"); break;
+        case 2: snprintf(buf, sizeof buf, "feb"); break;
+        default: snprintf(buf, sizeof buf, "???");
+    }
+    return buf;
+}
+
+int main() {
+    char *a = month(1);
+    char *b = month(2);
+    printf("%s %s", a, b);
+    return 0;
+}`,
+    `#include <stdio.h>
+
+const char *month(int m) {
+    switch (m) {
+        case 1: return "jan";
+        case 2: return "feb";
+        default: return "???";
+    }
+}
+
+int main() {
+    const char *a = month(1);
+    const char *b = month(2);
+    printf("%s %s", a, b);
+    return 0;
+}`,
+    "both a and b point at the same static buffer, and the second call overwrites it",
+    "Output: 'feb feb' instead of 'jan feb'",
+    ["Static buffers are shared between calls", "Return string literals or caller-owned buffers"],
+    "const char *month(int m)"
+  ),
+  ch(279, "Shifted Off", "Shifting by the full width of the type is undefined behavior.", 320, 10, "C", "Nightmare",
+    `#include <stdio.h>
+
+int main() {
+    unsigned int x = 1;
+    x <<= 32;
+    printf("%u", x);
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int main() {
+    unsigned int x = 1;
+    x <<= 31;
+    printf("%u", x);
+    return 0;
+}`,
+    "shifting a 32-bit value by 32 is undefined behavior in C",
+    "undefined result (often 0, but the compiler is free to do anything)",
+    ["The shift amount must be less than the width", "A 32-bit type accepts shifts 0..31"],
+    "x <<= 31;"
+  ),
+  ch(280, "Paranoid Peek", "The code looks suspicious, but it is actually correct.", 320, 10, "C", "Nightmare",
+    `#include <stdio.h>
+
+int main() {
+    int a = 5;
+    int *p = &a;
+    *p = *p + 1;
+    printf("%d", a);
+    return 0;
+}`,
+    `#include <stdio.h>
+
+int main() {
+    int a = 5;
+    int *p = &a;
+    *p = *p + 1;
+    printf("%d", a);
+    return 0;
+}`,
+    "nothing is wrong — the pointer update is valid and intended",
+    "Output: 6",
+    ["Not every pointer use is a bug", "This is a legal mutation through a valid pointer"],
+    "*p = *p + 1;"
+  ),
+];
+/* ========= C++ TRACK ========= */
+const cppBeginner: Challenge[] = [
+  ch(281, "Missing Header", "std::string is used without including <string>.", 50, 3, "C++", "Beginner",
+    `#include <iostream>
+
+int main() {
+    std::string name = "Climbug";
+    std::cout << name;
+    return 0;
+}`,
+    `#include <iostream>
+#include <string>
+
+int main() {
+    std::string name = "Climbug";
+    std::cout << name;
+    return 0;
+}`,
+    "std::string is declared in <string>, which is never included",
+    "compile error: 'string' is not a member of 'std'",
+    ["Include the header that declares the type you use", "Add #include <string>"],
+    "#include <string>"
+  ),
+  ch(282, "Naked cout", "cout is used without the std:: prefix or a using declaration.", 50, 3, "C++", "Beginner",
+    `#include <iostream>
+
+int main() {
+    cout << "hello";
+    return 0;
+}`,
+    `#include <iostream>
+
+int main() {
+    std::cout << "hello";
+    return 0;
+}`,
+    "cout lives in the std namespace and is not visible here",
+    "compile error: 'cout' was not declared in this scope",
+    ["Standard names live in the std namespace", "Write std::cout (or add using namespace std)"],
+    "std::cout << \"hello\";"
+  ),
+  ch(283, "Copied Out", "The function takes a copy, so the caller's variable never changes.", 50, 3, "C++", "Beginner",
+    `#include <iostream>
+
+void raise(int x) {
+    x += 10;
+}
+
+int main() {
+    int score = 5;
+    raise(score);
+    std::cout << score;
+    return 0;
+}`,
+    `#include <iostream>
+
+void raise(int &x) {
+    x += 10;
+}
+
+int main() {
+    int score = 5;
+    raise(score);
+    std::cout << score;
+    return 0;
+}`,
+    "x is a copy, so the increment is lost when the function returns",
+    "Output: 5 instead of 15",
+    ["By-value parameters copy the argument", "Pass by reference (int &x) to modify the caller's variable"],
+    "void raise(int &x)"
+  ),
+  ch(284, "One Past the End", "The loop visits an index past the last element.", 50, 3, "C++", "Beginner",
+    `#include <iostream>
+#include <vector>
+
+int main() {
+    std::vector<int> v = {1, 2, 3};
+    for (int i = 0; i <= v.size(); i++)
+        std::cout << v[i] << " ";
+    return 0;
+}`,
+    `#include <iostream>
+#include <vector>
+
+int main() {
+    std::vector<int> v = {1, 2, 3};
+    for (int i = 0; i < v.size(); i++)
+        std::cout << v[i] << " ";
+    return 0;
+}`,
+    "valid indexes are 0..2, but the loop runs i=3 too",
+    "reads past the buffer (undefined behavior)",
+    ["Indexes run 0..size()-1", "Use i < v.size(), never i <= v.size()"],
+    "for (int i = 0; i < v.size();"
+  ),
+  ch(285, "Lone Character", "A string is compared to a char literal.", 50, 3, "C++", "Beginner",
+    `#include <iostream>
+#include <string>
+
+int main() {
+    std::string grade = "A";
+    if (grade == 'A')
+        std::cout << "passed";
+    else
+        std::cout << "failed";
+    return 0;
+}`,
+    `#include <iostream>
+#include <string>
+
+int main() {
+    std::string grade = "A";
+    if (grade == "A")
+        std::cout << "passed";
+    else
+        std::cout << "failed";
+    return 0;
+}`,
+    "'A' is a single char but grade is a string — the types do not compare",
+    "compile error: no match for operator==",
+    ["Single quotes hold one char", "Compare a string to a string: use \"A\""],
+    "grade == \"A\""
+  ),
+  ch(286, "Forgotten Return", "A non-void function returns without a value.", 50, 3, "C++", "Beginner",
+    `#include <iostream>
+
+int max_of(int a, int b) {
+    if (a > b)
+        return a;
+}
+
+int main() {
+    std::cout << max_of(3, 7);
+    return 0;
+}`,
+    `#include <iostream>
+
+int max_of(int a, int b) {
+    if (a > b)
+        return a;
+    return b;
+}
+
+int main() {
+    std::cout << max_of(3, 7);
+    return 0;
+}`,
+    "when a <= b the function falls off the end with no return",
+    "garbage return value (undefined behavior)",
+    ["Every path in a non-void function must return", "Add return b; for the else path"],
+    "return b;"
+  ),
+  ch(287, "Truncated Average", "Integer division drops the fraction.", 50, 3, "C++", "Beginner",
+    `#include <iostream>
+
+int main() {
+    int sum = 9, count = 2;
+    double avg = sum / count;
+    std::cout << avg;
+    return 0;
+}`,
+    `#include <iostream>
+
+int main() {
+    int sum = 9, count = 2;
+    double avg = static_cast<double>(sum) / count;
+    std::cout << avg;
+    return 0;
+}`,
+    "int / int truncates before the result reaches the double",
+    "Output: 4 instead of 4.5",
+    ["Cast one operand to double first", "static_cast<double>(sum) forces floating division"],
+    "static_cast<double>(sum) / count"
+  ),
+  ch(288, "Assign in While", "The loop condition assigns instead of comparing.", 50, 3, "C++", "Beginner",
+    `#include <iostream>
+
+int main() {
+    int lives = 3;
+    while (lives = 0) {
+        std::cout << "playing";
+        lives--;
+    }
+    return 0;
+}`,
+    `#include <iostream>
+
+int main() {
+    int lives = 3;
+    while (lives == 0) {
+        std::cout << "playing";
+        lives--;
+    }
+    return 0;
+}`,
+    "lives = 0 assigns zero, which is falsy, so the loop never runs",
+    "the loop body is skipped entirely",
+    ["= assigns, == compares", "Use lives == 0 in the condition"],
+    "while (lives == 0)"
+  ),
+  ch(289, "printf Handoff", "A std::string is passed to printf with %s.", 50, 3, "C++", "Beginner",
+    `#include <cstdio>
+#include <string>
+
+int main() {
+    std::string name = "Rusty";
+    printf("%s", name);
+    return 0;
+}`,
+    `#include <cstdio>
+#include <string>
+
+int main() {
+    std::string name = "Rusty";
+    printf("%s", name.c_str());
+    return 0;
+}`,
+    "printf expects a C string (const char*), not a std::string object",
+    "garbage output or crash",
+    ["%s needs a pointer to a NUL-terminated array", "Use name.c_str() for printf"],
+    "printf(\"%s\", name.c_str())"
+  ),
+  ch(290, "Uninitialized Member", "A struct member is never initialized.", 50, 3, "C++", "Beginner",
+    `#include <iostream>
+
+struct Player {
+    int score;
+    int level;
+};
+
+int main() {
+    Player p;
+    p.score = 10;
+    std::cout << p.level;
+    return 0;
+}`,
+    `#include <iostream>
+
+struct Player {
+    int score = 0;
+    int level = 1;
+};
+
+int main() {
+    Player p;
+    p.score = 10;
+    std::cout << p.level;
+    return 0;
+}`,
+    "p.level is never set, and reading an uninitialized int is undefined behavior",
+    "garbage value for level",
+    ["Members of a default-initialized struct are uninitialized", "Give members defaults: int level = 1;"],
+    "int level = 1;"
+  ),
+];
+const cppIntermediate: Challenge[] = [
+  ch(291, "Erase While Iterating", "Elements are erased from a vector while looping over it.", 140, 5, "C++", "Intermediate",
+    `#include <iostream>
+#include <vector>
+
+int main() {
+    std::vector<int> v = {1, 0, 2, 0, 3};
+    for (auto it = v.begin(); it != v.end(); ++it) {
+        if (*it == 0)
+            v.erase(it);
+    }
+    for (int x : v) std::cout << x << " ";
+    return 0;
+}`,
+    `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+int main() {
+    std::vector<int> v = {1, 0, 2, 0, 3};
+    v.erase(std::remove(v.begin(), v.end(), 0), v.end());
+    for (int x : v) std::cout << x << " ";
+    return 0;
+}`,
+    "erase invalidates the iterator, and skipping forward can jump over elements",
+    "undefined behavior or elements left behind",
+    ["Never modify a container while iterating it", "Use the erase-remove idiom"],
+    "std::remove(v.begin(), v.end(), 0)"
+  ),
+  ch(292, "Reallocation Dart", "A pointer into a vector dangles after push_back.", 140, 5, "C++", "Intermediate",
+    `#include <iostream>
+#include <vector>
+
+int main() {
+    std::vector<int> v = {1, 2, 3};
+    int *p = &v[0];
+    v.push_back(4);
+    std::cout << *p;
+    return 0;
+}`,
+    `#include <iostream>
+#include <vector>
+
+int main() {
+    std::vector<int> v = {1, 2, 3};
+    v.reserve(100);
+    int *p = &v[0];
+    v.push_back(4);
+    std::cout << *p;
+    return 0;
+}`,
+    "push_back can reallocate the buffer, invalidating all existing pointers",
+    "dangling pointer / undefined behavior",
+    ["Reallocation moves the elements to a new buffer", "Reserve enough capacity up front"],
+    "v.reserve(100);"
+  ),
+  ch(293, "Dangling Reference", "A function returns a reference to a local variable.", 140, 5, "C++", "Intermediate",
+    `#include <iostream>
+
+int &get() {
+    int x = 5;
+    return x;
+}
+
+int main() {
+    int &r = get();
+    std::cout << r;
+    return 0;
+}`,
+    `#include <iostream>
+
+int get() {
+    int x = 5;
+    return x;
+}
+
+int main() {
+    int r = get();
+    std::cout << r;
+    return 0;
+}`,
+    "x dies when get() returns, so the reference dangles",
+    "garbage value or crash",
+    ["Automatic locals are destroyed on return", "Return by value instead of by reference"],
+    "int get()"
+  ),
+  ch(294, "Non-Virtual Dtor", "Deleting through a base pointer skips the derived destructor.", 140, 5, "C++", "Intermediate",
+    `#include <iostream>
+
+class Base {
+public:
+    ~Base() {}
+};
+
+class Derived : public Base {
+public:
+    ~Derived() { std::cout << "cleanup"; }
+};
+
+int main() {
+    Base *p = new Derived();
+    delete p;
+    return 0;
+}`,
+    `#include <iostream>
+
+class Base {
+public:
+    virtual ~Base() {}
+};
+
+class Derived : public Base {
+public:
+    ~Derived() { std::cout << "cleanup"; }
+};
+
+int main() {
+    Base *p = new Derived();
+    delete p;
+    return 0;
+}`,
+    "without a virtual destructor, deleting via Base* never calls ~Derived",
+    "derived cleanup is skipped (leak / undefined behavior)",
+    ["Base destructors must be virtual for polymorphic deletion", "Add virtual to ~Base"],
+    "virtual ~Base()"
+  ),
+  ch(295, "Unchecked Stoi", "stoi throws when the input is not a number.", 140, 5, "C++", "Intermediate",
+    `#include <iostream>
+#include <string>
+
+int main() {
+    std::string input = "abc";
+    int n = std::stoi(input);
+    std::cout << n;
+    return 0;
+}`,
+    `#include <iostream>
+#include <string>
+
+int main() {
+    std::string input = "abc";
+    try {
+        int n = std::stoi(input);
+        std::cout << n;
+    } catch (const std::invalid_argument &) {
+        std::cout << "not a number";
+    }
+    return 0;
+}`,
+    "stoi raises std::invalid_argument when the string has no digits",
+    "unhandled exception: std::invalid_argument",
+    ["Conversions from user input can fail", "Wrap stoi in a try/catch"],
+    "catch (const std::invalid_argument &)"
+  ),
+  ch(296, "Shallow Copy", "The default copy copies the pointer, so both objects free the same memory.", 140, 5, "C++", "Intermediate",
+    `#include <iostream>
+
+class Buffer {
+public:
+    Buffer() { data = new int[10]; }
+    ~Buffer() { delete[] data; }
+    int *data;
+};
+
+int main() {
+    Buffer a;
+    Buffer b = a;
+    return 0;
+}`,
+    `#include <iostream>
+
+class Buffer {
+public:
+    Buffer() : data(new int[10]) {}
+    Buffer(const Buffer &other) {
+        data = new int[10];
+        for (int i = 0; i < 10; i++) data[i] = other.data[i];
+    }
+    ~Buffer() { delete[] data; }
+    int *data;
+};
+
+int main() {
+    Buffer a;
+    Buffer b = a;
+    return 0;
+}`,
+    "the compiler-generated copy shares the pointer, so both destructors free it",
+    "double free / heap corruption",
+    ["The default copy constructor copies pointers", "Provide a real copy constructor (rule of three)"],
+    "Buffer(const Buffer &other)"
+  ),
+  ch(297, "auto Strips Ref", "auto silently copies instead of keeping a reference.", 140, 5, "C++", "Intermediate",
+    `#include <iostream>
+#include <vector>
+
+int main() {
+    std::vector<int> v = {1, 2, 3};
+    auto x = v[0];
+    v[0] = 99;
+    std::cout << x;
+    return 0;
+}`,
+    `#include <iostream>
+#include <vector>
+
+int main() {
+    std::vector<int> v = {1, 2, 3};
+    auto &x = v[0];
+    v[0] = 99;
+    std::cout << x;
+    return 0;
+}`,
+    "auto deduces int (a copy), so x never sees the later change",
+    "Output: 1 instead of 99",
+    ["auto drops reference qualifiers", "Use auto &x to bind to the element itself"],
+    "auto &x = v[0];"
+  ),
+  ch(298, "Flipped Sort", "The comparator returns true in the wrong order.", 140, 5, "C++", "Intermediate",
+    `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+int main() {
+    std::vector<int> v = {3, 1, 2};
+    std::sort(v.begin(), v.end(), [](int a, int b) { return a >= b; });
+    for (int x : v) std::cout << x << " ";
+    return 0;
+}`,
+    `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+int main() {
+    std::vector<int> v = {3, 1, 2};
+    std::sort(v.begin(), v.end(), [](int a, int b) { return a < b; });
+    for (int x : v) std::cout << x << " ";
+    return 0;
+}`,
+    "a >= b violates strict weak ordering (equal elements compare both ways)",
+    "sort may crash, loop forever, or produce a wrong order",
+    ["Comparators must be a strict weak ordering", "Use a < b for ascending order"],
+    "return a < b;"
+  ),
+  ch(299, "Muted Capture", "A lambda captures by value and then tries to modify the captured variable.", 140, 5, "C++", "Intermediate",
+    `#include <iostream>
+
+int main() {
+    int count = 0;
+    auto bump = [count]() { count++; };
+    bump();
+    bump();
+    std::cout << count;
+    return 0;
+}`,
+    `#include <iostream>
+
+int main() {
+    int count = 0;
+    auto bump = [count]() mutable { count++; };
+    bump();
+    bump();
+    std::cout << count;
+    return 0;
+}`,
+    "by-value captures are const inside a non-mutable lambda",
+    "compile error: cannot assign to a variable captured by copy",
+    ["Captured copies are const by default", "Mark the lambda mutable to modify its copy"],
+    "auto bump = [count]() mutable"
+  ),
+  ch(300, "C-Style Spill", "A C-style buffer overflow sneaks into C++.", 140, 5, "C++", "Intermediate",
+    `#include <iostream>
+#include <cstring>
+
+int main() {
+    char buf[4];
+    std::strcpy(buf, "Rusty");
+    std::cout << buf;
+    return 0;
+}`,
+    `#include <iostream>
+#include <string>
+
+int main() {
+    std::string buf = "Rusty";
+    std::cout << buf;
+    return 0;
+}`,
+    "strcpy writes 6 bytes into a 4-byte buffer",
+    "stack corruption / segmentation fault",
+    ["Avoid C string functions in C++", "Use std::string and let it manage the memory"],
+    "std::string buf = \"Rusty\";"
+  ),
+];
+const cppAdvanced: Challenge[] = [
+  ch(301, "Use After Move", "An object is used after its contents were moved away.", 250, 8, "C++", "Advanced",
+    `#include <iostream>
+#include <string>
+#include <utility>
+
+int main() {
+    std::string a = "hello";
+    std::string b = std::move(a);
+    std::cout << a.size();
+    return 0;
+}`,
+    `#include <iostream>
+#include <string>
+#include <utility>
+
+int main() {
+    std::string a = "hello";
+    std::string b = std::move(a);
+    std::cout << b.size();
+    return 0;
+}`,
+    "after the move, a is in a valid-but-unspecified state, and reading it is fragile",
+    "Output: 0 (or another unspecified value) instead of 5",
+    ["A moved-from object must be treated as empty", "Use the moved-to object b, not the source a"],
+    "std::cout << b.size();"
+  ),
+  ch(302, "noexcept Growth", "A throwing move breaks vector reallocation.", 250, 8, "C++", "Advanced",
+    `#include <iostream>
+#include <vector>
+
+struct Widget {
+    Widget() {}
+    Widget(const Widget &other) { throw 1; }
+    Widget(Widget &&other) noexcept { }
+};
+
+int main() {
+    std::vector<Widget> v;
+    v.emplace_back();
+    v.emplace_back();
+    return 0;
+}`,
+    `#include <iostream>
+#include <vector>
+
+struct Widget {
+    Widget() {}
+    Widget(const Widget &other) { throw 1; }
+    Widget(Widget &&other) noexcept { }
+};
+
+int main() {
+    std::vector<Widget> v;
+    v.reserve(4);
+    v.emplace_back();
+    v.emplace_back();
+    return 0;
+}`,
+    "when the buffer grows, vector prefers the move, but if the move is noexcept and the copy throws, std::terminate fires",
+    "std::terminate called",
+    ["noexcept moves let vector reallocate safely", "Reserve capacity so growth never happens mid-operation"],
+    "v.reserve(4);"
+  ),
+  ch(303, "Static Init Order", "One translation unit reads a static from another before it is built.", 250, 8, "C++", "Advanced",
+    `#include <iostream>
+#include <string>
+
+std::string greeting();
+
+int main() {
+    std::cout << greeting();
+    return 0;
+}
+
+// in another file:
+// std::string msg = "hello";
+// std::string greeting() { return msg; }`,
+    `#include <iostream>
+#include <string>
+
+std::string &greeting() {
+    static std::string msg = "hello";
+    return msg;
+}
+
+int main() {
+    std::cout << greeting();
+    return 0;
+}`,
+    "global statics across files initialize in an unspecified order",
+    "reading an empty string (or crash) depending on link order",
+    ["Cross-file static initialization order is unspecified", "Use a function-local static (Meyers singleton)"],
+    "static std::string msg = \"hello\";"
+  ),
+  ch(304, "Silent Override Miss", "A base virtual is not overridden because the signature does not match.", 250, 8, "C++", "Advanced",
+    `#include <iostream>
+
+class Shape {
+public:
+    virtual double area() const { return 0; }
+};
+
+class Square : public Shape {
+public:
+    double area() { return 4.0; }
+};
+
+int main() {
+    Shape *s = new Square();
+    std::cout << s->area();
+    return 0;
+}`,
+    `#include <iostream>
+
+class Shape {
+public:
+    virtual double area() const { return 0; }
+};
+
+class Square : public Shape {
+public:
+    double area() const override { return 4.0; }
+};
+
+int main() {
+    Shape *s = new Square();
+    std::cout << s->area();
+    return 0;
+}`,
+    "Square::area is missing const, so it does not override and hides the base",
+    "Output: 0 (the base version is called)",
+    ["The derived signature must match exactly", "Mark overrides with override to catch mismatches"],
+    "double area() const override"
+  ),
+  ch(305, "Move-Only Emplace", "A unique_ptr is copied instead of moved into a container.", 250, 8, "C++", "Advanced",
+    `#include <iostream>
+#include <memory>
+#include <vector>
+
+int main() {
+    auto w = std::make_unique<int>(7);
+    std::vector<std::unique_ptr<int>> v;
+    v.push_back(w);
+    std::cout << *w;
+    return 0;
+}`,
+    `#include <iostream>
+#include <memory>
+#include <vector>
+
+int main() {
+    auto w = std::make_unique<int>(7);
+    std::vector<std::unique_ptr<int>> v;
+    v.push_back(std::move(w));
+    return 0;
+}`,
+    "unique_ptr is move-only — push_back(w) tries to copy it",
+    "compile error: use of deleted function",
+    ["unique_ptr cannot be copied", "Move it: v.push_back(std::move(w))"],
+    "v.push_back(std::move(w));"
+  ),
+  ch(306, "Leak on Throw", "Raw memory is allocated, then an exception escapes.", 250, 8, "C++", "Advanced",
+    `#include <iostream>
+#include <stdexcept>
+
+void run() {
+    int *buf = new int[100];
+    if (buf[0] < 0)
+        throw std::runtime_error("negative");
+    delete[] buf;
+}
+
+int main() {
+    try {
+        run();
+    } catch (const std::exception &) {
+        std::cout << "caught";
+    }
+    return 0;
+}`,
+    `#include <iostream>
+#include <memory>
+#include <stdexcept>
+
+void run() {
+    std::unique_ptr<int[]> buf(new int[100]);
+    if (buf[0] < 0)
+        throw std::runtime_error("negative");
+}
+
+int main() {
+    try {
+        run();
+    } catch (const std::exception &) {
+        std::cout << "caught";
+    }
+    return 0;
+}`,
+    "if the throw fires, delete[] is skipped and the buffer leaks",
+    "memory leak on every exception path",
+    ["Raw new/delete is not exception-safe", "Wrap the buffer in std::unique_ptr for automatic cleanup"],
+    "std::unique_ptr<int[]> buf(new int[100]);"
+  ),
+  ch(307, "Deduction Mismatch", "A template parameter deduced as value cannot bind a reference.", 250, 8, "C++", "Advanced",
+    `#include <iostream>
+
+template <typename T>
+void pass(T x) {
+    x += 1;
+}
+
+int main() {
+    int score = 5;
+    pass(score);
+    std::cout << score;
+    return 0;
+}`,
+    `#include <iostream>
+
+template <typename T>
+void pass(T &x) {
+    x += 1;
+}
+
+int main() {
+    int score = 5;
+    pass(score);
+    std::cout << score;
+    return 0;
+}`,
+    "T is deduced as int, so the parameter is a copy and the change is lost",
+    "Output: 5 instead of 6",
+    ["Deduced T by value copies the argument", "Use T &x to take the parameter by reference"],
+    "void pass(T &x)"
+  ),
+  ch(308, "Dependent Name", "A dependent type needs typename, otherwise parsing fails.", 250, 8, "C++", "Advanced",
+    `#include <iostream>
+#include <vector>
+
+template <typename T>
+T second(const std::vector<T> &v) {
+    std::vector<T>::const_iterator it = v.begin();
+    ++it;
+    return *it;
+}
+
+int main() {
+    std::cout << second(std::vector<int>{10, 20, 30});
+    return 0;
+}`,
+    `#include <iostream>
+#include <vector>
+
+template <typename T>
+T second(const std::vector<T> &v) {
+    typename std::vector<T>::const_iterator it = v.begin();
+    ++it;
+    return *it;
+}
+
+int main() {
+    std::cout << second(std::vector<int>{10, 20, 30});
+    return 0;
+}`,
+    "const_iterator is a dependent type and must be marked with typename",
+    "compile error: missing 'typename' before dependent type",
+    ["Dependent types need the typename keyword", "Write typename std::vector<T>::const_iterator"],
+    "typename std::vector<T>::const_iterator"
+  ),
+  ch(309, "Racy shared_ptr", "A shared_ptr is read and written from two threads at once.", 250, 8, "C++", "Advanced",
+    `#include <iostream>
+#include <memory>
+#include <thread>
+
+int main() {
+    std::shared_ptr<int> p = std::make_shared<int>(1);
+    std::thread t1([&p] { p = std::make_shared<int>(2); });
+    std::thread t2([&p] { std::cout << *p; });
+    t1.join();
+    t2.join();
+    return 0;
+}`,
+    `#include <iostream>
+#include <memory>
+#include <thread>
+#include <mutex>
+
+int main() {
+    std::shared_ptr<int> p = std::make_shared<int>(1);
+    std::mutex m;
+    std::thread t1([&] { std::lock_guard<std::mutex> g(m); p = std::make_shared<int>(2); });
+    std::thread t2([&] { std::lock_guard<std::mutex> g(m); std::cout << *p; });
+    t1.join();
+    t2.join();
+    return 0;
+}`,
+    "shared_ptr itself is not thread-safe for concurrent writes",
+    "data race / crash or corrupted pointer",
+    ["The refcount is atomic, but the pointer is not", "Guard shared_ptr access with a mutex"],
+    "std::lock_guard<std::mutex> g(m);"
+  ),
+  ch(310, "Temp Reference Member", "A class stores a reference to a temporary that dies immediately.", 250, 8, "C++", "Advanced",
+    `#include <iostream>
+#include <string>
+
+class Label {
+    const std::string &text;
+public:
+    Label(const std::string &t) : text(t) {}
+    void print() const { std::cout << text; }
+};
+
+int main() {
+    Label l("temp");
+    l.print();
+    return 0;
+}`,
+    `#include <iostream>
+#include <string>
+#include <utility>
+
+class Label {
+    std::string text;
+public:
+    Label(std::string t) : text(std::move(t)) {}
+    void print() const { std::cout << text; }
+};
+
+int main() {
+    Label l("temp");
+    l.print();
+    return 0;
+}`,
+    "the temporary string dies after the constructor, leaving the reference dangling",
+    "garbage output or crash",
+    ["References to constructor arguments can dangle", "Store by value and move the argument in"],
+    "Label(std::string t) : text(std::move(t))"
+  ),
+];
+const cppNightmare: Challenge[] = [
+  ch(311, "Pointer Truncation", "A pointer is stuffed into an int, losing half the address.", 320, 10, "C++", "Nightmare",
+    `#include <iostream>
+
+int main() {
+    int value = 42;
+    int *p = &value;
+    int addr = reinterpret_cast<int>(p);
+    std::cout << addr;
+    return 0;
+}`,
+    `#include <iostream>
+#include <cstdint>
+
+int main() {
+    int value = 42;
+    int *p = &value;
+    std::uintptr_t addr = reinterpret_cast<std::uintptr_t>(p);
+    std::cout << addr;
+    return 0;
+}`,
+    "int is 32-bit but pointers are 64-bit, so the cast truncates",
+    "truncated address (lost bits)",
+    ["Pointers are as wide as the platform (often 64 bits)", "Use uintptr_t to hold an address as an integer"],
+    "reinterpret_cast<std::uintptr_t>(p)"
+  ),
+  ch(312, "Throwing Destructor", "An exception escapes from a destructor.", 320, 10, "C++", "Nightmare",
+    `#include <iostream>
+#include <stdexcept>
+
+class Resource {
+public:
+    ~Resource() {
+        throw std::runtime_error("close failed");
+    }
+};
+
+int main() {
+    try {
+        Resource r;
+    } catch (const std::exception &) {
+        std::cout << "caught";
+    }
+    return 0;
+}`,
+    `#include <iostream>
+#include <stdexcept>
+
+class Resource {
+public:
+    ~Resource() noexcept {
+        try {
+            // attempt close, swallow failures
+        } catch (...) {
+            std::cout << "logged";
+        }
+    }
+};
+
+int main() {
+    try {
+        Resource r;
+    } catch (const std::exception &) {
+        std::cout << "caught";
+    }
+    return 0;
+}`,
+    "a destructor that throws during stack unwinding calls std::terminate",
+    "std::terminate called (program aborts)",
+    ["Destructors are noexcept by default", "Never let an exception escape — catch and log instead"],
+    "~Resource() noexcept"
+  ),
+  ch(313, "const_cast Crash", "The const is cast away from memory that is genuinely read-only.", 320, 10, "C++", "Nightmare",
+    `#include <iostream>
+
+int main() {
+    const char *s = "fixed";
+    char *p = const_cast<char *>(s);
+    p[0] = 'F';
+    std::cout << p;
+    return 0;
+}`,
+    `#include <iostream>
+
+int main() {
+    char buf[] = "fixed";
+    char *p = buf;
+    p[0] = 'F';
+    std::cout << p;
+    return 0;
+}`,
+    "const_cast is fine for removing const, but writing to truly const memory is undefined",
+    "Segmentation fault (string literal in read-only memory)",
+    ["const_cast cannot make read-only memory writable", "Copy the literal into a mutable array first"],
+    "char buf[] = \"fixed\";"
+  ),
+  ch(314, "Diamond Ambiguity", "Two bases carry the same member, and the derived class is ambiguous.", 320, 10, "C++", "Nightmare",
+    `#include <iostream>
+
+class A {
+public:
+    int id = 1;
+};
+
+class B : public A { };
+class C : public A { };
+
+class D : public B, public C {
+public:
+    int get() { return id; }
+};
+
+int main() {
+    D d;
+    std::cout << d.get();
+    return 0;
+}`,
+    `#include <iostream>
+
+class A {
+public:
+    int id = 1;
+};
+
+class B : public virtual A { };
+class C : public virtual A { };
+
+class D : public B, public C {
+public:
+    int get() { return id; }
+};
+
+int main() {
+    D d;
+    std::cout << d.get();
+    return 0;
+}`,
+    "D inherits two copies of A, so id is ambiguous",
+    "compile error: request for member 'id' is ambiguous",
+    ["Non-virtual inheritance duplicates the base", "Use virtual inheritance to share one A subobject"],
+    "class B : public virtual A"
+  ),
+  ch(315, "Captured Temp", "A lambda captures a temporary by reference and outlives it.", 320, 10, "C++", "Nightmare",
+    `#include <iostream>
+#include <functional>
+#include <string>
+
+std::function<void()> make_printer() {
+    std::string msg = "hello";
+    return [&msg]() { std::cout << msg; };
+}
+
+int main() {
+    auto f = make_printer();
+    f();
+    return 0;
+}`,
+    `#include <iostream>
+#include <functional>
+#include <string>
+
+std::function<void()> make_printer() {
+    std::string msg = "hello";
+    return [msg]() { std::cout << msg; };
+}
+
+int main() {
+    auto f = make_printer();
+    f();
+    return 0;
+}`,
+    "msg is destroyed when make_printer returns, but the lambda still refers to it",
+    "dangling reference / undefined behavior",
+    ["A captured reference dangles once the local dies", "Capture by value ([msg]) to own the data"],
+    "return [msg]()"
+  ),
+  ch(316, "Signed Overflow", "Signed integer overflow is undefined behavior.", 320, 10, "C++", "Nightmare",
+    `#include <iostream>
+#include <limits>
+
+int main() {
+    int max = std::numeric_limits<int>::max();
+    max += 1;
+    std::cout << max;
+    return 0;
+}`,
+    `#include <iostream>
+#include <limits>
+
+int main() {
+    int max = std::numeric_limits<int>::max();
+    long long result = static_cast<long long>(max) + 1;
+    std::cout << result;
+    return 0;
+}`,
+    "adding 1 to INT_MAX overflows a signed int — undefined behavior",
+    "undefined (optimizer may assume it never happens)",
+    ["Signed overflow is UB, unlike unsigned wraparound", "Widen to long long before the addition"],
+    "static_cast<long long>(max) + 1"
+  ),
+  ch(317, "Placement New", "Placement-new storage is never destroyed.", 320, 10, "C++", "Nightmare",
+    `#include <iostream>
+#include <new>
+
+struct Token {
+    int n;
+    Token(int x) : n(x) {}
+    ~Token() { std::cout << "destroyed"; }
+};
+
+int main() {
+    alignas(Token) char raw[sizeof(Token)];
+    Token *t = new (raw) Token(7);
+    std::cout << t->n;
+    return 0;
+}`,
+    `#include <iostream>
+#include <new>
+
+struct Token {
+    int n;
+    Token(int x) : n(x) {}
+    ~Token() { std::cout << "destroyed"; }
+};
+
+int main() {
+    alignas(Token) char raw[sizeof(Token)];
+    Token *t = new (raw) Token(7);
+    std::cout << t->n;
+    t->~Token();
+    return 0;
+}`,
+    "placement new must be matched by an explicit destructor call",
+    "destructor never runs (leaked resources)",
+    ["Placement new does not pair with delete", "Call t->~Token() explicitly before reusing the storage"],
+    "t->~Token();"
+  ),
+  ch(318, "Unfenced Init", "A lazy singleton is built outside any synchronization.", 320, 10, "C++", "Nightmare",
+    `#include <iostream>
+#include <thread>
+#include <vector>
+
+struct Heavy {
+    Heavy() { std::cout << "init "; }
+};
+
+Heavy *g = nullptr;
+
+Heavy *get_heavy() {
+    if (g == nullptr)
+        g = new Heavy();
+    return g;
+}
+
+int main() {
+    std::vector<std::thread> ts;
+    for (int i = 0; i < 8; i++)
+        ts.emplace_back([] { get_heavy(); });
+    for (auto &t : ts) t.join();
+    return 0;
+}`,
+    `#include <iostream>
+#include <thread>
+#include <vector>
+
+struct Heavy {
+    Heavy() { std::cout << "init "; }
+};
+
+Heavy &get_heavy() {
+    static Heavy h;
+    return h;
+}
+
+int main() {
+    std::vector<std::thread> ts;
+    for (int i = 0; i < 8; i++)
+        ts.emplace_back([] { get_heavy(); });
+    for (auto &t : ts) t.join();
+    return 0;
+}`,
+    "the pointer is checked and assigned without a lock or barrier — a data race",
+    "multiple 'init' prints or a torn pointer (data race)",
+    ["Unsynchronized lazy initialization races", "Use a function-local static — C++11 guarantees exactly one init"],
+    "static Heavy h;"
+  ),
+  ch(319, "Binding the Temp", "An rvalue reference extends nothing when it is a member.", 320, 10, "C++", "Nightmare",
+    `#include <iostream>
+#include <string>
+#include <utility>
+
+int main() {
+    std::string &&r = std::string("oops");
+    std::string copy = r;
+    r = "changed";
+    std::cout << copy << " " << r;
+    return 0;
+}`,
+    `#include <iostream>
+#include <string>
+
+int main() {
+    std::string copy = "oops";
+    std::cout << copy;
+    return 0;
+}`,
+    "r is an lvalue expression naming the temporary — writing to it works, but reading copy shows the original is unchanged",
+    "confusing output because the temporary and the copy diverge",
+    ["rvalue references are lvalue expressions once named", "Do not build logic around mutated temporaries"],
+    "std::string copy = \"oops\";"
+  ),
+  ch(320, "Innocent Loop", "Everything here is correct — the loop is fine as written.", 320, 10, "C++", "Nightmare",
+    `#include <iostream>
+#include <vector>
+
+int main() {
+    std::vector<int> v = {5, 4, 3, 2, 1};
+    for (auto &x : v)
+        x *= 2;
+    for (int x : v) std::cout << x << " ";
+    return 0;
+}`,
+    `#include <iostream>
+#include <vector>
+
+int main() {
+    std::vector<int> v = {5, 4, 3, 2, 1};
+    for (auto &x : v)
+        x *= 2;
+    for (int x : v) std::cout << x << " ";
+    return 0;
+}`,
+    "nothing is wrong — doubling in place via auto& is exactly right",
+    "Output: 10 8 6 4 2",
+    ["auto& binds to each element, not a copy", "This is idiomatic, correct C++"],
+    "for (auto &x : v)"
+  ),
+];
+/* ========= JAVA TRACK ========= */
+const javaBeginner: Challenge[] = [
+  ch(321, "Missing Semicolon", "The compiler stops at a statement without a semicolon.", 50, 3, "Java", "Beginner",
+    `public class Main {
+    public static void main(String[] args) {
+        int score = 100
+        System.out.println(score);
+    }
+}`,
+    `public class Main {
+    public static void main(String[] args) {
+        int score = 100;
+        System.out.println(score);
+    }
+}`,
+    "the declaration is missing its terminating semicolon",
+    "compile error: ';' expected",
+    ["Every statement ends with a semicolon", "Add ; after the declaration"],
+    "int score = 100;"
+  ),
+  ch(322, "Wrong Entry Point", "The main method signature does not match what the JVM looks for.", 50, 3, "Java", "Beginner",
+    `public class Main {
+    public static void main(String args) {
+        System.out.println("hello");
+    }
+}`,
+    `public class Main {
+    public static void main(String[] args) {
+        System.out.println("hello");
+    }
+}`,
+    "main must take String[] — a single String is not the entry point",
+    "error: Main method not found in class Main",
+    ["The JVM calls main(String[] args)", "Use String[] args (or String... args)"],
+    "main(String[] args)"
+  ),
+  ch(323, "Reference Check", "Two strings are compared with == instead of .equals().", 50, 3, "Java", "Beginner",
+    `public class Main {
+    public static void main(String[] args) {
+        String a = new String("bug");
+        String b = new String("bug");
+        if (a == b)
+            System.out.println("same");
+        else
+            System.out.println("different");
+    }
+}`,
+    `public class Main {
+    public static void main(String[] args) {
+        String a = new String("bug");
+        String b = new String("bug");
+        if (a.equals(b))
+            System.out.println("same");
+        else
+            System.out.println("different");
+    }
+}`,
+    "== compares references, and the two objects are distinct",
+    "Output: 'different' even though the values match",
+    ["== checks identity, not value", "Use a.equals(b) to compare string contents"],
+    "a.equals(b)"
+  ),
+  ch(324, "Past the Edge", "An index past the end of the array is read.", 50, 3, "Java", "Beginner",
+    `public class Main {
+    public static void main(String[] args) {
+        int[] nums = {1, 2, 3};
+        System.out.println(nums[3]);
+    }
+}`,
+    `public class Main {
+    public static void main(String[] args) {
+        int[] nums = {1, 2, 3};
+        System.out.println(nums[2]);
+    }
+}`,
+    "valid indexes are 0..2, but the code reads index 3",
+    "ArrayIndexOutOfBoundsException: Index 3 out of bounds for length 3",
+    ["Valid indexes run 0..length-1", "Use index 2 for a 3-element array"],
+    "nums[2]"
+  ),
+  ch(325, "Integer Division", "int / int drops the fractional part.", 50, 3, "Java", "Beginner",
+    `public class Main {
+    public static void main(String[] args) {
+        int sum = 9, count = 2;
+        double avg = sum / count;
+        System.out.println(avg);
+    }
+}`,
+    `public class Main {
+    public static void main(String[] args) {
+        int sum = 9, count = 2;
+        double avg = (double) sum / count;
+        System.out.println(avg);
+    }
+}`,
+    "both operands are int, so Java performs integer division first",
+    "Output: 4.0 instead of 4.5",
+    ["Cast one operand to double first", "(double) sum forces floating-point division"],
+    "avg = (double) sum / count;"
+  ),
+  ch(326, "Null Method Call", "A method is invoked on a null reference.", 50, 3, "Java", "Beginner",
+    `public class Main {
+    public static void main(String[] args) {
+        String name = null;
+        System.out.println(name.length());
+    }
+}`,
+    `public class Main {
+    public static void main(String[] args) {
+        String name = null;
+        System.out.println(name == null ? 0 : name.length());
+    }
+}`,
+    "name is null, so calling length() on it crashes",
+    "NullPointerException",
+    ["Calling a method on null throws", "Check with a null guard before the call"],
+    "name == null ? 0 : name.length()"
+  ),
+  ch(327, "Void Returns Value", "A void method tries to return a value.", 50, 3, "Java", "Beginner",
+    `public class Main {
+    static void greet() {
+        return "hello";
+    }
+
+    public static void main(String[] args) {
+        System.out.println(greet());
+    }
+}`,
+    `public class Main {
+    static String greet() {
+        return "hello";
+    }
+
+    public static void main(String[] args) {
+        System.out.println(greet());
+    }
+}`,
+    "greet is declared void, so it cannot return a value",
+    "compile error: incompatible types",
+    ["A void method returns nothing", "Declare the return type String to return a value"],
+    "static String greet()"
+  ),
+  ch(328, "Missing Import", "A collection type is used without importing it.", 50, 3, "Java", "Beginner",
+    `public class Main {
+    public static void main(String[] args) {
+        ArrayList<String> names = new ArrayList<>();
+        names.add("rishi");
+        System.out.println(names);
+    }
+}`,
+    `import java.util.ArrayList;
+
+public class Main {
+    public static void main(String[] args) {
+        ArrayList<String> names = new ArrayList<>();
+        names.add("rishi");
+        System.out.println(names);
+    }
+}`,
+    "ArrayList lives in java.util, which is not imported here",
+    "compile error: cannot find symbol ArrayList",
+    ["java.util classes need an import", "Add import java.util.ArrayList;"],
+    "import java.util.ArrayList;"
+  ),
+  ch(329, "Char vs String", "A string is compared to a character literal.", 50, 3, "Java", "Beginner",
+    `public class Main {
+    public static void main(String[] args) {
+        String grade = "A";
+        if (grade.equals('A'))
+            System.out.println("passed");
+        else
+            System.out.println("failed");
+    }
+}`,
+    `public class Main {
+    public static void main(String[] args) {
+        String grade = "A";
+        if (grade.equals("A"))
+            System.out.println("passed");
+        else
+            System.out.println("failed");
+    }
+}`,
+    "equals takes an Object, and a char 'A' is never equal to a String \"A\"",
+    "Output: 'failed'",
+    ["Single quotes hold a char", "Compare a String to a String: use \"A\""],
+    "grade.equals(\"A\")"
+  ),
+  ch(330, "Runaway Loop", "The loop condition never changes, so the loop never ends.", 50, 3, "Java", "Beginner",
+    `public class Main {
+    public static void main(String[] args) {
+        int n = 3;
+        while (n > 0) {
+            System.out.println(n);
+        }
+    }
+}`,
+    `public class Main {
+    public static void main(String[] args) {
+        int n = 3;
+        while (n > 0) {
+            System.out.println(n);
+            n--;
+        }
+    }
+}`,
+    "n is never decremented, so the condition never fails",
+    "program prints forever",
+    ["The loop body must change the condition variable", "Add n-- inside the loop"],
+    "n--;"
+  ),
+];
+const javaIntermediate: Challenge[] = [
+  ch(331, "Remove While Iterating", "Elements are removed from a list inside a for-each loop.", 140, 5, "Java", "Intermediate",
+    `import java.util.ArrayList;
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) {
+        List<String> users = new ArrayList<>();
+        users.add("alice");
+        users.add("banned_bob");
+        for (String u : users) {
+            if (u.startsWith("banned"))
+                users.remove(u);
+        }
+        System.out.println(users);
+    }
+}`,
+    `import java.util.ArrayList;
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) {
+        List<String> users = new ArrayList<>();
+        users.add("alice");
+        users.add("banned_bob");
+        users.removeIf(u -> u.startsWith("banned"));
+        System.out.println(users);
+    }
+}`,
+    "for-each holds a cursor, and removing from the list invalidates it",
+    "ConcurrentModificationException",
+    ["Never mutate a list you are iterating", "Use removeIf (or an Iterator's remove())"],
+    "users.removeIf(u -> u.startsWith(\"banned\"))"
+  ),
+  ch(332, "Autobox Cache", "Two boxed Integers are compared with == beyond the cache range.", 140, 5, "Java", "Intermediate",
+    `public class Main {
+    public static void main(String[] args) {
+        Integer a = 200;
+        Integer b = 200;
+        if (a == b)
+            System.out.println("equal");
+        else
+            System.out.println("not equal");
+    }
+}`,
+    `public class Main {
+    public static void main(String[] args) {
+        Integer a = 200;
+        Integer b = 200;
+        if (a.equals(b))
+            System.out.println("equal");
+        else
+            System.out.println("not equal");
+    }
+}`,
+    "Integer caches -128..127; 200 creates two distinct objects",
+    "Output: 'not equal'",
+    ["== on wrappers compares references", "The cache only covers -128..127 — use equals()"],
+    "a.equals(b)"
+  ),
+  ch(333, "Leaked Handle", "A file reader is closed manually and can be skipped.", 140, 5, "Java", "Intermediate",
+    `import java.io.FileReader;
+import java.io.IOException;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        FileReader r = new FileReader("data.txt");
+        int c = r.read();
+        System.out.println(c);
+        r.close();
+    }
+}`,
+    `import java.io.FileReader;
+import java.io.IOException;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        try (FileReader r = new FileReader("data.txt")) {
+            int c = r.read();
+            System.out.println(c);
+        }
+    }
+}`,
+    "if read() throws, close() is never reached and the handle leaks",
+    "leaked file handle on exception paths",
+    ["Manual close is not exception-safe", "Use try-with-resources to auto-close"],
+    "try (FileReader r = new FileReader(\"data.txt\"))"
+  ),
+  ch(334, "Slow Concat", "String concatenation inside a loop is quadratic.", 140, 5, "Java", "Intermediate",
+    `public class Main {
+    public static void main(String[] args) {
+        String[] parts = {"a", "b", "c", "d"};
+        String out = "";
+        for (String s : parts) {
+            out += s;
+        }
+        System.out.println(out);
+    }
+}`,
+    `public class Main {
+    public static void main(String[] args) {
+        String[] parts = {"a", "b", "c", "d"};
+        StringBuilder sb = new StringBuilder();
+        for (String s : parts) {
+            sb.append(s);
+        }
+        System.out.println(sb.toString());
+    }
+}`,
+    "Strings are immutable, so += copies the whole string every time",
+    "O(n^2) time for large inputs",
+    ["Each += allocates a brand new String", "Accumulate with StringBuilder.append"],
+    "StringBuilder sb = new StringBuilder();"
+  ),
+  ch(335, "Unboxing Explosion", "A null wrapper is unboxed into a primitive.", 140, 5, "Java", "Intermediate",
+    `import java.util.HashMap;
+import java.util.Map;
+
+public class Main {
+    public static void main(String[] args) {
+        Map<String, Integer> scores = new HashMap<>();
+        scores.put("alice", 10);
+        int alice = scores.get("alice");
+        int bob = scores.get("bob");
+        System.out.println(alice + bob);
+    }
+}`,
+    `import java.util.HashMap;
+import java.util.Map;
+
+public class Main {
+    public static void main(String[] args) {
+        Map<String, Integer> scores = new HashMap<>();
+        scores.put("alice", 10);
+        int alice = scores.getOrDefault("alice", 0);
+        int bob = scores.getOrDefault("bob", 0);
+        System.out.println(alice + bob);
+    }
+}`,
+    "get returns null for a missing key, and unboxing null to int throws",
+    "NullPointerException",
+    ["get() can return null for absent keys", "Use getOrDefault(key, 0) to supply a default"],
+    "scores.getOrDefault(\"bob\", 0)"
+  ),
+  ch(336, "Static via Instance", "A static field is accessed through an instance, hiding the real problem.", 140, 5, "Java", "Intermediate",
+    `public class Counter {
+    static int total = 100;
+
+    public static void main(String[] args) {
+        Counter c1 = new Counter();
+        c1.total = 50;
+        System.out.println(total);
+    }
+}`,
+    `public class Counter {
+    static int total = 100;
+
+    public static void main(String[] args) {
+        total = 50;
+        System.out.println(total);
+    }
+}`,
+    "static members belong to the class, not the instance — the instance access is misleading",
+    "Output: 50 (works by accident, but is confusing)",
+    ["Static fields are shared across all instances", "Access static members through the class name"],
+    "total = 50;"
+  ),
+  ch(337, "IndexOf -1", "A check treats the 'not found' sentinel as a valid position.", 140, 5, "Java", "Intermediate",
+    `public class Main {
+    public static void main(String[] args) {
+        String path = "/home/user";
+        if (path.indexOf("@") > 0)
+            System.out.println("has at-sign");
+        else
+            System.out.println("no at-sign");
+    }
+}`,
+    `public class Main {
+    public static void main(String[] args) {
+        String path = "/home/user";
+        if (path.indexOf("@") != -1)
+            System.out.println("has at-sign");
+        else
+            System.out.println("no at-sign");
+    }
+}`,
+    "indexOf returns -1 when absent and 0 when the match is at the very start",
+    "a match at index 0 is reported as missing",
+    ["indexOf returns -1 for 'not found'", "Check != -1 (and remember 0 is a valid position)"],
+    "path.indexOf(\"@\") != -1"
+  ),
+  ch(338, "Casting Down", "A Double is cast to Integer, which throws at runtime.", 140, 5, "Java", "Intermediate",
+    `import java.util.HashMap;
+import java.util.Map;
+
+public class Main {
+    public static void main(String[] args) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("level", Double.valueOf(4.0));
+        Integer level = (Integer) data.get("level");
+        System.out.println(level);
+    }
+}`,
+    `import java.util.HashMap;
+import java.util.Map;
+
+public class Main {
+    public static void main(String[] args) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("level", Double.valueOf(4.0));
+        Integer level = ((Number) data.get("level")).intValue();
+        System.out.println(level);
+    }
+}`,
+    "Double and Integer are unrelated classes — the cast is illegal",
+    "ClassCastException: Double cannot be cast to Integer",
+    ["A cast only works within the same type hierarchy", "Go through Number and use intValue()"],
+    "((Number) data.get(\"level\")).intValue()"
+  ),
+  ch(339, "Reversed Sort", "The comparator sorts in the opposite direction.", 140, 5, "Java", "Intermediate",
+    `import java.util.Arrays;
+
+public class Main {
+    public static void main(String[] args) {
+        Integer[] nums = {3, 1, 2};
+        Arrays.sort(nums, (a, b) -> a - b);
+        System.out.println(Arrays.toString(nums));
+    }
+}`,
+    `import java.util.Arrays;
+
+public class Main {
+    public static void main(String[] args) {
+        Integer[] nums = {3, 1, 2};
+        Arrays.sort(nums, (a, b) -> b - a);
+        System.out.println(Arrays.toString(nums));
+    }
+}`,
+    "a - b yields ascending order, but the intent was descending",
+    "Output: [1, 2, 3] instead of [3, 2, 1]",
+    ["a - b sorts ascending", "Swap to b - a (or use Comparator.reverseOrder()) for descending"],
+    "Arrays.sort(nums, (a, b) -> b - a);"
+  ),
+  ch(340, "Split Drops Tail", "Trailing empty strings vanish when splitting.", 140, 5, "Java", "Intermediate",
+    `public class Main {
+    public static void main(String[] args) {
+        String csv = "a,b,";
+        String[] cells = csv.split(",");
+        System.out.println(cells.length);
+    }
+}`,
+    `public class Main {
+    public static void main(String[] args) {
+        String csv = "a,b,";
+        String[] cells = csv.split(",", -1);
+        System.out.println(cells.length);
+    }
+}`,
+    "split by default removes trailing empty strings",
+    "Output: 2 instead of 3 (the trailing cell is lost)",
+    ["split strips trailing empties by default", "Pass a negative limit (-1) to keep them"],
+    "csv.split(\",\", -1)"
+  ),
+];
+const javaAdvanced: Challenge[] = [
+  ch(341, "Broken Hash Contract", "equals is overridden but hashCode is not.", 250, 8, "Java", "Advanced",
+    `import java.util.HashMap;
+import java.util.Map;
+
+class Key {
+    int id;
+    Key(int id) { this.id = id; }
+
+    public boolean equals(Object o) {
+        return o instanceof Key k && k.id == id;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Map<Key, String> map = new HashMap<>();
+        map.put(new Key(1), "one");
+        System.out.println(map.get(new Key(1)));
+    }
+}`,
+    `import java.util.HashMap;
+import java.util.Map;
+
+class Key {
+    int id;
+    Key(int id) { this.id = id; }
+
+    public boolean equals(Object o) {
+        return o instanceof Key k && k.id == id;
+    }
+
+    public int hashCode() {
+        return Integer.hashCode(id);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Map<Key, String> map = new HashMap<>();
+        map.put(new Key(1), "one");
+        System.out.println(map.get(new Key(1)));
+    }
+}`,
+    "equal objects must have equal hash codes, or hash maps put/put in the wrong bucket",
+    "Output: null (lookup misses)",
+    ["Equal objects need equal hashes", "Override hashCode whenever you override equals"],
+    "public int hashCode()"
+  ),
+  ch(342, "Mutable Key", "A key object is changed after it is placed in a map.", 250, 8, "Java", "Advanced",
+    `import java.util.HashMap;
+import java.util.Map;
+
+public class Main {
+    public static void main(String[] args) {
+        Map<StringBuilder, String> map = new HashMap<>();
+        StringBuilder key = new StringBuilder("route");
+        map.put(key, "main");
+        key.append("/home");
+        System.out.println(map.get(key));
+        System.out.println(map.get(new StringBuilder("route")));
+    }
+}`,
+    `import java.util.HashMap;
+import java.util.Map;
+
+public class Main {
+    public static void main(String[] args) {
+        Map<String, String> map = new HashMap<>();
+        map.put("route", "main");
+        System.out.println(map.get("route"));
+    }
+}`,
+    "mutating a key changes its hash after insertion, stranding the entry",
+    "lookups return null — the entry is lost in the wrong bucket",
+    ["Map keys should be immutable", "Use String, not a mutable StringBuilder"],
+    "Map<String, String> map"
+  ),
+  ch(343, "Thread Rumble", "An ArrayList is shared between two threads without synchronization.", 250, 8, "Java", "Advanced",
+    `import java.util.ArrayList;
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        List<Integer> list = new ArrayList<>();
+        Thread t1 = new Thread(() -> { for (int i = 0; i < 10000; i++) list.add(i); });
+        Thread t2 = new Thread(() -> { for (int i = 0; i < 10000; i++) list.add(i); });
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+        System.out.println(list.size());
+    }
+}`,
+    `import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        List<Integer> list = new CopyOnWriteArrayList<>();
+        Thread t1 = new Thread(() -> { for (int i = 0; i < 10000; i++) list.add(i); });
+        Thread t2 = new Thread(() -> { for (int i = 0; i < 10000; i++) list.add(i); });
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+        System.out.println(list.size());
+    }
+}`,
+    "ArrayList is not thread-safe; concurrent add can corrupt its size and array",
+    "Output: less than 20000 (or ArrayIndexOutOfBoundsException)",
+    ["ArrayList offers no thread safety", "Use CopyOnWriteArrayList (or synchronize access)"],
+    "new CopyOnWriteArrayList<>()"
+  ),
+  ch(344, "Static Blast", "A static counter is incremented from many threads.", 250, 8, "Java", "Advanced",
+    `public class Main {
+    static int counter = 0;
+
+    public static void main(String[] args) throws Exception {
+        Thread t1 = new Thread(() -> { for (int i = 0; i < 100000; i++) counter++; });
+        Thread t2 = new Thread(() -> { for (int i = 0; i < 100000; i++) counter++; });
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+        System.out.println(counter);
+    }
+}`,
+    `import java.util.concurrent.atomic.AtomicInteger;
+
+public class Main {
+    static AtomicInteger counter = new AtomicInteger();
+
+    public static void main(String[] args) throws Exception {
+        Thread t1 = new Thread(() -> { for (int i = 0; i < 100000; i++) counter.incrementAndGet(); });
+        Thread t2 = new Thread(() -> { for (int i = 0; i < 100000; i++) counter.incrementAndGet(); });
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+        System.out.println(counter.get());
+    }
+}`,
+    "counter++ is a read-modify-write that races across threads",
+    "Output: less than 200000 (lost updates)",
+    ["Static mutable state shared by threads is a race", "Use AtomicInteger (or synchronize the increment)"],
+    "AtomicInteger counter"
+  ),
+  ch(345, "Half Locked", "Double-checked locking without volatile can publish a half-built object.", 250, 8, "Java", "Advanced",
+    `public class Config {
+    private static Config instance;
+
+    public static Config get() {
+        if (instance == null) {
+            synchronized (Config.class) {
+                if (instance == null)
+                    instance = new Config();
+            }
+        }
+        return instance;
+    }
+}`,
+    `public class Config {
+    private static volatile Config instance;
+
+    public static Config get() {
+        if (instance == null) {
+            synchronized (Config.class) {
+                if (instance == null)
+                    instance = new Config();
+            }
+        }
+        return instance;
+    }
+}`,
+    "without volatile, another thread can see a partially constructed instance",
+    "partially constructed object visible to other threads",
+    ["The double-check needs a memory barrier", "Mark the field volatile (or use an enum/static holder)"],
+    "private static volatile Config instance;"
+  ),
+  ch(346, "DateFormat Race", "A shared SimpleDateFormat is used from multiple threads.", 250, 8, "Java", "Advanced",
+    `import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class Main {
+    static final SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+
+    public static void main(String[] args) throws Exception {
+        Thread t1 = new Thread(() -> System.out.println(fmt.format(new Date())));
+        Thread t2 = new Thread(() -> System.out.println(fmt.format(new Date())));
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+    }
+}`,
+    `import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+public class Main {
+    static final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    public static void main(String[] args) throws Exception {
+        Thread t1 = new Thread(() -> System.out.println(LocalDate.now().format(fmt)));
+        Thread t2 = new Thread(() -> System.out.println(LocalDate.now().format(fmt)));
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+    }
+}`,
+    "SimpleDateFormat keeps mutable calendar state and is not thread-safe",
+    "garbage dates or NumberFormatException under load",
+    ["SimpleDateFormat is not thread-safe", "Use java.time DateTimeFormatter (immutable and safe)"],
+    "DateTimeFormatter fmt"
+  ),
+  ch(347, "Raw List", "A raw List is cast to a parameterized type unchecked.", 250, 8, "Java", "Advanced",
+    `import java.util.ArrayList;
+import java.util.List;
+
+public class Main {
+    @SuppressWarnings("unchecked")
+    public static void main(String[] args) {
+        List raw = new ArrayList();
+        raw.add("text");
+        raw.add(42);
+        List<String> strings = raw;
+        for (String s : strings)
+            System.out.println(s.length());
+    }
+}`,
+    `import java.util.ArrayList;
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) {
+        List<String> strings = new ArrayList<>();
+        strings.add("text");
+        for (String s : strings)
+            System.out.println(s.length());
+    }
+}`,
+    "erasure makes the cast invisible, so the Integer surfaces as a ClassCastException at use",
+    "ClassCastException: Integer cannot be cast to String",
+    ["Raw types bypass generic checks entirely", "Create the list with its element type from the start"],
+    "List<String> strings = new ArrayList<>();"
+  ),
+  ch(348, "Overload Not Override", "A helper equals takes the concrete type, so it never overrides Object.equals.", 250, 8, "Java", "Advanced",
+    `import java.util.HashSet;
+import java.util.Set;
+
+class Item {
+    int id;
+    Item(int id) { this.id = id; }
+
+    public boolean equals(Item other) {
+        return other != null && other.id == id;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Set<Item> set = new HashSet<>();
+        set.add(new Item(7));
+        System.out.println(set.contains(new Item(7)));
+    }
+}`,
+    `import java.util.HashSet;
+import java.util.Set;
+
+class Item {
+    int id;
+    Item(int id) { this.id = id; }
+
+    public boolean equals(Object o) {
+        return o instanceof Item other && other.id == id;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Set<Item> set = new HashSet<>();
+        set.add(new Item(7));
+        System.out.println(set.contains(new Item(7)));
+    }
+}`,
+    "equals(Item) is an overload, not an override — Object.equals is still identity",
+    "Output: false",
+    ["The parameter must be Object to override", "Use equals(Object o) with instanceof"],
+    "public boolean equals(Object o)"
+  ),
+  ch(349, "Boxing Churn", "Primitives are boxed in a hot loop, allocating thousands of objects.", 250, 8, "Java", "Advanced",
+    `public class Main {
+    public static void main(String[] args) {
+        Long total = 0L;
+        for (long i = 0; i < 1_000_000; i++)
+            total += i;
+        System.out.println(total);
+    }
+}`,
+    `public class Main {
+    public static void main(String[] args) {
+        long total = 0L;
+        for (long i = 0; i < 1_000_000; i++)
+            total += i;
+        System.out.println(total);
+    }
+}`,
+    "Long is a wrapper — every += allocates a new Long object",
+    "millions of heap allocations; slow and GC-heavy",
+    ["Autoboxing happens silently in loops", "Use the primitive long for hot counters"],
+    "long total = 0L;"
+  ),
+  ch(350, "Overflowing Comparator", "A comparator built from subtraction overflows for large values.", 250, 8, "Java", "Advanced",
+    `import java.util.Arrays;
+
+public class Main {
+    public static void main(String[] args) {
+        Integer[] nums = {Integer.MIN_VALUE, 1};
+        Arrays.sort(nums, (a, b) -> a - b);
+        System.out.println(Arrays.toString(nums));
+    }
+}`,
+    `import java.util.Arrays;
+
+public class Main {
+    public static void main(String[] args) {
+        Integer[] nums = {Integer.MIN_VALUE, 1};
+        Arrays.sort(nums, Integer::compare);
+        System.out.println(Arrays.toString(nums));
+    }
+}`,
+    "MIN_VALUE - 1 overflows to MAX_VALUE, inverting the comparison",
+    "wrong sort order (works by accident in some cases, breaks in others)",
+    ["Subtraction can overflow and flip signs", "Use Integer.compare (or Comparator.comparingInt)"],
+    "Integer::compare"
+  ),
+];
+const javaNightmare: Challenge[] = [
+  ch(351, "Money in Doubles", "Currency math is done with binary floating point.", 320, 10, "Java", "Nightmare",
+    `public class Main {
+    public static void main(String[] args) {
+        double total = 0.0;
+        total += 0.1;
+        total += 0.2;
+        System.out.println(total);
+    }
+}`,
+    `import java.math.BigDecimal;
+
+public class Main {
+    public static void main(String[] args) {
+        BigDecimal total = BigDecimal.ZERO;
+        total = total.add(new BigDecimal("0.1"));
+        total = total.add(new BigDecimal("0.2"));
+        System.out.println(total);
+    }
+}`,
+    "0.1 and 0.2 are not exact in binary, so the sum drifts",
+    "Output: 0.30000000000000004",
+    ["Doubles cannot represent cents exactly", "Use BigDecimal for monetary values"],
+    "new BigDecimal(\"0.1\")"
+  ),
+  ch(352, "Inner Class Leak", "A non-static inner class keeps a reference to the outer instance forever.", 320, 10, "Java", "Nightmare",
+    `import java.util.ArrayList;
+import java.util.List;
+
+class Cache {
+    class Entry {
+        String key;
+    }
+
+    List<Entry> entries = new ArrayList<>();
+
+    Entry add(String key) {
+        Entry e = new Entry();
+        e.key = key;
+        entries.add(e);
+        return e;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Cache cache = new Cache();
+        for (int i = 0; i < 100000; i++)
+            cache.add("k" + i);
+        System.out.println(cache.entries.size());
+    }
+}`,
+    `import java.util.ArrayList;
+import java.util.List;
+
+class Cache {
+    static class Entry {
+        String key;
+    }
+
+    List<Entry> entries = new ArrayList<>();
+
+    Entry add(String key) {
+        Entry e = new Entry();
+        e.key = key;
+        entries.add(e);
+        return e;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Cache cache = new Cache();
+        for (int i = 0; i < 100000; i++)
+            cache.add("k" + i);
+        System.out.println(cache.entries.size());
+    }
+}`,
+    "every non-static Entry silently holds the whole Cache (and its entries) alive",
+    "out-of-memory once the cache grows",
+    ["Non-static inner classes capture their outer instance", "Make the entry class static when it needs no outer state"],
+    "static class Entry"
+  ),
+  ch(353, "Equals Asymmetry", "A subclass breaks the equals contract with its parent.", 320, 10, "Java", "Nightmare",
+    `import java.util.HashSet;
+import java.util.Set;
+
+class Base {
+    int x;
+    Base(int x) { this.x = x; }
+
+    public boolean equals(Object o) {
+        return o instanceof Base b && b.x == x;
+    }
+}
+
+class Derived extends Base {
+    int y;
+    Derived(int x, int y) { super(x); this.y = y; }
+
+    public boolean equals(Object o) {
+        return o instanceof Derived d && d.y == y;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Set<Base> set = new HashSet<>();
+        set.add(new Base(1));
+        System.out.println(set.contains(new Derived(1, 2)));
+    }
+}`,
+    `import java.util.HashSet;
+import java.util.Set;
+
+class Base {
+    int x;
+    Base(int x) { this.x = x; }
+
+    public boolean equals(Object o) {
+        return o instanceof Base b && b.x == x;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Set<Base> set = new HashSet<>();
+        set.add(new Base(1));
+        System.out.println(set.contains(new Base(1)));
+    }
+}`,
+    "equals stops being symmetric — Base.equals(Derived) is true but Derived.equals(Base) is false",
+    "set lookups behave inconsistently (contract violation)",
+    ["Inheritance and equals rarely mix", "Prefer composition, or never make subclasses of a key type"],
+    "set.contains(new Base(1))"
+  ),
+  ch(354, "Deadlock Twins", "Two threads lock the same two resources in opposite orders.", 320, 10, "Java", "Nightmare",
+    `public class Main {
+    static final Object lockA = new Object();
+    static final Object lockB = new Object();
+
+    public static void main(String[] args) throws Exception {
+        Thread t1 = new Thread(() -> {
+            synchronized (lockA) {
+                try { Thread.sleep(50); } catch (InterruptedException e) { }
+                synchronized (lockB) { }
+            }
+        });
+        Thread t2 = new Thread(() -> {
+            synchronized (lockB) {
+                try { Thread.sleep(50); } catch (InterruptedException e) { }
+                synchronized (lockA) { }
+            }
+        });
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+        System.out.println("done");
+    }
+}`,
+    `public class Main {
+    static final Object lockA = new Object();
+    static final Object lockB = new Object();
+
+    public static void main(String[] args) throws Exception {
+        Thread t1 = new Thread(() -> {
+            synchronized (lockA) {
+                try { Thread.sleep(50); } catch (InterruptedException e) { }
+                synchronized (lockB) { }
+            }
+        });
+        Thread t2 = new Thread(() -> {
+            synchronized (lockA) {
+                try { Thread.sleep(50); } catch (InterruptedException e) { }
+                synchronized (lockB) { }
+            }
+        });
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+        System.out.println("done");
+    }
+}`,
+    "t1 takes A then B; t2 takes B then A — each waits on the other's lock",
+    "the program hangs forever",
+    ["Lock ordering must be consistent everywhere", "Always acquire locks in the same global order"],
+    "synchronized (lockA) {"
+  ),
+  ch(355, "Version Drift", "A serialized class is deserialized after its serialVersionUID changed.", 320, 10, "Java", "Nightmare",
+    `import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+class Payload implements Serializable {
+    int version = 1;
+}
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Payload p = new Payload();
+        byte[] bytes;
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+            oos.writeObject(p);
+            bytes = baos.toByteArray();
+        }
+        // simulated newer build with a different class shape
+        try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
+            Object read = ois.readObject();
+            System.out.println(read.getClass());
+        }
+    }
+}`,
+    `import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+class Payload implements Serializable {
+    private static final long serialVersionUID = 1L;
+    int version = 1;
+}
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Payload p = new Payload();
+        byte[] bytes;
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+            oos.writeObject(p);
+            bytes = baos.toByteArray();
+        }
+        try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
+            Object read = ois.readObject();
+            System.out.println(read.getClass());
+        }
+    }
+}`,
+    "without a fixed serialVersionUID, any class change alters the computed UID and breaks reads",
+    "InvalidClassException: incompatible serialVersionUID",
+    ["Java computes the UID from the class shape", "Declare a private static final serialVersionUID explicitly"],
+    "private static final long serialVersionUID = 1L;"
+  ),
+  ch(356, "NaN Escape", "NaN never equals itself, so identity checks silently pass.", 320, 10, "Java", "Nightmare",
+    `public class Main {
+    public static void main(String[] args) {
+        double x = 0.0 / 0.0;
+        if (x == x)
+            System.out.println("valid");
+        else
+            System.out.println("invalid");
+        if (x != x)
+            System.out.println("confirmed NaN");
+    }
+}`,
+    `public class Main {
+    public static void main(String[] args) {
+        double x = 0.0 / 0.0;
+        if (Double.isNaN(x))
+            System.out.println("invalid");
+        else
+            System.out.println("valid");
+    }
+}`,
+    "x is NaN — NaN != NaN, so the 'valid' check fails and the self-inequality is the only sign",
+    "Output: 'invalid' followed by 'confirmed NaN'",
+    ["NaN compares unequal to everything, even itself", "Use Double.isNaN(x) for a clear test"],
+    "Double.isNaN(x)"
+  ),
+  ch(357, "Swallowed Error", "The exception is caught and silently ignored.", 320, 10, "Java", "Nightmare",
+    `import java.io.FileReader;
+import java.io.IOException;
+
+public class Main {
+    public static void main(String[] args) {
+        String config = readConfig("settings.txt");
+        System.out.println("port = " + config);
+    }
+
+    static String readConfig(String path) {
+        try (FileReader r = new FileReader(path)) {
+            StringBuilder sb = new StringBuilder();
+            int c;
+            while ((c = r.read()) != -1)
+                sb.append((char) c);
+            return sb.toString();
+        } catch (IOException e) {
+            // ignore and continue
+        }
+        return "";
+    }
+}`,
+    `import java.io.FileReader;
+import java.io.IOException;
+
+public class Main {
+    public static void main(String[] args) {
+        try {
+            String config = readConfig("settings.txt");
+            System.out.println("port = " + config);
+        } catch (IOException e) {
+            System.err.println("config missing: " + e.getMessage());
+            System.exit(1);
+        }
+    }
+
+    static String readConfig(String path) throws IOException {
+        try (FileReader r = new FileReader(path)) {
+            StringBuilder sb = new StringBuilder();
+            int c;
+            while ((c = r.read()) != -1)
+                sb.append((char) c);
+            return sb.toString();
+        }
+    }
+}`,
+    "the IO failure is swallowed, and the program runs with empty config",
+    "silent misconfiguration — the app starts with defaults",
+    ["Empty catch blocks hide real failures", "Rethrow or at least log the exception"],
+    "throws IOException"
+  ),
+  ch(358, "ThreadLocal Leak", "A ThreadLocal value is never removed in a pooled thread.", 320, 10, "Java", "Nightmare",
+    `import java.util.HashMap;
+import java.util.Map;
+
+public class Main {
+    static final ThreadLocal<Map<String, Object>> ctx =
+        ThreadLocal.withInitial(HashMap::new);
+
+    public static void main(String[] args) throws Exception {
+        for (int i = 0; i < 1000; i++) {
+            Thread t = new Thread(() -> ctx.get().put("big", new byte[1024 * 1024]));
+            t.start();
+            t.join();
+        }
+        System.out.println("done");
+    }
+}`,
+    `import java.util.HashMap;
+import java.util.Map;
+
+public class Main {
+    static final ThreadLocal<Map<String, Object>> ctx =
+        ThreadLocal.withInitial(HashMap::new);
+
+    public static void main(String[] args) throws Exception {
+        for (int i = 0; i < 1000; i++) {
+            Thread t = new Thread(() -> {
+                ctx.get().put("big", new byte[1024 * 1024]);
+                ctx.remove();
+            });
+            t.start();
+            t.join();
+        }
+        System.out.println("done");
+    }
+}`,
+    "in a real thread pool the worker threads never die, so their ThreadLocal maps pile up",
+    "out-of-memory in long-running servers",
+    ["ThreadLocal values live as long as the thread", "Always call remove() (or use try/finally)"],
+    "ctx.remove();"
+  ),
+  ch(359, "Erasure Clash", "Two methods differ only by generic type parameter — the same erasure.", 320, 10, "Java", "Nightmare",
+    `import java.util.List;
+
+public class Main {
+    static void handle(List<String> items) {
+        System.out.println("strings");
+    }
+
+    static void handle(List<Integer> items) {
+        System.out.println("ints");
+    }
+
+    public static void main(String[] args) {
+        System.out.println("clash");
+    }
+}`,
+    `import java.util.List;
+
+public class Main {
+    static void handleStrings(List<String> items) {
+        System.out.println("strings");
+    }
+
+    static void handleInts(List<Integer> items) {
+        System.out.println("ints");
+    }
+
+    public static void main(String[] args) {
+        System.out.println("clash");
+    }
+}`,
+    "after erasure both methods are handle(List) — a duplicate definition",
+    "compile error: name clash; both methods have the same erasure",
+    ["Generics are erased at compile time", "Give the overloads distinct method names"],
+    "static void handleStrings(List<String> items)"
+  ),
+  ch(360, "Clean as Written", "This class is correct — nothing needs to change.", 320, 10, "Java", "Nightmare",
+    `public class Main {
+    static int add(int a, int b) {
+        return a + b;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(add(2, 3));
+    }
+}`,
+    `public class Main {
+    static int add(int a, int b) {
+        return a + b;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(add(2, 3));
+    }
+}`,
+    "everything checks out — the method, the entry point, and the call are all fine",
+    "Output: 5",
+    ["Not every file hides a bug", "This one is ready to ship"],
+    "return a + b;"
+  ),
+];
+
+const cTrack: Track = {
+  slug: "c",
+  name: "C",
+  icon: "c",
+  desc: "Fix segfaults, leaks, and pointer bugs in C",
+  done: 0,
+  total: 40,
+  accent: "#3b82f6",
+  challenges: [...cBeginner, ...cIntermediate, ...cAdvanced, ...cNightmare].map(c => ({ ...c, lang: "C", monacoLang: "c" })),
+};
+
+const cppTrack: Track = {
+  slug: "cpp",
+  name: "C++",
+  icon: "cpp",
+  desc: "Debug modern C++ code, STL, and templates",
+  done: 0,
+  total: 40,
+  accent: "#60a5fa",
+  challenges: [...cppBeginner, ...cppIntermediate, ...cppAdvanced, ...cppNightmare].map(c => ({ ...c, lang: "C++", monacoLang: "cpp" })),
+};
+
+const javaTrack: Track = {
+  slug: "java",
+  name: "Java",
+  icon: "java",
+  desc: "Fix Java code and enterprise patterns",
+  done: 0,
+  total: 40,
+  accent: "#f97316",
+  challenges: [...javaBeginner, ...javaIntermediate, ...javaAdvanced, ...javaNightmare].map(c => ({ ...c, lang: "Java", monacoLang: "java" })),
+};
+
 /* ========= ASSEMBLE TRACKS ========= */
 const pythonTrack: Track = {
   slug: "python",
@@ -2551,6 +6072,9 @@ export const tracks: Track[] = [
   pythonTrack,
   javascriptTrack,
   sqlTrack,
+  cTrack,
+  cppTrack,
+  javaTrack,
   ...stackTemplates.map(buildTrack),
 ];
 

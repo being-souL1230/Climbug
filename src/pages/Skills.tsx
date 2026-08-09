@@ -167,9 +167,11 @@ export default function Skills() {
                     className="anime-pop group grid grid-cols-1 gap-3 px-6 py-3.5 transition-all hover:bg-white/[0.03] sm:px-8 md:grid-cols-[minmax(0,1fr)_6rem_6rem_7rem_7rem] md:items-center md:gap-4"
                   >
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/8 bg-white/[0.04]">
-                        <GameIcon name={t.icon} className="h-6 w-6" />
-                      </div>
+                      {/* Stack logo — plain, no box */}
+                      <GameIcon
+                        name={t.icon}
+                        className="h-8 w-8 shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_18px_rgba(139,92,246,0.8)]"
+                      />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-white group-hover:text-violet-300">{t.name}</span>
