@@ -39,14 +39,6 @@ export function useAnimeDetails(root: RefObject<HTMLElement | null>, enabled = t
         loop: true,
       });
 
-      animate(".anime-scan", {
-        translateX: ["-120%", "145%"],
-        duration: 2400,
-        delay: stagger(260),
-        ease: "linear",
-        loop: true,
-      });
-
       animate(".anime-progress-fill", {
         scaleX: [0.02, 1],
         transformOrigin: "0% 50%",

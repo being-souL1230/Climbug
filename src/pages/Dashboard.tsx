@@ -357,7 +357,7 @@ export default function Dashboard() {
               />
               <div className="relative mt-3 grid h-24 overflow-hidden rounded-xl border border-rose-500/20 bg-[radial-gradient(circle_at_center,rgba(244,63,94,0.22),rgba(18,6,10,0.35)_45%,rgba(8,8,13,0.95))] place-items-center">
                 <div className="absolute inset-0 opacity-25" style={{ backgroundImage: "linear-gradient(rgba(244,63,94,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(244,63,94,0.16) 1px, transparent 1px)", backgroundSize: "18px 18px" }} />
-                <span className="anime-scan absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-transparent via-rose-300/15 to-transparent" />
+                <span className="boss-beetle-shine" />
                 <div className="anime-pulse relative grid h-14 w-14 place-items-center rounded-full border border-rose-400/30 bg-rose-950/35 shadow-[0_0_32px_rgba(244,63,94,0.35)] transition-transform duration-700 group-hover/card:scale-110">
                   <GameIcon name="bug" className="h-8 w-8 text-rose-300" />
                 </div>
@@ -377,15 +377,7 @@ export default function Dashboard() {
               </div>
               <div className="relative mt-2.5 h-2 overflow-hidden rounded-full bg-white/8 ring-1 ring-inset ring-white/5">
                 <div className="relative h-full w-full overflow-hidden rounded-full bg-gradient-to-r from-rose-600 via-orange-500 to-amber-400">
-                  <span
-                    className="anime-scan absolute inset-0 opacity-60"
-                    style={{
-                      backgroundImage:
-                        "linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.65) 50%, transparent 70%)",
-                      backgroundSize: "200% 100%",
-                      animation: "shimmer 2.2s ease-in-out infinite",
-                    }}
-                  />
+                  <span className="boss-hp-shine" />
                 </div>
               </div>
               <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-zinc-400">
