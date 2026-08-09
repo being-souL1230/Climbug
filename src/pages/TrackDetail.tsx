@@ -129,6 +129,7 @@ export default function TrackDetail() {
                     {items.map((c, i) => {
                       const solved = progress.completed.includes(c.id);
                       const style = difficultyStyles[c.difficulty];
+                      const attempts = progress.attempts?.[c.id] ?? 0;
                       return (
                         <Link
                           key={c.id}
@@ -138,11 +139,20 @@ export default function TrackDetail() {
                           <span className="hidden font-mono text-xs text-zinc-600 md:block">{String(i + 1).padStart(2, '0')}</span>
 
                           <div className="min-w-0">
-                            <div className="flex min-w-0 items-center gap-2">
+                            <div className="flex min-w-0 flex-wrap items-center gap-2">
                               <span className="truncate text-sm font-bold text-white transition-colors group-hover:text-violet-300">{c.title}</span>
                               <span className={cn("shrink-0 rounded-full border px-1.5 py-0.5 text-[8.5px] font-black uppercase tracking-wide", style.bg, style.text, style.border)}>
                                 {c.difficulty}
                               </span>
+                              {attempts > 0 && (
+                                <span
+                                  className="inline-flex shrink-0 items-center gap-1 rounded-md border border-white/8 bg-white/5 px-1.5 py-0.5 font-mono text-[9px] font-bold text-zinc-400"
+                                  title={`${attempts} attempt${attempts === 1 ? "" : "s"} so far`}
+                                >
+                                  <GameIcon name="reset" className="h-2.5 w-2.5" />
+                                  {attempts} attempt{attempts === 1 ? "" : "s"}
+                                </span>
+                              )}
                               {!solved && <span className="h-1 w-1 shrink-0 rounded-full bg-violet-500/50" />}
                             </div>
                             <p className="mt-0.5 truncate text-xs text-zinc-500">{c.desc}</p>

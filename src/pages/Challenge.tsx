@@ -3,7 +3,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import GameIcon from "../components/GameIcon";
 import Navbar from "../components/Navbar";
 import { findChallenge, difficultyStyles, type Challenge } from "../data";
-import { useProgress, setProgress } from "../progress";
+import { useProgress, setProgress, fetchProgress } from "../progress";
 import { useAnimeDetails } from "../hooks/useAnimeDetails";
 import { cn } from "../utils/cn";
 import { apiFetch } from "../api";
@@ -183,6 +183,20 @@ export default function Challenge() {
 
   useEffect(() => {
     if (found) setCode(found.challenge.code);
+  }, [found]);
+
+  // Register one attempt per challenge open — storing the id (instead of a
+  // boolean) survives React StrictMode's double-mount in dev AND still counts
+  // when the user jumps directly from one challenge to another.
+  const attemptedRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!found || attemptedRef.current === found.challenge.id) return;
+    attemptedRef.current = found.challenge.id;
+    apiFetch<{ attempts: number }>(`/api/challenges/${found.challenge.id}/attempt`, {
+      method: "POST",
+    })
+      .then(() => fetchProgress())
+      .catch(() => undefined);
   }, [found]);
 
   if (timeDone && !submitted && !alreadyDone) {

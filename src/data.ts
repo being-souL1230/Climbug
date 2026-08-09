@@ -2584,14 +2584,17 @@ export interface PlayerProgress {
   completed: number[];
   streak: number;
   lastActive: string;
+  /** challengeId -> how many times the user has opened/attempted it */
+  attempts: Record<number, number>;
 }
 
 export function loadProgress(): PlayerProgress {
+  const defaults: PlayerProgress = { xp: 0, level: 1, completed: [], streak: 0, lastActive: "", attempts: {} };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) return { ...defaults, ...JSON.parse(raw) };
   } catch { /* ignore */ }
-  return { xp: 0, level: 1, completed: [], streak: 0, lastActive: "" };
+  return defaults;
 }
 
 export function saveProgress(p: PlayerProgress) {

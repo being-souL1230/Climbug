@@ -133,6 +133,15 @@ def init_db() -> None:
               updated_at TEXT,
               FOREIGN KEY(user_id) REFERENCES users(id)
             );
+
+            CREATE TABLE IF NOT EXISTS attempts (
+              user_id INTEGER NOT NULL,
+              challenge_id INTEGER NOT NULL,
+              count INTEGER NOT NULL DEFAULT 0,
+              last_attempted_at TEXT,
+              PRIMARY KEY(user_id, challenge_id),
+              FOREIGN KEY(user_id) REFERENCES users(id)
+            );
             """
         )
         # Run schema migrations for existing DB
@@ -192,12 +201,17 @@ def get_progress(conn: sqlite3.Connection, user_id: int) -> dict[str, Any]:
         r["challenge_id"]
         for r in conn.execute("SELECT challenge_id FROM completions WHERE user_id = ? ORDER BY completed_at", (user_id,))
     ]
+    attempts = {
+        r["challenge_id"]: r["count"]
+        for r in conn.execute("SELECT challenge_id, count FROM attempts WHERE user_id = ?", (user_id,))
+    }
     return {
         "xp": row["xp"],
         "level": row["level"],
         "streak": row["streak"],
         "lastActive": row["last_active"] or "",
         "completed": completed,
+        "attempts": attempts,
     }
 
 
@@ -592,6 +606,41 @@ def daily_challenges() -> Any:
             "solved": cid in completed,
         })
     return jsonify({"date": today, "challenges": result})
+
+
+@app.post("/api/challenges/<int:challenge_id>/attempt")
+@require_auth
+def register_attempt(challenge_id: int) -> Any:
+    """Record that the user opened (attempted) a challenge.
+
+    Increments a per-user, per-challenge counter so the UI can show how many
+    times a problem was started — including 'start -> leave -> come back' loops
+    that otherwise look like a single clean attempt.
+    """
+    uid = current_user_id()
+    assert uid is not None
+    meta = registry.get(challenge_id)
+    if meta is None:
+        return jsonify({"error": "Unknown challenge"}), 404
+
+    timestamp = now_iso()
+    with db() as conn:
+        conn.execute(
+            """
+            INSERT INTO attempts (user_id, challenge_id, count, last_attempted_at)
+            VALUES (?, ?, 1, ?)
+            ON CONFLICT(user_id, challenge_id) DO UPDATE SET
+              count = count + 1,
+              last_attempted_at = excluded.last_attempted_at
+            """,
+            (uid, challenge_id, timestamp),
+        )
+        row = conn.execute(
+            "SELECT count FROM attempts WHERE user_id = ? AND challenge_id = ?",
+            (uid, challenge_id),
+        ).fetchone()
+        count = row["count"] if row else 0
+    return jsonify({"ok": True, "challengeId": challenge_id, "attempts": count})
 
 
 @app.post("/api/challenges/<int:challenge_id>/submit")
