@@ -59,6 +59,12 @@ def badges_for(conn, uid: int) -> dict[int, bool]:
     return compute_badges(BadgeContext(conn, uid, registry))
 
 
+def seed_users(conn, start_uid: int, count: int, xp: int) -> None:
+    """Add `count` filler users with the given XP so leaderboard ranks are real."""
+    for i in range(count):
+        add_user(conn, start_uid + i, xp=xp)
+
+
 def check(label: str, cond: bool) -> None:
     status = "OK " if cond else "FAIL"
     print(f"[{status}] {label}")
@@ -68,8 +74,13 @@ def check(label: str, cond: bool) -> None:
 def main() -> None:
     conn = make_conn()
     try:
+        # ---- Seed a big leaderboard so rank badges mean something ----
+        # 1000 filler users (xp=100), 20 mid-tier users (xp=3000)
+        seed_users(conn, 100, 1000, xp=100)
+        seed_users(conn, 2000, 20, xp=3000)
+
         # ---- User A: heavy early user ----
-        add_user(conn, 1, xp=0, streak=7, created_at=(datetime.now(timezone.utc) - timedelta(days=400)).isoformat())
+        add_user(conn, 1, xp=500, streak=7, created_at=(datetime.now(timezone.utc) - timedelta(days=400)).isoformat())
         day1 = (datetime.now(timezone.utc) - timedelta(days=2)).strftime("%Y-%m-%dT12:00:00")
         # 10 python solves on one day -> Bug Streak I + Python Novice; first_blood
         for cid in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10):
@@ -92,6 +103,9 @@ def main() -> None:
         check("No Hints Needed (17) (11 hint-free solves)", b1[17])
         check("One Shot (16)", b1[16])  # attempts table empty -> count defaults to 1
         check("Anniversary (42)", b1[42])  # 400 days old
+        # A has 12 solves, rank 21 of 1021 users -> top 100 yes, top 10 no
+        check("Leaderboard Climber (37) for rank-21 A", b1[37])
+        check("Global Legend (38) NOT for rank-21 A", not b1[38])
 
         # add attempt rows so one solve has attempts=2 -> one_shot still true via others
         conn.execute("INSERT INTO attempts (user_id, challenge_id, count) VALUES (1, 1, 2)")
@@ -99,7 +113,7 @@ def main() -> None:
         check("One Shot still true (16)", b1b[16])
 
         # ---- User B: top of leaderboard, 10 nightmare solves ----
-        add_user(conn, 2, xp=6000, streak=31)
+        add_user(conn, 2, xp=6000, streak=31)  # rank 1 of 1023 users
         for cid in (31, 32, 33, 34, 35, 36, 37, 38, 39, 40):
             add_solve(conn, 2, cid, time_taken=30)
         b2 = badges_for(conn, 2)
@@ -109,14 +123,17 @@ def main() -> None:
         check("Month Legend (6)", b2[6])
         check("Code Phantom (48) NOT (xp too high)", not b2[48])
 
-        # User A is now rank 2 (B ahead) -> still top 100
+        # User A: 21 users ahead (B + 20 mid-tier) -> rank 22, top 100 but NOT top 10
         b1c = badges_for(conn, 1)
         check("Leaderboard Climber (37) for A", b1c[37])
+        check("Global Legend (38) NOT for rank-22 user", not b1c[38])
 
         # ---- User C: brand new, no solves ----
         add_user(conn, 3, xp=0)
         b3 = badges_for(conn, 3)
         check("New user has nothing (1)", not b3[1])
+        check("New user NO Leaderboard Climber (37)", not b3[37])
+        check("New user NO Global Legend (38)", not b3[38])
         check("Feature-less badges stay locked (29/31/33/43)", not (b3[29] or b3[31] or b3[33] or b3[43]))
 
         print("ALL BADGE TESTS PASSED")

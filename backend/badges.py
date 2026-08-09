@@ -54,6 +54,11 @@ class BadgeContext:
         ).fetchone()
         self.rank: int = (rank_row["ahead"] if rank_row else 0) + 1
 
+        # How many registered users exist. Rank badges must not unlock while the
+        # platform is tiny (e.g. 3 users -> everyone is "top 10").
+        user_count = conn.execute("SELECT COUNT(*) AS n FROM users").fetchone()
+        self.total_users: int = user_count["n"] if user_count else 0
+
         # ---- Aggregates over this user's solves ----
         self.total: int = len(self.solves)
         self.by_track: Counter[str] = Counter(r["track_slug"] for r in self.solves)
@@ -196,8 +201,8 @@ def _make_rules() -> dict[int, Callable[[BadgeContext], bool]]:
         34: lambda c: False,  # community votes not implemented
         35: lambda c: False,  # bug reporting not implemented
         36: lambda c: False,  # events not implemented
-        37: lambda c: c.rank <= 100,
-        38: lambda c: c.rank <= 10,
+        37: lambda c: c.total >= 1 and c.total_users >= 100 and c.rank <= 100,
+        38: lambda c: c.total >= 1 and c.total_users >= 1000 and c.rank <= 10,
         39: lambda c: c.on_launch_day,
         40: lambda c: c.halloween_solves >= 20,
         41: lambda c: c.jan_solves >= 31,

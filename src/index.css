@@ -201,26 +201,64 @@ textarea,
   animation: grid-drift 10s linear infinite;
 }
 
-/* glossy sheen sweep for premium cards */
-@keyframes sheen-sweep {
-  0% { transform: translateX(-120%) skewX(-20deg); }
-  100% { transform: translateX(220%) skewX(-20deg); }
+/* glass sheen for leaderboard podium cards — smooth, light, never stalls */
+@keyframes glass-sheen-sweep {
+  0% {
+    transform: translateX(-140%) skewX(-16deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(240%) skewX(-16deg);
+    opacity: 0;
+  }
 }
 .glossy-sheen {
   position: absolute;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
+  border-radius: inherit;
 }
+
+/* permanent soft glass highlight (top-left) so the card reads as clean glass */
+.glossy-sheen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(255, 255, 255, 0.02) 22%,
+    transparent 45%
+  );
+  pointer-events: none;
+}
+
+/* smooth travelling sheen that fades in/out — no stall, no snap */
 .glossy-sheen::after {
   content: "";
   position: absolute;
-  top: -20%;
+  top: -30%;
+  bottom: -30%;
   left: 0;
-  width: 35%;
-  height: 140%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent);
-  animation: sheen-sweep 3.2s ease-in-out infinite;
+  width: 30%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.04) 70%,
+    transparent 100%
+  );
+  animation: glass-sheen-sweep 3.8s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 @keyframes twinkle {
