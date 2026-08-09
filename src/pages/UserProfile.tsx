@@ -163,7 +163,7 @@ export default function UserProfile() {
   // ── Share / copy-link helpers ──
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const shareText = profile
-    ? `Check out ${profile.user.name} on Climbug — Lv ${profile.stats.level} · ${profile.stats.xp.toLocaleString()} XP · ${unlockedBadges.length} badges 🐛`
+    ? `Check out ${profile.user.name} on Climbug — Lv ${profile.stats.level} · ${profile.stats.xp.toLocaleString()} XP · ${unlockedBadges.length} badges`
     : "";
 
   const copyShareLink = async () => {
@@ -335,7 +335,7 @@ export default function UserProfile() {
               </div>
 
               {/* ══ Share button + popover ══ */}
-              <div className="absolute right-4 top-4 z-30 sm:right-6 sm:top-6">
+              <div ref={shareRef} className="absolute right-4 top-4 z-30 sm:right-6 sm:top-6">
                 <button
                   onClick={() => setShareOpen((o) => !o)}
                   aria-label="Share profile"
@@ -352,10 +352,7 @@ export default function UserProfile() {
                 </button>
 
                 {shareOpen && (
-                  <div
-                    ref={shareRef}
-                    className="share-pop absolute right-0 top-11 w-[292px] rounded-2xl border border-white/10 bg-[#12101d]/95 p-3.5 shadow-2xl backdrop-blur-xl"
-                  >
+                  <div className="share-pop absolute right-0 top-11 w-[292px] rounded-2xl border border-white/10 bg-[#12101d]/95 p-3.5 shadow-2xl backdrop-blur-xl">
                     <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Share Profile</p>
 
                     {/* Copy link row */}

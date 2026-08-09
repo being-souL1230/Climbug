@@ -245,7 +245,7 @@ def get_progress(conn: sqlite3.Connection, user_id: int) -> dict[str, Any]:
     g = conn.execute(
         """SELECT g.id, g.name, g.tag
            FROM guild_members gm JOIN guilds g ON g.id = gm.guild_id
-           WHERE gm.user_id = ? LIMIT 1""",
+           WHERE gm.user_id = ? ORDER BY g.id LIMIT 1""",
         (user_id,),
     ).fetchone()
     if g is not None:
