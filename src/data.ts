@@ -6110,6 +6110,17 @@ export interface PlayerProgress {
   lastActive: string;
   /** challengeId -> how many times the user has opened/attempted it */
   attempts: Record<number, number>;
+  /** Global rank by XP (0 = not loaded yet) */
+  rank?: number;
+  /** The signed-in user's guild, if any */
+  guild?: {
+    id: number;
+    name: string;
+    tag?: string;
+    memberCount: number;
+    rank: number;
+    xp: number;
+  };
 }
 
 export function loadProgress(): PlayerProgress {

@@ -23,6 +23,7 @@ const DEFAULT: PlayerProgress = {
   streak: 0,
   lastActive: "",
   attempts: {},
+  rank: 0,
 };
 
 const LISTENERS = new Set<() => void>();

@@ -236,10 +236,40 @@ def get_progress(conn: sqlite3.Connection, user_id: int) -> dict[str, Any]:
         r["challenge_id"]: r["count"]
         for r in conn.execute("SELECT challenge_id, count FROM attempts WHERE user_id = ?", (user_id,))
     }
+    # Global rank by XP (same rule as /api/leaderboard + /api/users/<login>)
+    rank = conn.execute(
+        "SELECT COUNT(*) + 1 AS rank FROM progress p WHERE p.xp > ?", (row["xp"],)
+    ).fetchone()["rank"]
+    # Guild membership (real data, so UI never shows hardcoded guilds/ranks)
+    guild: dict[str, Any] | None = None
+    g = conn.execute(
+        """SELECT g.id, g.name, g.tag
+           FROM guild_members gm JOIN guilds g ON g.id = gm.guild_id
+           WHERE gm.user_id = ? LIMIT 1""",
+        (user_id,),
+    ).fetchone()
+    if g is not None:
+        member_xp = [
+            r["xp"]
+            for r in conn.execute(
+                "SELECT p.xp FROM guild_members gm JOIN progress p ON p.user_id = gm.user_id WHERE gm.guild_id = ?",
+                (g["id"],),
+            )
+        ]
+        guild = {
+            "id": g["id"],
+            "name": g["name"],
+            "tag": g["tag"] or "",
+            "memberCount": len(member_xp),
+            "rank": sum(1 for x in member_xp if x > row["xp"]) + 1,
+            "xp": sum(member_xp),
+        }
     return {
         "xp": row["xp"],
         "level": row["level"],
         "streak": row["streak"],
+        "rank": int(rank),
+        "guild": guild,
         "lastActive": row["last_active"] or "",
         "completed": completed,
         "attempts": attempts,

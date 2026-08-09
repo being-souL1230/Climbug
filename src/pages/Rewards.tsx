@@ -506,7 +506,7 @@ export default function Rewards() {
                   <GameIcon name="trophy" className="h-8 w-8 text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
                 </div>
                 <div className="absolute -bottom-2 rounded-full border border-amber-400/60 bg-amber-500 px-2 py-0.5 text-[10px] font-black tracking-wider text-black shadow-md">
-                  RANK #{currentLevel * 3 + 12}
+                  RANK #{progress.rank || "—"}
                 </div>
               </div>
 
