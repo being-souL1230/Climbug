@@ -241,6 +241,20 @@ export default function BossArena() {
     return Math.max(0, boss.timeLimitSec * 1000 - elapsed);
   }, [boss, fighting, state?.startedAt, now]);
 
+  // ── Fullscreen takeover while fighting (immersive arena, no navbar) ──
+  useEffect(() => {
+    if (fighting) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
+    }
+    return () => {
+      document.body.style.overflow = "";
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
+    };
+  }, [fighting]);
+
   // ── Exit trap: block in-app navigation + warn on tab close ──
   const blocker = useBlocker(
     useCallback(
@@ -253,6 +267,20 @@ export default function BossArena() {
   useEffect(() => {
     if (blocker.state === "blocked") setLeaveDialog(true);
   }, [blocker.state]);
+
+  // Belt & suspenders for hash routers: if a back/forward pop ever escapes the
+  // blocker, bounce straight back into the arena and raise the warning.
+  useEffect(() => {
+    if (!fighting) return;
+    const onPop = () => {
+      if (!window.location.hash.startsWith("#/boss")) {
+        window.history.pushState(null, "", "#/boss");
+        setLeaveDialog(true);
+      }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [fighting]);
 
   useEffect(() => {
     if (!fighting) return;
@@ -280,8 +308,18 @@ export default function BossArena() {
   }, [fighting, remainingMs]);
 
   const startFight = async () => {
+    setError(null);
     try {
       const d = await apiFetch<BossApi>("/api/boss/start", { method: "POST" });
+      // Request real browser fullscreen only once the fight is confirmed (still
+      // within the click's transient user activation on modern browsers).
+      try {
+        if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => undefined);
+        }
+      } catch {
+        /* fullscreen unsupported */
+      }
       setBoss(d.boss);
       setState(d.state);
       setStats(d.stats);
@@ -322,6 +360,7 @@ export default function BossArena() {
   };
 
   const forfeitAndLeave = async () => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
     try {
       await apiFetch<{ ok: boolean }>("/api/boss/forfeit", { method: "POST", body: JSON.stringify({ reason: "leave" }) });
     } catch {
@@ -329,6 +368,7 @@ export default function BossArena() {
     }
     setState((s) => (s ? { ...s, status: "forfeited" } : s));
     if (blocker.state === "blocked") blocker.proceed();
+    else navigate("/dashboard");
   };
 
   // Warning / result dialog routing
@@ -490,6 +530,12 @@ export default function BossArena() {
               </div>
             </div>
 
+            {error && (
+              <p className="relative mt-4 rounded-xl border border-rose-500/30 bg-rose-950/40 px-4 py-2.5 text-center text-xs font-bold text-rose-300">
+                {error}
+              </p>
+            )}
+
             <button
               onClick={startFight}
               className="group/btn relative mt-7 w-full overflow-hidden rounded-xl border-2 border-amber-700/70 bg-gradient-to-b from-[#4a0d0d] to-[#260606] py-4 font-serif text-lg font-bold italic text-amber-100 shadow-[inset_0_0_24px_rgba(220,38,38,0.35),0_10px_28px_rgba(0,0,0,0.6)] transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-500 hover:text-white hover:shadow-[inset_0_0_34px_rgba(220,38,38,0.6),0_14px_36px_rgba(153,27,27,0.5)] active:translate-y-0"
@@ -519,7 +565,7 @@ export default function BossArena() {
   const timeLow = remainingMs <= 60_000;
 
   return (
-    <div className="min-h-screen bg-[#07070b] text-zinc-100 selection:bg-rose-500/30">
+    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-[#07070b] text-zinc-100 selection:bg-rose-500/30">
       {/* leave-confirm dialog (blocker) */}
       {leaveDialog && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[#050309]/80 p-4 backdrop-blur-md">
@@ -552,10 +598,8 @@ export default function BossArena() {
         </div>
       )}
 
-      <Navbar variant="app" />
-
-      {/* Sticky fight header */}
-      <div className="sticky top-[62px] z-40 border-b border-white/6 bg-[#0d0a10]/95 backdrop-blur-md">
+      {/* Fullscreen fight header */}
+      <header className="z-40 shrink-0 border-b border-white/6 bg-[#0d0a10]/95 backdrop-blur-md">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2.5">
             <div className="grid h-9 w-9 place-items-center rounded-xl border border-rose-500/40 bg-rose-950/40">
@@ -582,11 +626,11 @@ export default function BossArena() {
             </span>
           </div>
         </div>
-      </div>
+      </header>
 
-      <main className={cn("grid flex-1 lg:grid-cols-[360px_1fr]", shake && "boss-shake")}>
+      <main className={cn("flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[360px_1fr]", shake && "boss-shake")}>
         {/* Left: boss intel */}
-        <aside className="border-b border-white/6 bg-[#0c0a11] px-6 py-6 lg:border-b-0 lg:border-r">
+        <aside className="max-h-[42vh] flex-none overflow-y-auto border-b border-white/6 bg-[#0c0a11] px-6 py-6 lg:max-h-none lg:flex-auto lg:overflow-y-auto lg:border-b-0 lg:border-r">
           <h2 className="flex items-center gap-2 text-xs font-extrabold tracking-[0.18em] text-rose-400">
             <GameIcon name="bug" className="h-5 w-5" /> THE BUG
           </h2>
@@ -622,7 +666,7 @@ export default function BossArena() {
         </aside>
 
         {/* Editor */}
-        <section className="flex min-w-0 flex-col bg-[#0e0e15]">
+        <section className="flex min-h-0 min-w-0 flex-col bg-[#0e0e15]">
           <div className="flex flex-wrap items-center gap-3 border-b border-white/6 px-5 py-3">
             <div className="flex items-center gap-2">
               <span className="rounded bg-rose-500/20 px-2.5 py-1 font-mono text-[11px] font-bold text-rose-300">BOSS</span>
@@ -647,7 +691,7 @@ export default function BossArena() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-hidden">
+          <div className="min-h-0 flex-1 overflow-hidden">
             <Editor
               height="100%"
               language={boss.monaco}
