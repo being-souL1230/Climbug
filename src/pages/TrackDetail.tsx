@@ -174,19 +174,22 @@ export default function TrackDetail() {
                           <div className="flex items-center justify-between md:justify-end">
                             <span className="text-[10px] font-bold text-zinc-600 uppercase md:hidden">Stack</span>
                             <span className="rounded bg-white/5 px-2 py-0.5 font-mono text-[10px] text-zinc-400 border border-white/5">{c.lang}</span>
-                          </div>
-
-                          <div className="flex items-center justify-between md:justify-end">
-                            <span className="text-[10px] font-bold text-zinc-600 uppercase md:hidden">Status</span>
-                            {solved ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400">
-                                <span className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
-                                DONE
-                              </span>
-                            ) : (
-                              <span className="text-[11px] font-bold text-zinc-600">—</span>
-                            )}
-                          </div>
+                          </div>                              <div className="flex items-center justify-between md:justify-end">
+                                <span className="text-[10px] font-bold text-zinc-600 uppercase md:hidden">Status</span>
+                                {solved ? (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400">
+                                    <span className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
+                                    DONE
+                                  </span>
+                                ) : attempts > 0 ? (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400">
+                                    <span className="h-1 w-1 rounded-full bg-amber-400 animate-pulse" />
+                                    IN PROGRESS
+                                  </span>
+                                ) : (
+                                  <span className="text-[11px] font-bold text-zinc-600">—</span>
+                                )}
+                              </div>
 
                           <div className="flex justify-end">
                             <span className={cn(
